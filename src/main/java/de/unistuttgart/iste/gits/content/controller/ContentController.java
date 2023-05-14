@@ -29,6 +29,12 @@ public class ContentController {
         return ContentService.getAllContents();
     }
 
+    @QueryMapping
+    public List<ContentDto> contentsByTag(@Argument(name = "tag") String tag) {
+        log.info("Request for all Contents by tag");
+        return ContentService.getContentsByTag(tag);
+    }
+
     @MutationMapping
     public ContentDto createContent(@Argument(name = "input") CreateContentInputDto input) {
         return ContentService.createContent(input);

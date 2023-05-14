@@ -1,0 +1,7 @@
+query($tag:String!) {
+    contentsByTag(tag: $tag)
+     {
+        id
+        contentName
+    }
+}

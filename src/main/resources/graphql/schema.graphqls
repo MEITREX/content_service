@@ -1,16 +1,12 @@
 # schema file of the microservice
 
-# TODO define data types, queries and mutations
-# this can be done in a separate files as long as they are in this folder and
-# end with .graphqls
-
-
 type Content {
   id: UUID!
   contentName: String!
   rewardPoints: Int!
   workedOn: Boolean!
   chapterId: UUID!
+  tags: [Tag]!
 }
 
 input CreateContentInput {
@@ -32,27 +28,45 @@ input UpdateContentInput {
 }
 
 type Tag {
-    tag: String!
+    name: String!
+    id: UUID!
+}
+
+input CreateTagInput {
+    # name of the tag, max 255 characters
+    name: String! @NotBlank @Size(max: 255)
+    contentId: UUID! @NotBlank
+}
+
+input UpdateTagInput {
+    id: UUID!
+    name: String! @NotBlank @Size(max: 255)
 }
 
 type Query {
-  # get all contents
-  contents: [Content]
-  # get all tags
-  tags: [Tag]
-  # get contents by ids
-  contentsById(ids: [UUID!]!): [Content!]!
-  # get contents by tags
-  # contentsByTag(tags: [Tag!]!): [Content!]!
+    # get all contents
+    contents: [Content]
+    # get all tags
+    tags: [Tag]
+    # get contents by ids
+    contentsById(ids: [UUID!]!): [Content!]!
+    # get contents by tag
+    contentsByTag(tag: String!): [Content!]!
 }
 
 type Mutation {
     # Create a new Content
     createContent(input: CreateContentInput!): Content!
+    # Create a new Tag
+    createTag(input: CreateTagInput!): Tag!
 
     # Update an existing Content
     updateContent(input: UpdateContentInput!): Content!
+    # Update an existing Tag
+    updateTag(input: UpdateTagInput!): Tag!
 
     # Delete an existing Content, throws an error if no Content with the given id exists
     deleteContent(id: UUID!): UUID!
+    # Delete an existing Tag, throws an error if no Tag with the given id exists
+    deleteTag(id: UUID!): UUID!
 }

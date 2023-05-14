@@ -1,0 +1,11 @@
+mutation($contentId:UUID!) {
+    createTag(
+        input: {
+            name: "Tag1"
+            contentId: $contentId
+        }
+    ) {
+        id
+        name
+    }
+}

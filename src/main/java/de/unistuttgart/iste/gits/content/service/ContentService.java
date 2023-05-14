@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,6 +59,10 @@ public class ContentService {
         if (!contentRepository.existsById(id)) {
             throw new EntityNotFoundException("Content with id " + id + " not found");
         }
-    }    
-    
+    }
+
+    public List<ContentDto> getContentsByTag(String tag) {
+        return Collections.emptyList();
+        //return contentRepository.findByTag(tag).stream().map(contentMapper::entityToDto).toList();
+    }
 }
