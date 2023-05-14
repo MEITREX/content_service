@@ -1,0 +1,15 @@
+mutation {
+    createContent(
+        input: {
+            contentName: "New Content"
+            rewardPoints: 5
+            workedOn: false
+            chapterId: "96e21d9c-f259-11ed-a05b-0242ac120003"
+        }
+    ) {
+        id
+        contentName
+        rewardPoints
+        workedOn
+    }
+}

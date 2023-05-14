@@ -5,12 +5,54 @@
 # end with .graphqls
 
 
-# example
-type Template {
-  id: ID!
-  name: String!
+type Content {
+  id: UUID!
+  contentName: String!
+  rewardPoints: Int!
+  workedOn: Boolean!
+  chapterId: UUID!
+}
+
+input CreateContentInput {
+    # name of the content, max 255 characters
+    contentName: String! @NotBlank @Size(max: 255)
+    rewardPoints: Int! @NotBlank
+    workedOn: Boolean! @NotBlank
+    chapterId: UUID! @NotBlank
+}
+
+input UpdateContentInput {
+    # UUID of the content that should be updated
+    id: UUID!
+    # name of the content, max 255 characters
+    contentName: String! @NotBlank @Size(max: 255)
+    rewardPoints: Int! @NotBlank
+    workedOn: Boolean! @NotBlank
+    chapterId: UUID! @NotBlank
+}
+
+type Tag {
+    tag: String!
 }
 
 type Query {
-  templates: [Template]
+  # get all contents
+  contents: [Content]
+  # get all tags
+  tags: [Tag]
+  # get contents by ids
+  contentsById(ids: [UUID!]!): [Content!]!
+  # get contents by tags
+  # contentsByTag(tags: [Tag!]!): [Content!]!
+}
+
+type Mutation {
+    # Create a new Content
+    createContent(input: CreateContentInput!): Content!
+
+    # Update an existing Content
+    updateContent(input: UpdateContentInput!): Content!
+
+    # Delete an existing Content, throws an error if no Content with the given id exists
+    deleteContent(id: UUID!): UUID!
 }
