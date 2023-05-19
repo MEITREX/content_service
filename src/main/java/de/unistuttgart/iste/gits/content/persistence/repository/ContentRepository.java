@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,4 +23,6 @@ public interface ContentRepository extends JpaRepository<ContentEntity, UUID> {
     @Query("select t.content from Tag t where t.id = :tagId")
     List<ContentEntity> findByTagId(@Param("tagId") UUID tagId);
 
+    @Query("select content from Content content where content.id in (:ids)")
+    List<ContentEntity> findById(List<UUID> ids);
 }

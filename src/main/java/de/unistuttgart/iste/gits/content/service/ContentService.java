@@ -63,6 +63,10 @@ public class ContentService {
         }
     }
 
+    public List<ContentDto> getContentsById(List<UUID> ids) {
+        return contentRepository.findById(ids).stream().map(contentMapper::entityToDto).toList();
+    }
+
     public List<ContentDto> getContentsByTagName(String tag) {
         return contentRepository.findByTagName(tag).stream().map(contentMapper::entityToDto).toList();
     }

@@ -7,6 +7,7 @@ import de.unistuttgart.iste.gits.content.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content.service.ContentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -27,6 +28,12 @@ public class ContentController {
     public List<ContentDto> contents() {
         log.info("Request for all Contents");
         return ContentService.getAllContents();
+    }
+
+    @QueryMapping
+    public List<ContentDto> contentsById(@Argument(name = "ids") List<UUID> ids) {
+        log.info("Request Contents by Ids");
+        return ContentService.getContentsById(ids);
     }
 
     @QueryMapping

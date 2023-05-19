@@ -10,6 +10,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,4 +53,17 @@ public class ContentServiceApiTests {
         response.path("contentsByTagName[0].id").entity(UUID.class).isEqualTo(contentId);
     }
 
+    @Test
+    void shouldAddContentAndGetById() {
+        UUID contentId = this.graphQlTester.documentName("create-content")
+                .execute().path("createContent.id").entity(UUID.class).get();
+        List<UUID> ids = new ArrayList<>();
+        ids.add(contentId);
+        GraphQlTester.Response response = this.graphQlTester.documentName("get-contents-by-id")
+                .variable("ids", ids)
+                .execute();
+        List responseList = response.path("contentsById").entity(List.class).get();
+        assertThat(responseList.size(), equalTo(1));
+        response.path("contentsById[0].id").entity(UUID.class).isEqualTo(contentId);
+    }
 }
