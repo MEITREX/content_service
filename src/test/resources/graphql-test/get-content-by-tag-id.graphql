@@ -1,0 +1,7 @@
+query($tagId:UUID!) {
+    contentByTag(tag: $tagId)
+     {
+        id
+        name
+    }
+}

@@ -19,7 +19,7 @@ public class ContentServiceApiTests {
     void shouldAddContentAndQueryBack() {
         this.graphQlTester.documentName("create-content")
                 .execute()
-                .path("createContent.contentName").entity(String.class).isEqualTo("New Content")
+                .path("createContent.name").entity(String.class).isEqualTo("New Content")
                 .path("createContent.rewardPoints").entity(Integer.class).isEqualTo(5)
                 .path("createContent.workedOn").entity(Boolean.class).isEqualTo(Boolean.FALSE);
     }
@@ -30,14 +30,15 @@ public class ContentServiceApiTests {
         // only story content Id, the other parts are verified in other tests.
         UUID contentId = this.graphQlTester.documentName("create-content")
                          .execute().path("createContent.id").entity(UUID.class).get();
-        this.graphQlTester.documentName("create-tag")
+        UUID tagId = this.graphQlTester.documentName("create-tag")
                 .variable("contentId", contentId)
                 .execute()
-                .path("createTag.name").entity(String.class).isEqualTo("Tag1");
-//        this.graphQlTester.documentName("get-contents-by-tag")
-//                .variable("tag", "Tag1")
-//                .execute()
-//                .path("getContentsByTag.id").entity(UUID.class).isEqualTo(contentId);
+                .path("createTag.name").entity(String.class).isEqualTo("Tag1")
+                .path("createTag.id").entity(UUID.class).get();
+        this.graphQlTester.documentName("get-content-by-tag-id")
+                .variable("tagId", tagId)
+                .execute()
+                .path("contentByTag.id").entity(UUID.class).isEqualTo(contentId);
     }
 
 }

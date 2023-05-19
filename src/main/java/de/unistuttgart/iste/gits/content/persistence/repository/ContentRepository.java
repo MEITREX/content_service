@@ -14,8 +14,12 @@ import java.util.UUID;
 @Repository
 public interface ContentRepository extends JpaRepository<ContentEntity, UUID> {
 
-    List<ContentEntity> findByContentName(String name);
+    List<ContentEntity> findByName(String name);
 
     // TODO fix this query @Query("select t.content from Tag t where t.name = :tag")
     //List<ContentEntity> findByTag(@Param("tag") String tag);
+
+    @Query("select t.content from Tag t where t.id = :tagId")
+    List<ContentEntity> findByTagId(@Param("tagId") UUID tagId);
+
 }
