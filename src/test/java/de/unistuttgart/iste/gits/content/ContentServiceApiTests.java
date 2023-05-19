@@ -7,7 +7,10 @@ import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureG
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.context.junit4.SpringRunner;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
+import java.util.List;
 import java.util.UUID;
 
 @SpringBootTest(classes=ContentServiceApplication.class)
@@ -27,11 +30,13 @@ public class ContentServiceApiTests {
     @Test
     void shouldAddContentWithTagAndQueryBack() {
         // create same content as in shouldAddContentAndQueryBack
-        // only story content Id, the other parts are verified in other tests.
+        // only store content Id, the other parts are verified in other tests.
+        final String tagName = "Tag1";
         UUID contentId = this.graphQlTester.documentName("create-content")
                          .execute().path("createContent.id").entity(UUID.class).get();
         UUID tagId = this.graphQlTester.documentName("create-tag")
                 .variable("contentId", contentId)
+                .variable("tagName", tagName)
                 .execute()
                 .path("createTag.name").entity(String.class).isEqualTo("Tag1")
                 .path("createTag.id").entity(UUID.class).get();
@@ -39,6 +44,12 @@ public class ContentServiceApiTests {
                 .variable("tagId", tagId)
                 .execute()
                 .path("contentByTag.id").entity(UUID.class).isEqualTo(contentId);
+        GraphQlTester.Response response = this.graphQlTester.documentName("get-contents-by-tag-name")
+                .variable("tag", tagName)
+                .execute();
+        List responseList = response.path("contentsByTagName").entity(List.class).get();
+        assertThat(responseList.size(),equalTo(1));
+        response.path("contentsByTagName[0].id").entity(UUID.class).isEqualTo(contentId);
     }
 
 }

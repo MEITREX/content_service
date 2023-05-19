@@ -64,8 +64,7 @@ public class ContentService {
     }
 
     public List<ContentDto> getContentsByTagName(String tag) {
-        return Collections.emptyList();
-        //return contentRepository.findByTag(tag).stream().map(contentMapper::entityToDto).toList();
+        return contentRepository.findByTagName(tag).stream().map(contentMapper::entityToDto).toList();
     }
 
     public ContentDto getContentByTag(UUID tag) {
