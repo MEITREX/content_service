@@ -4,9 +4,9 @@ services:
     restart: always
     network_mode: bridge
     expose:
-      - 1032
+      - 4032
     ports:
-      - "1032:5432"
+      - "4032:5432"
     volumes:
       - contentdata:/var/lib/postgresql/data
     environment:
