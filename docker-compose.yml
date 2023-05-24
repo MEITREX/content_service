@@ -13,6 +13,20 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=content-service
+  testDb:
+    image: postgres:alpine
+    restart: always
+    network_mode: bridge
+    expose:
+      - 4033
+    ports:
+      - "4033:5432"
+    volumes:
+      - contentdata:/var/lib/postgresql/testdata
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=test_data
   app:
     build: .
     restart: always
@@ -29,6 +43,6 @@ services:
     links:
       - database
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:4032/content-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/content-service
 volumes:
   contentdata:

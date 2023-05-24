@@ -25,13 +25,14 @@ public class ContentServiceApiTests {
                 .execute()
                 .path("createContent.name").entity(String.class).isEqualTo("New Content")
                 .path("createContent.rewardPoints").entity(Integer.class).isEqualTo(5)
-                .path("createContent.workedOn").entity(Boolean.class).isEqualTo(Boolean.FALSE);
+                .path("createContent.workedOn").entity(Boolean.class).isEqualTo(Boolean.FALSE)
+                .path("createContent.id").entity(UUID.class).isEqualTo("7ab74c7d-49a2-4d14-8550-8c7260a124d7");
     }
 
     @Test
     void shouldAddContentWithTagAndQueryBack() {
         // create same content as in shouldAddContentAndQueryBack
-        // only store content Id, the other parts are verified in other tests.
+        // only store content id, the other parts are verified in other tests.
         final String tagName = "Tag1";
         UUID contentId = this.graphQlTester.documentName("create-content")
                          .execute().path("createContent.id").entity(UUID.class).get();

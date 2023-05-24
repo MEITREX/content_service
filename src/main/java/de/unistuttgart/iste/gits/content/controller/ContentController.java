@@ -36,17 +36,6 @@ public class ContentController {
         return ContentService.getContentsById(ids);
     }
 
-    @QueryMapping
-    public List<ContentDto> contentsByTagName(@Argument(name = "tag") String tag) {
-        log.info("Request for all Contents by tag name");
-        return ContentService.getContentsByTagName(tag);
-    }
-
-    @QueryMapping
-    public ContentDto contentByTag(@Argument(name = "tag") UUID tag) {
-        log.info("Request for all Contents by tag id");
-        return ContentService.getContentByTag(tag);
-    }
     @MutationMapping
     public ContentDto createContent(@Argument(name = "input") CreateContentInputDto input) {
         return ContentService.createContent(input);

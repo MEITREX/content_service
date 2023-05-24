@@ -88,16 +88,15 @@ type Query {
 type Mutation {
     # Create a new Content
     createContent(input: CreateContentInput!): Content!
-    # Create a new Tag
-    createTag(input: CreateTagInput!): Tag!
-
     # Update an existing Content
     updateContent(input: UpdateContentInput!): Content!
-    # Update an existing Tag
-    updateTag(input: UpdateTagInput!): Tag!
-
     # Delete an existing Content, throws an error if no Content with the given id exists
     deleteContent(id: UUID!): UUID!
+
+    # Create a new Tag
+    createTag(input: CreateTagInput!): Tag!
+    # Update an existing Tag
+    updateTag(input: UpdateTagInput!): Tag!
     # Delete an existing Tag, throws an error if no Tag with the given id exists
     deleteTag(id: UUID!): UUID!
 }

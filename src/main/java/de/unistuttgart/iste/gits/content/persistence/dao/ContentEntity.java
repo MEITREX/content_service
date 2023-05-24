@@ -36,5 +36,5 @@ public class ContentEntity {
     private List<TagEntity> tags;
 
     @Column(nullable = false)
-    private UUID contentId;
+    private UUID chapterId;
 }
