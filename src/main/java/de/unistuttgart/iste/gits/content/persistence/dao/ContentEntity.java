@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity(name = "Content")
+@Table(indexes = {
+        @Index(columnList = "contentId")
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,4 +35,6 @@ public class ContentEntity {
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TagEntity> tags;
 
+    @Column(nullable = false)
+    private UUID contentId;
 }

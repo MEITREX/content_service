@@ -1,42 +1,75 @@
 # schema file of the microservice
 
-type Content {
-  id: UUID!
-  name: String!
-  rewardPoints: Int!
-  workedOn: Boolean!
-  tags: [Tag]!
+interface Content {
+    # ID of the content
+    id: UUID!
+    # name of the content
+    name: String!
+    # Number of reward points a student receives for completing this content
+    rewardPoints: Int!
+    # purpose unclear
+    workedOn: Boolean!
+    # Tags this content is tagged with
+    tags: [Tag]!
+    # ID of the chapter this content is associated with
+    chapterId: UUID!
+}
+
+type MediaContent implements Content {
+    # ID of the content
+    id: UUID!
+    # name of the content
+    name: String!
+    # Number of reward points a student receives for completing this content
+    rewardPoints: Int!
+    # purpose unclear
+    workedOn: Boolean!
+    # Tags this content is tagged with
+    tags: [Tag]!
+    # ID of the chapter this content is associated with
+    chapterId: UUID!
 }
 
 input CreateContentInput {
-    # name of the content, max 255 characters
+    # name of the content, max 255 characters, cannot be empty
     name: String! @NotBlank @Size(max: 255)
-    rewardPoints: Int! @NotBlank
-    workedOn: Boolean! @NotBlank
+    # Number of reward points a student receives for completing this content
+    rewardPoints: Int!
+    # purpose unclear
+    workedOn: Boolean!
+    # chapter id the content will be associated with
+    chapterId: UUID!
 }
 
 input UpdateContentInput {
-    # UUID of the content that should be updated
+    # ID of the content that should be updated
     id: UUID!
-    # name of the content, max 255 characters
+    # new name of the content, max 255 characters
     name: String! @NotBlank @Size(max: 255)
-    rewardPoints: Int! @NotBlank
-    workedOn: Boolean! @NotBlank
+    # new reward points of the content
+    rewardPoints: Int!
+    # new value for "workedOn" field of the content
+    workedOn: Boolean!
 }
 
 type Tag {
+    # Name of the tag
     name: String!
+    # ID of the tag
     id: UUID!
 }
 
+# Input type used to create a new tag
 input CreateTagInput {
     # name of the tag, max 255 characters
     name: String! @NotBlank @Size(max: 255)
-    contentId: UUID! @NotBlank
 }
 
+# Input type used to update an existing tag
 input UpdateTagInput {
+    # ID of the tag to update
     id: UUID!
+    # New name of the tag
     name: String! @NotBlank @Size(max: 255)
 }
 
@@ -47,10 +80,9 @@ type Query {
     tags: [Tag]
     # get contents by ids
     contentsById(ids: [UUID!]!): [Content!]!
-    # get contents by tag name
-    contentsByTagName(tag: String!): [Content!]!
-    # get content by tag id
-    contentByTag(tag: UUID!): Content
+    # get contents by chapter ids. Returns a list containing sublists, where each sublist contains all contents
+    # associated with that chapter
+    contentsByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!
 }
 
 type Mutation {

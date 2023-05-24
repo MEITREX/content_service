@@ -12,9 +12,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -67,19 +66,23 @@ public class ContentService {
         return contentRepository.findById(ids).stream().map(contentMapper::entityToDto).toList();
     }
 
-    public List<ContentDto> getContentsByTagName(String tag) {
-        return contentRepository.findByTagName(tag).stream().map(contentMapper::entityToDto).toList();
-    }
+    public List<List<ContentDto>> getContentsByChapterIds(List<UUID> chapterIds) {
+        List<List<ContentDto>> result = new ArrayList<>(chapterIds.size());
 
-    public ContentDto getContentByTag(UUID tag) {
-        List<ContentDto> queryResult = contentRepository.findByTagId(tag).stream().map(contentMapper::entityToDto).toList();
-        int size = queryResult.size();
-        if (size ==0 ) {
-            return null;
+        // get a list containing all contents with a matching chapter id, then map them by chapter id (multiple
+        // contents might have the same chapter id)
+        Map<UUID, List<ContentDto>> contentsByChapterId = contentRepository.findByChapterIds(chapterIds).stream()
+                .map(contentMapper::entityToDto)
+                .collect(Collectors.groupingBy(ContentDto::getChapterId));
+
+        // put the different groups of chapters into the result list such that the order matches the order
+        // of chapter ids given by the chapterIds argument
+        for(UUID chapterId : chapterIds) {
+            List<ContentDto> contents = contentsByChapterId.getOrDefault(chapterId, Collections.emptyList());
+
+            result.add(contents);
         }
-        if (size > 1) {
-            throw new EntityNotFoundException("Multiple Content found with tag id " + tag);
-        }
-        return queryResult.get(0);
+
+        return result;
     }
 }
