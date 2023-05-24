@@ -8,6 +8,7 @@ import de.unistuttgart.iste.gits.content.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content.validation.ContentValidator;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ContentService {
 
     private final ContentRepository contentRepository;
@@ -61,8 +63,23 @@ public class ContentService {
         }
     }
 
-    public List<ContentDto> getContentsByTag(String tag) {
-        return Collections.emptyList();
-        //return contentRepository.findByTag(tag).stream().map(contentMapper::entityToDto).toList();
+    public List<ContentDto> getContentsById(List<UUID> ids) {
+        return contentRepository.findById(ids).stream().map(contentMapper::entityToDto).toList();
+    }
+
+    public List<ContentDto> getContentsByTagName(String tag) {
+        return contentRepository.findByTagName(tag).stream().map(contentMapper::entityToDto).toList();
+    }
+
+    public ContentDto getContentByTag(UUID tag) {
+        List<ContentDto> queryResult = contentRepository.findByTagId(tag).stream().map(contentMapper::entityToDto).toList();
+        int size = queryResult.size();
+        if (size ==0 ) {
+            return null;
+        }
+        if (size > 1) {
+            throw new EntityNotFoundException("Multiple Content found with tag id " + tag);
+        }
+        return queryResult.get(0);
     }
 }

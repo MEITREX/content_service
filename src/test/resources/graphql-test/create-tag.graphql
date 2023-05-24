@@ -1,7 +1,7 @@
-mutation($contentId:UUID!) {
+mutation($contentId:UUID!, $tagName:String!) {
     createTag(
         input: {
-            name: "Tag1"
+            name: $tagName
             contentId: $contentId
         }
     ) {

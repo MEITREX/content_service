@@ -2,29 +2,26 @@
 
 type Content {
   id: UUID!
-  contentName: String!
+  name: String!
   rewardPoints: Int!
   workedOn: Boolean!
-  chapterId: UUID!
   tags: [Tag]!
 }
 
 input CreateContentInput {
     # name of the content, max 255 characters
-    contentName: String! @NotBlank @Size(max: 255)
+    name: String! @NotBlank @Size(max: 255)
     rewardPoints: Int! @NotBlank
     workedOn: Boolean! @NotBlank
-    chapterId: UUID! @NotBlank
 }
 
 input UpdateContentInput {
     # UUID of the content that should be updated
     id: UUID!
     # name of the content, max 255 characters
-    contentName: String! @NotBlank @Size(max: 255)
+    name: String! @NotBlank @Size(max: 255)
     rewardPoints: Int! @NotBlank
     workedOn: Boolean! @NotBlank
-    chapterId: UUID! @NotBlank
 }
 
 type Tag {
@@ -50,8 +47,10 @@ type Query {
     tags: [Tag]
     # get contents by ids
     contentsById(ids: [UUID!]!): [Content!]!
-    # get contents by tag
-    contentsByTag(tag: String!): [Content!]!
+    # get contents by tag name
+    contentsByTagName(tag: String!): [Content!]!
+    # get content by tag id
+    contentByTag(tag: UUID!): Content
 }
 
 type Mutation {

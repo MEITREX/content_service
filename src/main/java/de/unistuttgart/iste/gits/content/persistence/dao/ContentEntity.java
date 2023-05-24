@@ -21,16 +21,13 @@ public class ContentEntity {
     private UUID id;
 
     @Column(nullable = false, length = 255)
-    private String contentName;
+    private String name;
 
     @Column(nullable = false)
     private int rewardPoints;
 
     @Column(nullable = false)
     private boolean workedOn;
-
-    @Column(nullable = false)
-    private UUID chapterId;
 
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TagEntity> tags;
