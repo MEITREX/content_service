@@ -8,8 +8,6 @@ import java.util.Arrays;
 
 /**
  * This is the entry point of the application.
- * <p>
- * TODO: Rename the package and the class to match the microservice name.
  */
 @SpringBootApplication
 @Slf4j
