@@ -3,7 +3,6 @@ package de.unistuttgart.iste.gits.content_service.controller;
 import de.unistuttgart.iste.gits.generated.dto.ContentDto;
 import de.unistuttgart.iste.gits.generated.dto.CreateContentInputDto;
 import de.unistuttgart.iste.gits.generated.dto.UpdateContentInputDto;
-import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.service.ContentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,34 +19,37 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ContentController {
 
-    private final ContentService ContentService;
-    private final ContentMapper contentMapper;
+    private final ContentService contentService;
 
     @QueryMapping
     public List<ContentDto> contents() {
         log.info("Request for all Contents");
-        return ContentService.getAllContents();
+        return contentService.getAllContents();
     }
 
     @QueryMapping
     public List<ContentDto> contentsById(@Argument(name = "ids") List<UUID> ids) {
         log.info("Request Contents by Ids");
-        return ContentService.getContentsById(ids);
+        return contentService.getContentsById(ids);
+    }
+
+    @QueryMapping List<List<ContentDto>> contentsByChapterIds(@Argument(name = "chapterIds") List<UUID> chapterIds) {
+        log.info("Request Contents by Chapter Ids");
+        return contentService.getContentsByChapterIds(chapterIds);
     }
 
     @MutationMapping
     public ContentDto createContent(@Argument(name = "input") CreateContentInputDto input) {
-        return ContentService.createContent(input);
+        return contentService.createContent(input);
     }
 
     @MutationMapping
     public ContentDto updateContent(@Argument(name = "input") UpdateContentInputDto input) {
-        return ContentService.updateContent(input);
+        return contentService.updateContent(input);
     }
 
     @MutationMapping
     public UUID deleteContent(@Argument(name = "id") UUID id) {
-        return ContentService.deleteContent(id);
-    }    
-    
+        return contentService.deleteContent(id);
+    }
 }
