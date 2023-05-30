@@ -10,7 +10,7 @@ plugins {
 group = 'de.unistuttgart.iste.gits'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
-def jacocoEnabled = System.properties.getProperty("jacocoEnabled") ?: "false"
+def jacocoEnabled = System.properties.getProperty("jacocoEnabled") ?: "true"
 
 // Apply JaCoCo settings only if jacaco is enable
 if (jacocoEnabled.toBoolean()) {
