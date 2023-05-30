@@ -18,6 +18,15 @@ if (jacocoEnabled.toBoolean()) {
 	apply from: rootProject.file("jacoco.gradle")
 }
 
+sonarqube {
+  properties {
+    property("sonar.projectKey", "it-rex-platform")
+    property("sonar.organization", "IT-REX")
+    property("sonar.host.url", "https://sonarcloud.io")
+  }
+
+}
+
 // Automatically generate DTOs from GraphQL schema:
 graphqlCodegen {
 	// all config options:
