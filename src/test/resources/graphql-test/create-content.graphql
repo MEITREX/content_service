@@ -5,11 +5,14 @@ mutation {
             rewardPoints: 5
             workedOn: false
             chapterId: "9e64b71c-55e2-4d49-b8df-5a50ea2dcac9"
+            tagNames: ["Tag1"]
         }
     ) {
         id
         name
         rewardPoints
         workedOn
+        chapterId
+        tagNames
     }
 }

@@ -9,10 +9,10 @@ type Content {
     rewardPoints: Int!
     # purpose unclear
     workedOn: Boolean!
-    # Tags this content is tagged with
-    tags: [String]!
     # ID of the chapter this content is associated with
     chapterId: UUID!
+    # TagNames this content is tagged with
+    tagNames: [String]!
 }
 
 input CreateContentInput {
@@ -24,8 +24,8 @@ input CreateContentInput {
     workedOn: Boolean!
     # chapter id the content will be associated with
     chapterId: UUID!
-    # Tags this content is tagged with
-    tags: [String]!
+    # TagNames this content is tagged with
+    tagNames: [String]!
 }
 
 input UpdateContentInput {
@@ -37,8 +37,10 @@ input UpdateContentInput {
     rewardPoints: Int!
     # new value for "workedOn" field of the content
     workedOn: Boolean!
-    # Tags this content is tagged with
-    tags: [String]!
+    # ID of the chapter this content is associated with
+    chapterId: UUID!
+    # TagNames this content is tagged with
+    tagNames: [String]!
 }
 
 type Query {
@@ -58,4 +60,8 @@ type Mutation {
     updateContent(input: UpdateContentInput!): Content!
     # Delete an existing Content, throws an error if no Content with the given id exists
     deleteContent(id: UUID!): UUID!
+    # Add tag to an existing content
+    addTagToContent(contentId: UUID!, tagName: String): Content!
+    # Remove tag from an existing content
+    removeTagFromContent(contentId: UUID!, tagName: String): Content!
 }

@@ -1,0 +1,12 @@
+mutation ($uuid: UUID!, $tag: String){
+    removeTagFromContent(
+        contentId: $uuid
+        tagName: $tag
+    ) {
+        id
+        name
+        rewardPoints
+        workedOn
+        tagNames
+    }
+}

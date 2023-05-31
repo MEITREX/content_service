@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class ContentMapper {
@@ -16,7 +18,11 @@ public class ContentMapper {
 
     public ContentDto entityToDto(ContentEntity contentEntity) {
         // add specific mapping here if needed
-        return modelMapper.map(contentEntity, ContentDto.class);
+        ContentDto result = modelMapper.map(contentEntity, ContentDto.class);
+        if (contentEntity.getTags() != null) {
+            result.setTagNames(contentEntity.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toList()));
+        }
+        return result;
     }
 
     public ContentEntity dtoToEntity(ContentDto contentDto) {

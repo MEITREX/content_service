@@ -39,4 +39,21 @@ public class ContentEntity {
 
     @Column(nullable = false)
     private UUID chapterId;
+
+    public ContentEntity addToTags(TagEntity tagEntity) {
+        if (this.tags == null) {
+            this.tags = Set.of(tagEntity);
+        } else {
+            this.tags.add(tagEntity);
+        }
+        return this;
+    }
+
+    public ContentEntity removeFromTags(TagEntity tagEntity) {
+        if (this.tags != null) {
+            this.tags.remove(tagEntity);
+        }
+        return this;
+    }
+
 }

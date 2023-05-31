@@ -1,10 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.persistence.dao;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Set;
 import java.util.UUID;
@@ -23,7 +20,30 @@ public class TagEntity {
     @Column(nullable = false, length = 255)
     private String name;
 
+    @EqualsAndHashCode.Exclude
     @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
     private Set<ContentEntity> contents;
+
+    public static TagEntity fromName(String name) {
+        TagEntity result = new TagEntity();
+        result.name = name;
+        return result;
+    }
+
+    public TagEntity addToContents(ContentEntity contentEntity) {
+        if (this.contents == null) {
+            this.contents = Set.of(contentEntity);
+        } else {
+            this.contents.add(contentEntity);
+        }
+        return this;
+    }
+
+    public TagEntity removeFromContents(ContentEntity contentEntity) {
+        if (this.contents != null) {
+            this.contents.remove(contentEntity);
+        }
+        return this;
+    }
 
 }

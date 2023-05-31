@@ -40,7 +40,8 @@ public class ContentController {
 
     @MutationMapping
     public ContentDto createContent(@Argument(name = "input") CreateContentInputDto input) {
-        return contentService.createContent(input);
+        ContentDto result = contentService.createContent(input);
+        return result;
     }
 
     @MutationMapping
@@ -52,4 +53,16 @@ public class ContentController {
     public UUID deleteContent(@Argument(name = "id") UUID id) {
         return contentService.deleteContent(id);
     }
+
+    @MutationMapping
+    public ContentDto addTagToContent(@Argument(name = "contentId") UUID id, @Argument(name = "tagName") String tagName){
+        return contentService.addTagToContent(id, tagName);
+    }
+
+    @MutationMapping
+    public ContentDto removeTagFromContent(@Argument(name = "contentId") UUID id, @Argument(name = "tagName") String tagName) {
+        return contentService.removeTagFromContent(id, tagName);
+    }
+
 }
+
