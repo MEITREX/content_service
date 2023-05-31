@@ -14,11 +14,11 @@ public interface ContentRepository extends JpaRepository<ContentEntity, UUID> {
 
     List<ContentEntity> findByName(String name);
 
-    @Query("select t.content from Tag t where t.name = :tag")
-    List<ContentEntity> findByTagName(@Param("tag") String tag);
+    @Query("select content from Tag tag join tag.contents content where tag.name = :t")
+    List<ContentEntity> findByTagName(@Param("t") String tag);
 
-    @Query("select t.content from Tag t where t.id = :tagId")
-    List<ContentEntity> findByTagId(@Param("tagId") UUID tagId);
+    @Query("select content from Tag tag join tag.contents content where tag.name in (:tags)")
+    List<ContentEntity> findByTagNames(@Param("tags") List<String> tags);
 
     @Query("select content from Content content where content.id in (:ids)")
     List<ContentEntity> findById(List<UUID> ids);

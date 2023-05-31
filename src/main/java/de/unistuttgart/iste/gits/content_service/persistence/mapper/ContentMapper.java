@@ -14,9 +14,9 @@ public class ContentMapper {
 
     private final ModelMapper modelMapper;
 
-    public ContentDto entityToDto(ContentEntity ContentEntity) {
+    public ContentDto entityToDto(ContentEntity contentEntity) {
         // add specific mapping here if needed
-        return modelMapper.map(ContentEntity, ContentDto.class);
+        return modelMapper.map(contentEntity, ContentDto.class);
     }
 
     public ContentEntity dtoToEntity(ContentDto contentDto) {

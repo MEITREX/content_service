@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Entity(name = "Tag")
@@ -22,7 +23,7 @@ public class TagEntity {
     @Column(nullable = false, length = 255)
     private String name;
 
-    @ManyToOne
-    private ContentEntity content;
+    @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
+    private Set<ContentEntity> contents;
 
 }

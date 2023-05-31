@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ContentValidator {
 
-    public void validateContentDto(ContentDto ContentDto) {
+    public void validateContentDto(ContentDto contentDto) {
         // add validation logic here
     }
 
@@ -17,6 +17,6 @@ public class ContentValidator {
     }
 
     public void validateUpdateContentInputDto(UpdateContentInputDto input) {
-        // TODO
+        // TODO implement validation
     }
 }

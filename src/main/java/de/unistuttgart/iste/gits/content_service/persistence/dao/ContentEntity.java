@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity(name = "Content")
@@ -29,8 +29,13 @@ public class ContentEntity {
     @Column(nullable = false)
     private boolean workedOn;
 
-    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TagEntity> tags;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "content_tags",
+            joinColumns = @JoinColumn(name = "content_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<TagEntity> tags;
 
     @Column(nullable = false)
     private UUID chapterId;
