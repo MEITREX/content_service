@@ -1,34 +1,34 @@
 services:
-  database:
+  database-content:
     image: postgres:alpine
     restart: always
     network_mode: bridge
     expose:
-      - 1032
+      - 4032
     ports:
-      - "1032:5432"
+      - "4032:5432"
     volumes:
-      - templatedata:/var/lib/postgresql/data
+      - contentdata:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=templatedatabase
-  app:
+      - POSTGRES_DB=contentdatabase
+  app-content:
     build: .
     restart: always
     network_mode: bridge
-    container_name: template_microservice
+    container_name: content_microservice
     expose:
-      - 1000
-      - 1001
+      - 4000
+      - 4001
     ports:
-      - 1000:1000
-      - 1001:1001
+      - 4000:4000
+      - 4001:4001
     depends_on:
-      - database
+      - database-content
     links:
-      - database
+      - database-content
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/templatedatabase
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database-content:5432/contentdatabase
 volumes:
-  templatedata:
+  contentdata:
