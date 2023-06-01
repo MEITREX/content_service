@@ -3,6 +3,7 @@ package de.unistuttgart.iste.gits.content_service.persistence.dao;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,7 +33,8 @@ public class TagEntity {
 
     public TagEntity addToContents(ContentEntity contentEntity) {
         if (this.contents == null) {
-            this.contents = Set.of(contentEntity);
+            this.contents = new HashSet<>();
+            this.contents.add(contentEntity);
         } else {
             this.contents.add(contentEntity);
         }

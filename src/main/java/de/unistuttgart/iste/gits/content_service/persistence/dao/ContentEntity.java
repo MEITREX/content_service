@@ -1,11 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.persistence.dao;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,6 +27,7 @@ public class ContentEntity {
     @Column(nullable = false)
     private boolean workedOn;
 
+    @EqualsAndHashCode.Exclude
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "content_tags",
@@ -42,7 +41,8 @@ public class ContentEntity {
 
     public ContentEntity addToTags(TagEntity tagEntity) {
         if (this.tags == null) {
-            this.tags = Set.of(tagEntity);
+            this.tags = new HashSet<>();
+            this.tags.add(tagEntity);
         } else {
             this.tags.add(tagEntity);
         }
