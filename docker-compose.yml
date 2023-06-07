@@ -46,11 +46,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/content-service
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
-  dapr-template:
+  dapr-content:
     image: "daprio/daprd"
     command: [
       "./daprd",
-      "--app-id", "template_service",
+      "--app-id", "content_service",
       "--app-port", "4001",
       "--dapr-http-port", "4000",
       "--resources-path", "./components"
@@ -58,7 +58,7 @@ services:
     volumes:
       - "./components/:/components" # Mount our components folder for the runtime to use. The mounted location must match the --resources-path argument.
     depends_on:
-      - app-template
+      - app-content
       - redis
     network_mode: "service:app-content"
   redis:
