@@ -1,24 +1,21 @@
 package de.unistuttgart.iste.gits.content_service;
 
-import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.graphql.GraphQlTest;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.graphql.test.tester.GraphQlTester;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@SpringBootTest(classes=ContentServiceApplication.class)
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
+@SpringBootTest(classes = ContentServiceApplication.class)
 @AutoConfigureGraphQlTester
-public class ContentServiceApiTests {
+class ContentServiceApiTests {
     @Autowired
     private GraphQlTester graphQlTester;
 

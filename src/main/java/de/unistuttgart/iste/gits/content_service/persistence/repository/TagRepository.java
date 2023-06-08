@@ -13,10 +13,13 @@ import java.util.UUID;
 public interface TagRepository extends JpaRepository<TagEntity, UUID> {
 
     List<TagEntity> findByName(String name);
+
     @Query("select tag from Tag tag  where tag.name in (:tags)")
-    List<TagEntity> findByNames(@Param("tags") List<String> tags);
+    List<TagEntity> findByNameIn(@Param("tags") List<String> tags);
+
     @Query("select tag from Tag tag join tag.contents content where content.id = :contentId")
     List<TagEntity> findByContentId(@Param("contentId") UUID contentId);
+
     @Query("select tag from Tag tag join tag.contents content where content.id = :contentId and tag.name = :tagName")
     List<TagEntity> findByContentIdAndTagName(@Param("contentId") UUID contentId, @Param("tagName") String tagName);
 }
