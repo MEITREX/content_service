@@ -1,8 +1,8 @@
+version: "3"
 services:
-  database:
+  database-content:
     image: postgres:alpine
     restart: always
-    network_mode: bridge
     expose:
       - 4032
     ports:
@@ -16,7 +16,6 @@ services:
   testDb:
     image: postgres:alpine
     restart: always
-    network_mode: bridge
     expose:
       - 4033
     ports:
@@ -27,22 +26,47 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=test_data
-  app:
-    build: .
+  app-content:
+    build:
+      context: ./../content_service/ # necessary because otherwise docker-compose overrides the context when merging multiple docker-compose.yml files
+      dockerfile: Dockerfile
     restart: always
-    network_mode: bridge
     container_name: content_service
     expose:
       - 4000
       - 4001
     ports:
-      - 4000:4000
-      - 4001:4001
+      - "4000:4000"
+      - "4001:4001"
     depends_on:
-      - database
-    links:
-      - database
+      - database-content
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/content-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database-content:5432/content-service
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+  dapr-content:
+    image: "daprio/daprd"
+    command: [
+      "./daprd",
+      "--app-id", "content_service",
+      "--app-port", "4001",
+      "--dapr-http-port", "4000",
+      "--resources-path", "./components"
+    ]
+    volumes:
+      - "./components/:/components" # Mount our components folder for the runtime to use. The mounted location must match the --resources-path argument.
+    depends_on:
+      - app-content
+      - redis
+    network_mode: "service:app-content"
+  redis:
+    image: "redis:alpine"
+    expose:
+      - "6379"
 volumes:
   contentdata:
+  testdata:
+networks:
+  default:
+    name: dapr-network
+    external: true
