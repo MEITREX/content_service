@@ -3,11 +3,29 @@ plugins {
 	id 'org.springframework.boot' version '3.0.6'
 	id 'io.spring.dependency-management' version '1.1.0'
 	id "io.github.kobylynskyi.graphql.codegen" version "5.7.2"
+	id "org.sonarqube" version "4.0.0.2929"
+	id "jacoco"
 }
 
 group = 'de.unistuttgart.iste.gits'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
+def jacocoEnabled = System.properties.getProperty("jacocoEnabled") ?: "true"
+
+// Apply JaCoCo settings only if jacaco is enable
+if (jacocoEnabled.toBoolean()) {
+	project.logger.lifecycle('Applying jacoco settings from jacoco.gradle')
+	apply from: rootProject.file("jacoco.gradle")
+}
+
+sonarqube {
+  properties {
+    property("sonar.projectKey", "IT-REX-Platform_content_service")
+    property("sonar.organization", "IT-REX")
+    property("sonar.host.url", "https://sonarcloud.io")
+  }
+
+}
 
 // Automatically generate DTOs from GraphQL schema:
 graphqlCodegen {
@@ -48,6 +66,11 @@ repositories {
 }
 
 dependencies {
+	implementation('de.unistuttgart.iste.gits:gits-common') {
+		version {
+			branch = 'main'
+		}
+	}
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-graphql'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -55,12 +78,18 @@ dependencies {
 	implementation 'org.modelmapper:modelmapper:3.+'
 	implementation 'com.graphql-java:graphql-java-extended-scalars:20.0'
 	implementation 'com.graphql-java:graphql-java-extended-validation:20.0'
+	testImplementation 'junit:junit:4.13.1'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.postgresql:postgresql'
 	runtimeOnly 'com.h2database:h2'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation('de.unistuttgart.iste.gits:gits-common-test') {
+		version {
+			branch = 'main'
+		}
+	}
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework:spring-webflux'
 	testImplementation 'org.springframework.graphql:spring-graphql-test'
@@ -71,3 +100,5 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.withType(Test) { testLogging.showStandardStreams = true }

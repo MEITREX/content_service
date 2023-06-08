@@ -1,6 +1,6 @@
 package de.unistuttgart.iste.gits.content_service;
 
-import de.unistuttgart.iste.gits.util.GraphQlApiTest;
+import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

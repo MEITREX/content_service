@@ -9,6 +9,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build the docker image
         run: docker-compose build
+      - name: create the network
+        run: docker network create -d bridge dapr-network
 
       - name: up postgresql container runs
         run: docker-compose up -d
@@ -22,16 +24,25 @@ jobs:
       - name: Run chmod to make gradlew executable
         run:  chmod +x gradlew
       - name: Build with Gradle
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:4032/content-service
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: root
         uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
         with:
           arguments: build
       - name: Execute tests
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:4032/content-service
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: root
         uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
         with:
           arguments: cleanTest test
 
   docker-build:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v2
@@ -43,14 +54,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set outputs
-        id: vars
-        run: echo "sha_short=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_OUTPUT
-
       - name: Build docker container
         uses: docker/build-push-action@v4
         with:
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ghcr.io/it-rex-platform/gits-content_service:${{steps.vars.outputs.sha_short}}
+          tags: ghcr.io/it-rex-platform/content_service:latest
           push: true
