@@ -26,59 +26,7 @@ public class ContentService {
     private final TagRepository tagRepository;
     private final ContentMapper contentMapper;
     private final ContentValidator contentValidator;
-
-    public record TagSynchronizationResult(Collection<TagEntity> existingTagsToAdd,
-                                           Collection<TagEntity> newTagsToAdd,
-                                           Collection<TagEntity> existingTagsToRemove) {
-    }
-
-    TagSynchronizationResult prepareSynchronization(List<String> tagNames,
-                                                    List<TagEntity> currentTags,
-                                                    List<TagEntity> existingTagsWithGivenNames) {
-        Set<String> tagNamesSet = new HashSet<>(tagNames);
-        Set<String> currentTagNames = currentTags.stream().map(TagEntity::getName).collect(Collectors.toSet());
-        Set<String> tagNamesToAdd = tagNamesSet.stream().filter(name -> !currentTagNames.contains(name)).collect(Collectors.toSet());
-        List<TagEntity> existingTagsToAdd = existingTagsWithGivenNames.stream().filter(tag -> tagNamesToAdd.contains(tag.getName())).toList();
-        Set<String> existingTagNames = existingTagsToAdd.stream().map(TagEntity::getName).collect(Collectors.toSet());
-        Set<String> tagNamesToCreate = tagNamesToAdd.stream().filter(name -> !existingTagNames.contains(name)).collect(Collectors.toSet());
-        List<TagEntity> newTags = tagNamesToCreate.stream().map(TagEntity::fromName).toList();
-        Set<String> tagNamesToRemove = currentTagNames.stream().filter(name -> !tagNamesSet.contains(name)).collect(Collectors.toSet());
-        List<TagEntity> tagsToRemove = currentTags.stream().filter(tag -> tagNamesToRemove.contains(tag.getName())).toList();
-        return new TagSynchronizationResult(existingTagsToAdd, newTags, tagsToRemove);
-    }
-
-    void synchronizeWithDatabase(ContentEntity content, TagSynchronizationResult tagSynchronizationResult) {
-        // the prepareSynchronization created TagEntity instances for new tags but did not store them --> save them to the DB
-        Set<TagEntity> tagsToAdd = tagSynchronizationResult.newTagsToAdd.stream().map(tagRepository::save).collect(Collectors.toSet());
-        // the newly created tags and the existing tags which are not already assigned to the content need to be linked with the content
-        // for n:m relationships the links have to be created on both sides, i.e. content -> tag and tag --> content
-        tagsToAdd.addAll(tagSynchronizationResult.existingTagsToAdd);
-        if (content.getTags() == null) {
-            content.setTags(tagsToAdd); // TODO clarify if this can really happen or if an empty list is returned
-        } else {
-            content.getTags().addAll(tagsToAdd);
-        }
-        for (TagEntity tag : tagsToAdd) {
-            if (tag.getContents() == null) {
-                tag.setContents(new HashSet<>(Set.of(content))); // TODO clarify if this can really happen or if an empty list is returned
-            } else {
-                tag.getContents().add(content);
-            }
-        }
-        // Remove links between content and tag
-        // Note: The tag entity is not deleted from the DB even it is not referenced by any content
-        for (TagEntity tagEntity : tagSynchronizationResult.existingTagsToRemove) {
-            content.removeFromTags(tagEntity);
-            tagEntity.removeFromContents(content);
-        }
-    }
-
-    protected void synchronizeTags(ContentEntity content, List<String> tagNames) {
-        List<TagEntity> currentTags = tagRepository.findByContentId(content.getId());
-        List<TagEntity> existingTagsWithGivenNames = tagRepository.findByNameIn(tagNames);
-        TagSynchronizationResult result = prepareSynchronization(tagNames, currentTags, existingTagsWithGivenNames);
-        synchronizeWithDatabase(content, result);
-    }
+    final TagSynchronizer tagSynchronization;
 
     public List<ContentDto> getAllContents() {
         return contentRepository.findAll().stream().map(contentMapper::entityToDto).toList();
@@ -88,7 +36,7 @@ public class ContentService {
         contentValidator.validateCreateContentInputDto(contentInputDto);
         ContentEntity contentEntity = contentMapper.dtoToEntity(contentInputDto);
         contentEntity = contentRepository.save(contentEntity);
-        synchronizeTags(contentEntity, contentInputDto.getTagNames());
+        tagSynchronization.synchronizeTags(contentEntity, contentInputDto.getTagNames());
         return contentMapper.entityToDto(contentEntity);
     }
 
@@ -97,7 +45,7 @@ public class ContentService {
         requireContentExisting(input.getId());
 
         ContentEntity updatedContentEntity = contentRepository.save(contentMapper.dtoToEntity(input));
-        synchronizeTags(updatedContentEntity, input.getTagNames());
+        tagSynchronization.synchronizeTags(updatedContentEntity, input.getTagNames());
         return contentMapper.entityToDto(updatedContentEntity);
     }
 
