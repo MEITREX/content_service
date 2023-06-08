@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.gits.courseservice.exception;
+package de.unistuttgart.iste.gits.content_service.exception;
 
 import graphql.ErrorType;
 import graphql.GraphQLError;

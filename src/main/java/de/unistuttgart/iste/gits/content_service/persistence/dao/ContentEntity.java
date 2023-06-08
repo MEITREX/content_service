@@ -1,12 +1,10 @@
 package de.unistuttgart.iste.gits.content_service.persistence.dao;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity(name = "Content")
@@ -29,9 +27,33 @@ public class ContentEntity {
     @Column(nullable = false)
     private boolean workedOn;
 
-    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TagEntity> tags;
+    @EqualsAndHashCode.Exclude
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "content_tags",
+            joinColumns = @JoinColumn(name = "content_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<TagEntity> tags;
 
     @Column(nullable = false)
     private UUID chapterId;
+
+    public ContentEntity addToTags(TagEntity tagEntity) {
+        if (this.tags == null) {
+            this.tags = new HashSet<>();
+            this.tags.add(tagEntity);
+        } else {
+            this.tags.add(tagEntity);
+        }
+        return this;
+    }
+
+    public ContentEntity removeFromTags(TagEntity tagEntity) {
+        if (this.tags != null) {
+            this.tags.remove(tagEntity);
+        }
+        return this;
+    }
+
 }

@@ -1,0 +1,19 @@
+mutation ($uuid_content: UUID!, $uuid_chapter: UUID!){
+    updateContent (
+        input: {
+            id: $uuid_content
+            name: "Updated Content"
+            rewardPoints: 6
+            workedOn: true
+            chapterId: $uuid_chapter
+            tagNames: ["UpdatedTag1"]
+        }
+    ) {
+        id
+        name
+        rewardPoints
+        workedOn
+        chapterId
+        tagNames
+    }
+}

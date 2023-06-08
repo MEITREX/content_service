@@ -1,9 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
+import de.unistuttgart.iste.gits.content_service.service.ContentService;
 import de.unistuttgart.iste.gits.generated.dto.ContentDto;
 import de.unistuttgart.iste.gits.generated.dto.CreateContentInputDto;
 import de.unistuttgart.iste.gits.generated.dto.UpdateContentInputDto;
-import de.unistuttgart.iste.gits.content_service.service.ContentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -23,18 +23,16 @@ public class ContentController {
 
     @QueryMapping
     public List<ContentDto> contents() {
-        log.info("Request for all Contents");
         return contentService.getAllContents();
     }
 
     @QueryMapping
     public List<ContentDto> contentsById(@Argument(name = "ids") List<UUID> ids) {
-        log.info("Request Contents by Ids");
         return contentService.getContentsById(ids);
     }
 
-    @QueryMapping List<List<ContentDto>> contentsByChapterIds(@Argument(name = "chapterIds") List<UUID> chapterIds) {
-        log.info("Request Contents by Chapter Ids");
+    @QueryMapping
+    List<List<ContentDto>> contentsByChapterIds(@Argument(name = "chapterIds") List<UUID> chapterIds) {
         return contentService.getContentsByChapterIds(chapterIds);
     }
 
@@ -52,4 +50,16 @@ public class ContentController {
     public UUID deleteContent(@Argument(name = "id") UUID id) {
         return contentService.deleteContent(id);
     }
+
+    @MutationMapping
+    public ContentDto addTagToContent(@Argument(name = "contentId") UUID id, @Argument(name = "tagName") String tagName) {
+        return contentService.addTagToContent(id, tagName);
+    }
+
+    @MutationMapping
+    public ContentDto removeTagFromContent(@Argument(name = "contentId") UUID id, @Argument(name = "tagName") String tagName) {
+        return contentService.removeTagFromContent(id, tagName);
+    }
+
 }
+
