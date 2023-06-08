@@ -1,8 +1,8 @@
+version: "3"
 services:
   database-content:
     image: postgres:alpine
     restart: always
-    network_mode: bridge
     expose:
       - 4032
     ports:
@@ -16,7 +16,6 @@ services:
   testDb:
     image: postgres:alpine
     restart: always
-    network_mode: bridge
     expose:
       - 4033
     ports:
@@ -28,9 +27,10 @@ services:
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=test_data
   app-content:
-    build: .
+    build:
+      context: ./../content_service/ # necessary because otherwise docker-compose overrides the context when merging multiple docker-compose.yml files
+      dockerfile: Dockerfile
     restart: always
-    network_mode: bridge
     container_name: content_service
     expose:
       - 4000
@@ -39,8 +39,6 @@ services:
       - "4000:4000"
       - "4001:4001"
     depends_on:
-      - database-content
-    links:
       - database-content
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://database-content:5432/content-service
