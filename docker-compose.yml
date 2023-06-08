@@ -43,7 +43,7 @@ services:
     links:
       - database-content
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/content-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database-content:5432/content-service
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
   dapr-content:
