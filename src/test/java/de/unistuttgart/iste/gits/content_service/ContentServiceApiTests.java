@@ -1,9 +1,8 @@
 package de.unistuttgart.iste.gits.content_service;
 
-import de.unistuttgart.iste.gits.util.GraphQlApiTest;
+import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.graphql.GraphQlTest;
 import org.springframework.graphql.test.tester.GraphQlTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
