@@ -1,0 +1,36 @@
+type Mutation {
+    """
+    Create new media content
+    """
+    createMediaContent(input: CreateMediaContentInput!): Content!
+    """
+    Update an existing Content
+    """
+    updateMediaContent(input: UpdateMediaContentInput!): Content!
+    """
+    Delete an existing Content, throws an error if no Content with the given id exists
+    """
+    deleteMediaContent(id: UUID!): UUID!
+
+    """
+    Create a new Assessment
+    """
+    createAssessment(input: CreateAssessmentInput!): Assessment!
+    """
+    Update an existing Assessment
+    """
+    updateAssessment(input: UpdateAssessmentInput!): Assessment!
+    """
+    Delete an existing Assessment, throws an error if no Assessment with the given id exists
+    """
+    deleteAssessment(id: UUID!): UUID!
+
+    """
+    Add a tag to an existing content
+    """
+    addTagToContent(contentId: UUID!, tagName: String): Content!
+    """
+    Remove a tag from an existing content
+    """
+    removeTagFromContent(contentId: UUID!, tagName: String): Content!
+}

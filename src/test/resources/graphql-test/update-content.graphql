@@ -1,5 +1,5 @@
 mutation ($uuid_content: UUID!, $uuid_chapter: UUID!){
-    updateContent (
+    updateMediaContent (
         input: {
             id: $uuid_content
             name: "Updated Content"

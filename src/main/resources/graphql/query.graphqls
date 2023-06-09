@@ -1,0 +1,15 @@
+type Query {
+    """
+    get all contents
+    """
+    contents: [Content!]!
+    """
+    get contents by ids
+    """
+    contentsById(ids: [UUID!]!): [Content!]!
+    """
+    get contents by chapter ids. Returns a list containing sublists, where each sublist contains all contents
+    associated with that chapter
+    """
+    contentsByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!
+}

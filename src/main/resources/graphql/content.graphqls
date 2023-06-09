@@ -1,0 +1,221 @@
+interface Content {
+    """
+    ID of the content
+    """
+    id: UUID!
+    """
+    Name of the content
+    """
+    name: String!
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]!
+}
+
+type MediaContent implements Content {
+    # Inherited fields
+    """
+    ID of the content
+    """
+    id: UUID!
+    """
+    name of the content
+    """
+    name: String!
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]!
+}
+
+interface Assessment implements Content {
+
+    """
+    Number of skill points a student receives for completing this content
+    """
+    skillPoints: Int! # TODO skill concept done in the future
+    """
+    Type of the assessment
+    """
+    type: AssessmentType!
+
+    # inherited fields
+    """
+    ID of the content
+    """
+    id: UUID!
+    """
+    Name of the content
+    """
+    name: String!
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]!
+
+}
+
+type FlashcardAssessment implements Assessment, Content {
+    # inherited fields
+    """
+    Number of skill points a student receives for completing this content
+    """
+    skillPoints: Int! # TODO skill concept done in the future
+    """
+    Type of the assessment
+    """
+    type: AssessmentType!
+    """
+    ID of the content
+    """
+    id: UUID!
+    """
+    Name of the content
+    """
+    name: String!
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]!
+}
+
+input CreateMediaContentInput {
+    """
+    Name of the content
+    """
+    name: String! @NotBlank @Size(max: 255)
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]!
+}
+
+input UpdateMediaContentInput {
+    """
+    ID of the content to update
+    """
+    id: UUID!
+    """
+    Name of the content
+    """
+    name: String!
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]!
+}
+
+
+input CreateAssessmentInput {
+    """
+    Name of the content
+    """
+    name: String! @NotBlank @Size(max: 255)
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]!
+    """
+    Number of skill points a student receives for completing this content
+    """
+    skillPoints: Int! # TODO skill concept done in the future
+    """
+    Type of the assessment
+    """
+    type: AssessmentType!
+}
+
+input UpdateAssessmentInput {
+    """
+    ID of the content to update
+    """
+    id: UUID!
+    """
+    Name of the content
+    """
+    name: String! @NotBlank @Size(max: 255)
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]!
+    """
+    Number of skill points a student receives for completing this content
+    """
+    skillPoints: Int! # TODO skill concept done in the future
+    """
+    Type of the assessment
+    """
+    type: AssessmentType!
+}
+
+enum AssessmentType {
+    FLASHCARD
+    ASSIGNMENT
+    SELF_ASSESSMENT_QUIZ
+    # TODO extend
+}

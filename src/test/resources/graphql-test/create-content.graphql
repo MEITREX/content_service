@@ -1,5 +1,5 @@
 mutation {
-    createContent(
+    createMediaContent(
         input: {
             name: "New Content"
             rewardPoints: 5

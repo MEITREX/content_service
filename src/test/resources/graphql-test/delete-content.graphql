@@ -1,3 +1,3 @@
 mutation($uuid: UUID!) {
-    deleteContent(id: $uuid)
+    deleteMediaContent(id: $uuid)
 }
