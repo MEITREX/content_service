@@ -14,6 +14,6 @@ public interface ContentRepository extends JpaRepository<ContentEntity, UUID> {
     @Query("select content from Content content where content.id in (:ids)")
     List<ContentEntity> findByIdIn(List<UUID> ids);
 
-    @Query("select content from Content content where content.chapterId in (:contentIds)")
-    List<ContentEntity> findByChapterIdIn(List<UUID> contentIds);
+    @Query("select content from Content content where content.metadata.chapterId in (:chapterIds)")
+    List<ContentEntity> findByChapterIdIn(List<UUID> chapterIds);
 }

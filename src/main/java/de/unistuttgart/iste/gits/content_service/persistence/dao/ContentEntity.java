@@ -1,15 +1,20 @@
 package de.unistuttgart.iste.gits.content_service.persistence.dao;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.DiscriminatorFormula;
 
 import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity(name = "Content")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorFormula("case when content_type = 'MEDIA' then 'MEDIA' else 'ASSESSMENT' end")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContentEntity {
@@ -18,40 +23,20 @@ public class ContentEntity {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false, length = 255)
-    private String name;
-
-    @Column(nullable = false)
-    private int rewardPoints;
-
-    @Column(nullable = false)
-    private boolean workedOn;
-
-    @EqualsAndHashCode.Exclude
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "content_tags",
-            joinColumns = @JoinColumn(name = "content_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
-    private Set<TagEntity> tags;
-
-    @Column(nullable = false)
-    private UUID chapterId;
+    @Embedded
+    private ContentMetadataEmbeddable metadata = new ContentMetadataEmbeddable();
 
     public ContentEntity addToTags(TagEntity tagEntity) {
-        if (this.tags == null) {
-            this.tags = new HashSet<>();
-            this.tags.add(tagEntity);
-        } else {
-            this.tags.add(tagEntity);
+        if (this.metadata.getTags() == null) {
+            this.metadata.setTags(new HashSet<>());
         }
+        this.metadata.getTags().add(tagEntity);
         return this;
     }
 
     public ContentEntity removeFromTags(TagEntity tagEntity) {
-        if (this.tags != null) {
-            this.tags.remove(tagEntity);
+        if (this.metadata.getTags() != null) {
+            this.metadata.getTags().remove(tagEntity);
         }
         return this;
     }

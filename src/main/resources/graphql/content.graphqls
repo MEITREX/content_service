@@ -3,10 +3,22 @@ interface Content {
     ID of the content
     """
     id: UUID!
+
+    """
+    Metadata of the content
+    """
+    metadata: ContentMetadata!
+}
+
+type ContentMetadata {
     """
     Name of the content
     """
     name: String!
+    """
+    Content type
+    """
+    type: ContentType!
     """
     Number of reward points a student receives for completing this content
     """
@@ -27,34 +39,19 @@ type MediaContent implements Content {
     ID of the content
     """
     id: UUID!
+
     """
-    name of the content
+    Metadata of the content
     """
-    name: String!
-    """
-    Number of reward points a student receives for completing this content
-    """
-    rewardPoints: Int!
-    """
-    ID of the chapter this content is associated with
-    """
-    chapterId: UUID!
-    """
-    TagNames this content is tagged with
-    """
-    tagNames: [String!]!
+    metadata: ContentMetadata!
 }
 
 interface Assessment implements Content {
 
     """
-    Number of skill points a student receives for completing this content
+    Assessment metadata
     """
-    skillPoints: Int! # TODO skill concept done in the future
-    """
-    Type of the assessment
-    """
-    type: AssessmentType!
+    assessmentMetadata: AssessmentMetadata!
 
     # inherited fields
     """
@@ -62,26 +59,13 @@ interface Assessment implements Content {
     """
     id: UUID!
     """
-    Name of the content
+    Metadata of the content
     """
-    name: String!
-    """
-    Number of reward points a student receives for completing this content
-    """
-    rewardPoints: Int!
-    """
-    ID of the chapter this content is associated with
-    """
-    chapterId: UUID!
-    """
-    TagNames this content is tagged with
-    """
-    tagNames: [String!]!
+    metadata: ContentMetadata!
 
 }
 
-type FlashcardAssessment implements Assessment, Content {
-    # inherited fields
+type AssessmentMetadata {
     """
     Number of skill points a student receives for completing this content
     """
@@ -90,132 +74,45 @@ type FlashcardAssessment implements Assessment, Content {
     Type of the assessment
     """
     type: AssessmentType!
+}
+
+"""
+A set of flashcards, flashcard related fields are stored in the flashcard service.
+"""
+type FlashcardSetAssessment implements Assessment & Content {
+    # inherited fields
+    """
+    Assessment metadata
+    """
+    assessmentMetadata: AssessmentMetadata!
     """
     ID of the content
     """
     id: UUID!
     """
-    Name of the content
+    Metadata of the content
     """
-    name: String!
-    """
-    Number of reward points a student receives for completing this content
-    """
-    rewardPoints: Int!
-    """
-    ID of the chapter this content is associated with
-    """
-    chapterId: UUID!
-    """
-    TagNames this content is tagged with
-    """
-    tagNames: [String!]!
+    metadata: ContentMetadata!
 }
 
-input CreateMediaContentInput {
-    """
-    Name of the content
-    """
-    name: String! @NotBlank @Size(max: 255)
-    """
-    Number of reward points a student receives for completing this content
-    """
-    rewardPoints: Int!
-    """
-    ID of the chapter this content is associated with
-    """
-    chapterId: UUID!
-    """
-    TagNames this content is tagged with
-    """
-    tagNames: [String!]!
-}
+# add more types here
 
-input UpdateMediaContentInput {
-    """
-    ID of the content to update
-    """
-    id: UUID!
-    """
-    Name of the content
-    """
-    name: String!
-    """
-    Number of reward points a student receives for completing this content
-    """
-    rewardPoints: Int!
-    """
-    ID of the chapter this content is associated with
-    """
-    chapterId: UUID!
-    """
-    TagNames this content is tagged with
-    """
-    tagNames: [String!]!
-}
-
-
-input CreateAssessmentInput {
-    """
-    Name of the content
-    """
-    name: String! @NotBlank @Size(max: 255)
-    """
-    Number of reward points a student receives for completing this content
-    """
-    rewardPoints: Int!
-    """
-    ID of the chapter this content is associated with
-    """
-    chapterId: UUID!
-    """
-    TagNames this content is tagged with
-    """
-    tagNames: [String!]!
-    """
-    Number of skill points a student receives for completing this content
-    """
-    skillPoints: Int! # TODO skill concept done in the future
-    """
-    Type of the assessment
-    """
-    type: AssessmentType!
-}
-
-input UpdateAssessmentInput {
-    """
-    ID of the content to update
-    """
-    id: UUID!
-    """
-    Name of the content
-    """
-    name: String! @NotBlank @Size(max: 255)
-    """
-    Number of reward points a student receives for completing this content
-    """
-    rewardPoints: Int!
-    """
-    ID of the chapter this content is associated with
-    """
-    chapterId: UUID!
-    """
-    TagNames this content is tagged with
-    """
-    tagNames: [String!]!
-    """
-    Number of skill points a student receives for completing this content
-    """
-    skillPoints: Int! # TODO skill concept done in the future
-    """
-    Type of the assessment
-    """
-    type: AssessmentType!
-}
-
+"""
+Type of the assessment
+"""
 enum AssessmentType {
-    FLASHCARD
-    ASSIGNMENT
-    SELF_ASSESSMENT_QUIZ
-    # TODO extend
+    REMEMBER
+    UNDERSTAND
+    APPLY
+    ANALYSE
+}
+
+# for filtering
+"""
+Type of the content
+"""
+enum ContentType {
+    MEDIA
+    FLASHCARDS
+    # add more types here
 }

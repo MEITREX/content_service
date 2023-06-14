@@ -7,10 +7,6 @@ type Mutation {
     Update an existing Content
     """
     updateMediaContent(input: UpdateMediaContentInput!): Content!
-    """
-    Delete an existing Content, throws an error if no Content with the given id exists
-    """
-    deleteMediaContent(id: UUID!): UUID!
 
     """
     Create a new Assessment
@@ -20,10 +16,12 @@ type Mutation {
     Update an existing Assessment
     """
     updateAssessment(input: UpdateAssessmentInput!): Assessment!
+
+
     """
-    Delete an existing Assessment, throws an error if no Assessment with the given id exists
+    Delete an existing Content, throws an error if no Content with the given id exists
     """
-    deleteAssessment(id: UUID!): UUID!
+    deleteContent(id: UUID!): UUID!
 
     """
     Add a tag to an existing content
@@ -33,4 +31,85 @@ type Mutation {
     Remove a tag from an existing content
     """
     removeTagFromContent(contentId: UUID!, tagName: String): Content!
+}
+
+"""
+Input for creating new media content. Media specific fields are stored in the Media Service.
+"""
+input CreateMediaContentInput {
+    """
+    Metadata for the new Content
+    """
+    metadata: ContentMetadataInput!
+}
+
+input UpdateMediaContentInput {
+    """
+    ID of the Content to update
+    """
+    id: UUID!
+    """
+    Metadata for the new Content
+    """
+    metadata: ContentMetadataInput!
+}
+
+input CreateAssessmentInput {
+    """
+    Content type of the assessment
+    """
+    contentType: ContentType!
+    """
+    Metadata for the new Content
+    """
+    metadata: ContentMetadataInput!
+    """
+    Assessment metadata
+    """
+    assessmentMetadata: AssessmentMetadataInput!
+}
+
+input UpdateAssessmentInput {
+    """
+    ID of the Content to update
+    """
+    id: UUID!
+    """
+    Metadata for the new Content
+    """
+    metadata: ContentMetadataInput!
+    """
+    Assessment metadata
+    """
+    assessmentMetadata: AssessmentMetadataInput!
+}
+
+input ContentMetadataInput {
+    """
+    Name of the content
+    """
+    name: String!
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]! = []
+}
+
+input AssessmentMetadataInput {
+    """
+    Number of skill points a student receives for completing this content
+    """
+    skillPoints: Int! # TODO skill concept done in the future
+    """
+    Type of the assessment
+    """
+    type: AssessmentType!
 }

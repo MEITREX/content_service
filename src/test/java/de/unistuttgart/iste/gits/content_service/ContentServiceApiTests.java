@@ -1,10 +1,9 @@
 package de.unistuttgart.iste.gits.content_service;
 
+import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,14 +12,12 @@ import java.util.UUID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-@SpringBootTest(classes = ContentServiceApplication.class)
-@AutoConfigureGraphQlTester
+@GraphQlApiTest
+@ActiveProfiles("test")
 class ContentServiceApiTests {
-    @Autowired
-    private GraphQlTester graphQlTester;
 
     @Test
-    void shouldAddContentAndQueryBack() {
+    void shouldAddContentAndQueryBack(GraphQlTester graphQlTester) {
         GraphQlTester.Response response = graphQlTester.documentName("create-content")
                 .execute();
         response
@@ -32,12 +29,12 @@ class ContentServiceApiTests {
     }
 
     @Test
-    void shouldAddContentAndAddTagAfterwardsAndQueryBack() {
+    void shouldAddContentAndAddTagAfterwardsAndQueryBack(GraphQlTester graphQlTester) {
         // create same content as in shouldAddContentAndQueryBack
         // only store content id to add a new tag, the other parts are verified in other tests.
         final String tagName = "Tag2";
         UUID contentId = graphQlTester.documentName("create-content")
-                         .execute().path("createContent.id").entity(UUID.class).get();
+                .execute().path("createContent.id").entity(UUID.class).get();
         GraphQlTester.Response response = graphQlTester.documentName("add-tag-to-content")
                 .variable("uuid", contentId)
                 .variable("tag", tagName)
@@ -48,7 +45,7 @@ class ContentServiceApiTests {
     }
 
     @Test
-    void shouldAddContentAndDeleteTagAfterwardsAndQueryBack() {
+    void shouldAddContentAndDeleteTagAfterwardsAndQueryBack(GraphQlTester graphQlTester) {
         // create same content as in shouldAddContentAndQueryBack
         // only store content id to add a new tag, the other parts are verified in other tests.
         final String tagName = "Tag1";
@@ -63,7 +60,7 @@ class ContentServiceApiTests {
     }
 
     @Test
-    void shouldAddContentAndGetById() {
+    void shouldAddContentAndGetById(GraphQlTester graphQlTester) {
         UUID contentId = graphQlTester.documentName("create-content")
                 .execute().path("createContent.id").entity(UUID.class).get();
         List<UUID> ids = new ArrayList<>();
@@ -77,7 +74,7 @@ class ContentServiceApiTests {
     }
 
     @Test
-    void shouldUpdateContent() {
+    void shouldUpdateContent(GraphQlTester graphQlTester) {
         UUID contentId = graphQlTester.documentName("create-content")
                 .execute().path("createContent.id").entity(UUID.class).get();
         UUID chapterId = graphQlTester.documentName("create-content")

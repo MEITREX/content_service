@@ -22,7 +22,8 @@ public class TagEntity {
     private String name;
 
     @EqualsAndHashCode.Exclude
-    @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @ManyToMany(mappedBy = "metadata.tags", fetch = FetchType.LAZY)
     private Set<ContentEntity> contents;
 
     public static TagEntity fromName(String name) {
