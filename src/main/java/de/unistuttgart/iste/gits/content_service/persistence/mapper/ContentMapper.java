@@ -45,14 +45,10 @@ public class ContentMapper {
     }
 
     public ContentEntity assessmentDtoToEntity(CreateAssessmentInput input) {
-        log.info(input.toString());
-        AssessmentEntity mapped = modelMapper.map(input, AssessmentEntity.class);
-        mapped.getMetadata().setType(input.getContentType());
-        log.info(mapped.toString());
-        return mapped;
+        return modelMapper.map(input, AssessmentEntity.class);
     }
 
-    public ContentEntity assessmentDtoToEntity(UpdateAssessmentInput input, ContentType contentType) {
+    public ContentEntity assessmentDtoToEntity(UpdateAssessmentInput input) {
         return modelMapper.map(input, AssessmentEntity.class);
     }
 

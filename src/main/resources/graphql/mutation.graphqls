@@ -40,7 +40,7 @@ input CreateMediaContentInput {
     """
     Metadata for the new Content
     """
-    metadata: ContentMetadataInput!
+    metadata: CreateContentMetadataInput!
 }
 
 input UpdateMediaContentInput {
@@ -51,18 +51,14 @@ input UpdateMediaContentInput {
     """
     Metadata for the new Content
     """
-    metadata: ContentMetadataInput!
+    metadata: CreateContentMetadataInput!
 }
 
 input CreateAssessmentInput {
     """
-    Content type of the assessment
-    """
-    contentType: ContentType!
-    """
     Metadata for the new Content
     """
-    metadata: ContentMetadataInput!
+    metadata: CreateContentMetadataInput!
     """
     Assessment metadata
     """
@@ -77,14 +73,37 @@ input UpdateAssessmentInput {
     """
     Metadata for the new Content
     """
-    metadata: ContentMetadataInput!
+    metadata: UpdateContentMetadataInput!
     """
     Assessment metadata
     """
     assessmentMetadata: AssessmentMetadataInput!
 }
 
-input ContentMetadataInput {
+input CreateContentMetadataInput {
+    """
+    Name of the content
+    """
+    name: String!
+    """
+    Type of the content
+    """
+    type: ContentType!
+    """
+    Number of reward points a student receives for completing this content
+    """
+    rewardPoints: Int!
+    """
+    ID of the chapter this content is associated with
+    """
+    chapterId: UUID!
+    """
+    TagNames this content is tagged with
+    """
+    tagNames: [String!]! = []
+}
+
+input UpdateContentMetadataInput {
     """
     Name of the content
     """

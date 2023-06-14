@@ -1,5 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
+import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
@@ -26,8 +27,11 @@ public class ContentService {
     private final ContentValidator contentValidator;
     final TagSynchronizer tagSynchronization;
 
-    public List<Content> getAllContents() {
-        return contentRepository.findAll().stream().map(contentMapper::entityToDto).toList();
+    public ContentPayload getAllContents() {
+        return createContentPayload(contentRepository.findAll()
+                .stream()
+                .map(contentMapper::entityToDto)
+                .toList());
     }
 
     public UUID deleteContent(UUID uuid) {
@@ -48,11 +52,14 @@ public class ContentService {
         }
     }
 
-    public List<Content> getContentsById(List<UUID> ids) {
-        return contentRepository.findByIdIn(ids).stream().map(contentMapper::entityToDto).toList();
+    public ContentPayload getContentsById(List<UUID> ids) {
+        return createContentPayload(contentRepository.findByIdIn(ids)
+                .stream()
+                .map(contentMapper::entityToDto)
+                .toList());
     }
 
-    public List<List<Content>> getContentsByChapterIds(List<UUID> chapterIds) {
+    public List<ContentPayload> getContentsByChapterIds(List<UUID> chapterIds) {
         List<List<Content>> result = new ArrayList<>(chapterIds.size());
 
         // get a list containing all contents with a matching chapter id, then map them by chapter id (multiple
@@ -69,7 +76,12 @@ public class ContentService {
             result.add(contents);
         }
 
-        return result;
+        return result.stream().map(this::createContentPayload).toList();
+    }
+
+    private ContentPayload createContentPayload(List<Content> contents) {
+        // TODO add pagination
+        return new ContentPayload(contents, PaginationUtil.unpagedPaginationInfo(contents.size()));
     }
 
     public Content addTagToContent(UUID id, String tagName) {
@@ -135,8 +147,7 @@ public class ContentService {
         requireContentExisting(input.getId());
 
         ContentEntity oldContentEntity = contentRepository.getReferenceById(input.getId());
-        ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(input,
-                oldContentEntity.getMetadata().getType());
+        ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(input);
 
         updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity, input.getMetadata().getTagNames());
         return contentMapper.assessmentEntityToDto(updatedContentEntity);

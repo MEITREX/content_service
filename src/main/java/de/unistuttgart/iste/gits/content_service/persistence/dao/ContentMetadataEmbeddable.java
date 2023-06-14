@@ -33,6 +33,6 @@ public class ContentMetadataEmbeddable {
     )
     private Set<TagEntity> tags;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "chapter_id")
     private UUID chapterId;
 }

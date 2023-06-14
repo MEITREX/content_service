@@ -20,17 +20,17 @@ public class ContentController {
     private final ContentService contentService;
 
     @QueryMapping
-    public List<Content> contents() {
+    public ContentPayload contents() {
         return contentService.getAllContents();
     }
 
     @QueryMapping
-    public List<Content> contentsByIds(@Argument List<UUID> ids) {
+    public ContentPayload contentsByIds(@Argument List<UUID> ids) {
         return contentService.getContentsById(ids);
     }
 
     @QueryMapping
-    List<List<Content>> contentsByChapterIds(@Argument List<UUID> chapterIds) {
+    List<ContentPayload> contentsByChapterIds(@Argument List<UUID> chapterIds) {
         return contentService.getContentsByChapterIds(chapterIds);
     }
 

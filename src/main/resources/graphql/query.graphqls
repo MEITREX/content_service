@@ -2,14 +2,26 @@ type Query {
     """
     get all contents
     """
-    contents: [Content!]!
+    contents: ContentPayload!
     """
     get contents by ids
     """
-    contentsByIds(ids: [UUID!]!): [Content!]!
+    contentsByIds(ids: [UUID!]!): ContentPayload!
     """
     get contents by chapter ids. Returns a list containing sublists, where each sublist contains all contents
     associated with that chapter
     """
-    contentsByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!
+    contentsByChapterIds(chapterIds: [UUID!]!): [ContentPayload!]!
 }
+
+type ContentPayload {
+    """
+    the contents
+    """
+    elements: [Content!]!
+    """
+    pagination info
+    """
+    pageInfo: PaginationInfo!
+}
+

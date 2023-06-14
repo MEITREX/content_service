@@ -18,6 +18,7 @@ import lombok.experimental.SuperBuilder;
 public class AssessmentEntity extends ContentEntity {
 
     @Embedded
+    @Builder.Default
     private AssessmentMetadataEmbeddable assessmentMetadata = new AssessmentMetadataEmbeddable();
 
 }
