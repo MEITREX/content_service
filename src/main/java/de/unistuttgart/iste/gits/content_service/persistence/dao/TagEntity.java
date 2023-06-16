@@ -8,6 +8,9 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity(name = "Tag")
+@Table(indexes = {
+        @Index(name = "tag_name_index", columnList = "name", unique = true)
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,7 +21,7 @@ public class TagEntity {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 255, unique = true)
     private String name;
 
     @EqualsAndHashCode.Exclude

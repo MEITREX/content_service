@@ -1,15 +1,18 @@
 package de.unistuttgart.iste.gits.content_service.persistence.dao;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DiscriminatorFormula;
 
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 /**
  * Super class for assessment and media content.
@@ -21,9 +24,10 @@ import java.util.UUID;
  * which means that all subclasses are stored in the same table.
  * This is done to avoid joins when querying for content.
  * <p>
- * There are two indexes on this table:
+ * There are three indexes on this table:
  * One for the chapter id, useful for the query by chapter id.
  * One for the content type, for allowing filter by content type efficiently.
+ * One for both chapter id and content type, for allowing filter by content type as a subquery of chapters efficiently.
  * <p>
  * Embeddable classes are used to have the same structure as the DTOs.
  * This makes it easier to convert between DTOs and entities.
@@ -32,14 +36,14 @@ import java.util.UUID;
 @Entity(name = "Content")
 @Table(indexes = {
         @Index(name = "idx_content_chapter_id", columnList = "chapter_id"),
-        @Index(name = "idx_content_type", columnList = "content_type")
+        @Index(name = "idx_content_type", columnList = "content_type"),
+        @Index(name = "idx_content_type_chapter_id", columnList = "content_type, chapter_id")
 })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorFormula("case when content_type = 'MEDIA' then 'MEDIA' else 'ASSESSMENT' end")
 @Data
 @SuperBuilder
 @NoArgsConstructor
-@AllArgsConstructor
 public class ContentEntity {
 
     @Id
@@ -50,18 +54,26 @@ public class ContentEntity {
     @Builder.Default
     private ContentMetadataEmbeddable metadata = new ContentMetadataEmbeddable();
 
+    public List<String> getTagNames() {
+        return Optional.ofNullable(metadata.getTags())
+                .map(tags -> tags.stream().map(TagEntity::getName).toList())
+                .orElse(emptyList());
+    }
+
     public ContentEntity addToTags(TagEntity tagEntity) {
-        if (this.metadata.getTags() == null) {
-            this.metadata.setTags(new HashSet<>());
-        }
-        this.metadata.getTags().add(tagEntity);
+        Set<TagEntity> tags = new HashSet<>(
+                Optional.ofNullable(metadata.getTags()).orElse(emptySet()));
+        tags.add(tagEntity);
+        metadata.setTags(tags);
         return this;
     }
 
     public ContentEntity removeFromTags(TagEntity tagEntity) {
-        if (this.metadata.getTags() != null) {
-            this.metadata.getTags().remove(tagEntity);
-        }
+        Set<TagEntity> tags = Stream.ofNullable(metadata.getTags())
+                .flatMap(Set::stream)
+                .filter(tag -> !tag.getName().equals(tagEntity.getName()))
+                .collect(Collectors.toSet());
+        this.metadata.setTags(tags);
         return this;
     }
 

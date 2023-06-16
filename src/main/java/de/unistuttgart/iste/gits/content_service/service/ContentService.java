@@ -80,7 +80,7 @@ public class ContentService {
     }
 
     private ContentPayload createContentPayload(List<Content> contents) {
-        // TODO add pagination
+        // this is temporary until we have a proper pagination implementation
         return new ContentPayload(contents, PaginationUtil.unpagedPaginationInfo(contents.size()));
     }
 
@@ -128,7 +128,8 @@ public class ContentService {
         requireContentExisting(input.getId());
 
         ContentEntity oldContentEntity = contentRepository.getReferenceById(input.getId());
-        ContentEntity updatedContentEntity = contentMapper.mediaContentDtoToEntity(input);
+        ContentEntity updatedContentEntity = contentMapper.mediaContentDtoToEntity(input,
+                oldContentEntity.getMetadata().getType());
 
         updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity, input.getMetadata().getTagNames());
         return contentMapper.mediaContentEntityToDto(updatedContentEntity);
@@ -147,7 +148,8 @@ public class ContentService {
         requireContentExisting(input.getId());
 
         ContentEntity oldContentEntity = contentRepository.getReferenceById(input.getId());
-        ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(input);
+        ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(input,
+                oldContentEntity.getMetadata().getType());
 
         updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity, input.getMetadata().getTagNames());
         return contentMapper.assessmentEntityToDto(updatedContentEntity);
@@ -172,7 +174,8 @@ public class ContentService {
         return updatedContentEntity;
     }
 
+    @SuppressWarnings("java:S1172")
     private void checkPermissionsForChapter(UUID chapterId) {
-        // TODO: Implement this
+        // not implemented yet
     }
 }
