@@ -73,7 +73,7 @@ type AssessmentMetadata {
     """
     Type of the assessment
     """
-    type: AssessmentType!
+    skillType: SkillType!
 }
 
 """
@@ -100,7 +100,7 @@ type FlashcardSetAssessment implements Assessment & Content {
 """
 Type of the assessment
 """
-enum AssessmentType {
+enum SkillType {
     REMEMBER
     UNDERSTAND
     APPLY

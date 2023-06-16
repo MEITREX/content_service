@@ -2,11 +2,11 @@ type Mutation {
     """
     Create new media content
     """
-    createMediaContent(input: CreateMediaContentInput!): Content!
+    createMediaContent(input: CreateMediaContentInput!): MediaContent!
     """
     Update an existing Content
     """
-    updateMediaContent(input: UpdateMediaContentInput!): Content!
+    updateMediaContent(input: UpdateMediaContentInput!): MediaContent!
 
     """
     Create a new Assessment
@@ -51,7 +51,7 @@ input UpdateMediaContentInput {
     """
     Metadata for the new Content
     """
-    metadata: CreateContentMetadataInput!
+    metadata: UpdateContentMetadataInput!
 }
 
 input CreateAssessmentInput {
@@ -130,5 +130,5 @@ input AssessmentMetadataInput {
     """
     Type of the assessment
     """
-    type: AssessmentType!
+    skillType: SkillType!
 }

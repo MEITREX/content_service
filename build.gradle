@@ -44,6 +44,9 @@ graphqlCodegen {
 			"UUID"     : "java.util.UUID",
 			"Url"      : "java.net.URL",
 	]
+	graphqlSchemas {
+		rootDir = new File("$projectDir/src/main/resources/graphql/service")
+	}
 	generateEqualsAndHashCode = true
 	generateToString = true
 }
@@ -100,4 +103,4 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-tasks.withType(Test) { testLogging.showStandardStreams = true }
+tasks.withType(Test).configureEach { testLogging.showStandardStreams = true }
