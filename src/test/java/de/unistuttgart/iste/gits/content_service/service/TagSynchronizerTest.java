@@ -90,7 +90,7 @@ class TagSynchronizerTest {
         when(tagRepository.save(Mockito.any(TagEntity.class))).thenAnswer(i -> i.getArguments()[0]);
         tagSynchronizer.synchronizeWithDatabase(content, preparation);
         verify(tagRepository).save(newTag);
-        assertThat(content.getTags(), is(equalTo(Set.of(newTag))));
+        assertThat(content.getMetadata().getTags(), is(equalTo(Set.of(newTag))));
         assertThat(newTag.getContents(), is(equalTo(Set.of(content))));
     }
 
@@ -106,7 +106,7 @@ class TagSynchronizerTest {
         ContentEntity content = new ContentEntity();
         content.setId(UUID.randomUUID());
         tagSynchronizer.synchronizeWithDatabase(content, preparation);
-        assertThat(content.getTags(), is(equalTo(Set.of(existingTag))));
+        assertThat(content.getMetadata().getTags(), is(equalTo(Set.of(existingTag))));
         assertThat(existingTag.getContents(), is(equalTo(Set.of(content))));
     }
 
@@ -123,7 +123,7 @@ class TagSynchronizerTest {
                 List.of(existingTag)
         );
         tagSynchronizer.synchronizeWithDatabase(content, preparation);
-        assertThat(content.getTags().size(), is(equalTo(0)));
+        assertThat(content.getMetadata().getTags().size(), is(equalTo(0)));
         assertThat(existingTag.getContents().size(), is(equalTo(0)));
     }
 }
