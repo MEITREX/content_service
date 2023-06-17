@@ -87,7 +87,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation('de.unistuttgart.iste.gits:gits-common-test') {
 		version {
-			branch = 'main'
+			branch = 'testcontainers'
 		}
 	}
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -95,10 +95,12 @@ dependencies {
 	testImplementation 'org.springframework.graphql:spring-graphql-test'
 	testImplementation "org.mockito:mockito-core:3.+"
 	testImplementation 'org.hamcrest:hamcrest:2.+'
+	testImplementation "org.testcontainers:postgresql:1.18.3"
+
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
 
-tasks.withType(Test) { testLogging.showStandardStreams = true }
+tasks.withType(Test).configureEach { testLogging.showStandardStreams = true }
