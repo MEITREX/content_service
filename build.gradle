@@ -87,7 +87,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation('de.unistuttgart.iste.gits:gits-common-test') {
 		version {
-			branch = 'testcontainers'
+			branch = 'main'
 		}
 	}
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
