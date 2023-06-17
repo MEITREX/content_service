@@ -6,8 +6,6 @@ on:
       - Testing CI pipeline
     types:
       - completed
-    branches:
-      - main
 
 jobs:
   docker-build:
