@@ -1,10 +1,15 @@
 package de.unistuttgart.iste.gits.content_service;
 
+import de.unistuttgart.iste.gits.common.testutil.GitsPostgresSqlContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +20,14 @@ import static org.hamcrest.Matchers.equalTo;
 
 @SpringBootTest(classes = ContentServiceApplication.class)
 @AutoConfigureGraphQlTester
+@ActiveProfiles("test")
+@Testcontainers
 class ContentServiceApiTests {
     @Autowired
     private GraphQlTester graphQlTester;
+
+    @Container
+    public static PostgreSQLContainer<GitsPostgresSqlContainer> postgreSQLContainer = GitsPostgresSqlContainer.getInstance();
 
     @Test
     void shouldAddContentAndQueryBack() {
