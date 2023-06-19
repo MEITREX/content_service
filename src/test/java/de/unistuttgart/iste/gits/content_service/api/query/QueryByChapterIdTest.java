@@ -1,23 +1,22 @@
 package de.unistuttgart.iste.gits.content_service.api.query;
 
-import de.unistuttgart.iste.gits.common.testutil.GraphQlTesterParameterResolver;
+import de.unistuttgart.iste.gits.common.testutil.GitsPostgresSqlContainer;
+import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.graphql.test.tester.GraphQlTester;
-import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.junit.jupiter.Container;
 
 import java.util.List;
 import java.util.UUID;
 
-@ExtendWith(GraphQlTesterParameterResolver.class)
-@SpringBootTest
-@ActiveProfiles("test")
+@GraphQlApiTest
 class QueryByChapterIdTest {
+    @Container
+    static final GitsPostgresSqlContainer postgres = GitsPostgresSqlContainer.getInstance();
 
     @Autowired
     private ContentRepository contentRepository;

@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
-import de.unistuttgart.iste.gits.common.testutil.GraphQlTesterParameterResolver;
+import de.unistuttgart.iste.gits.common.testutil.GitsPostgresSqlContainer;
+import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
@@ -8,11 +9,9 @@ import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentR
 import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.graphql.test.tester.GraphQlTester;
-import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.junit.jupiter.Container;
 
 import java.util.Set;
 import java.util.UUID;
@@ -20,10 +19,11 @@ import java.util.UUID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-@ExtendWith(GraphQlTesterParameterResolver.class)
-@SpringBootTest
-@ActiveProfiles("test")
+@GraphQlApiTest
 class MutationAddTagToContentTest {
+
+    @Container
+    static final GitsPostgresSqlContainer postgres = GitsPostgresSqlContainer.getInstance();
 
     @Autowired
     private ContentRepository contentRepository;
