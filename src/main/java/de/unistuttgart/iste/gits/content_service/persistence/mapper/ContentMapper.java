@@ -1,34 +1,69 @@
 package de.unistuttgart.iste.gits.content_service.persistence.mapper;
 
+import de.unistuttgart.iste.gits.content_service.persistence.dao.AssessmentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
-import de.unistuttgart.iste.gits.generated.dto.ContentDto;
-import de.unistuttgart.iste.gits.generated.dto.CreateContentInputDto;
-import de.unistuttgart.iste.gits.generated.dto.UpdateContentInputDto;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.MediaContentEntity;
+import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ContentMapper {
 
     private final ModelMapper modelMapper;
 
-    public ContentDto entityToDto(ContentEntity contentEntity) {
-        // add specific mapping here if needed
-        ContentDto result = modelMapper.map(contentEntity, ContentDto.class);
-        if (contentEntity.getTags() != null) {
-            result.setTagNames(contentEntity.getTags().stream().map(TagEntity::getName).toList());
+    public Content entityToDto(ContentEntity contentEntity) {
+        Content result;
+        if (contentEntity.getMetadata().getType() == ContentType.MEDIA) {
+            result = mediaContentEntityToDto(contentEntity);
+        } else {
+            result = assessmentEntityToDto(contentEntity);
         }
+
         return result;
     }
 
-    public ContentEntity dtoToEntity(CreateContentInputDto contentInputDto) {
-        return modelMapper.map(contentInputDto, ContentEntity.class);
+    public MediaContentEntity mediaContentDtoToEntity(CreateMediaContentInput input) {
+        return modelMapper.map(input, MediaContentEntity.class);
     }
 
-    public ContentEntity dtoToEntity(UpdateContentInputDto input) {
-        return modelMapper.map(input, ContentEntity.class);
+    public MediaContentEntity mediaContentDtoToEntity(UpdateMediaContentInput input, ContentType contentType) {
+        var result = modelMapper.map(input, MediaContentEntity.class);
+        result.getMetadata().setType(contentType);
+        return result;
     }
+
+    public MediaContent mediaContentEntityToDto(ContentEntity contentEntity) {
+        MediaContent result = modelMapper.map(contentEntity, MediaContent.class);
+        result.getMetadata().setTagNames(contentEntity.getTagNames());
+        return result;
+    }
+
+    public AssessmentEntity assessmentDtoToEntity(CreateAssessmentInput input) {
+        return modelMapper.map(input, AssessmentEntity.class);
+    }
+
+    public AssessmentEntity assessmentDtoToEntity(UpdateAssessmentInput input, ContentType contentType) {
+        var result = modelMapper.map(input, AssessmentEntity.class);
+        result.getMetadata().setType(contentType);
+        return result;
+    }
+
+    public Assessment assessmentEntityToDto(ContentEntity contentEntity) {
+        Assessment result;
+        if (contentEntity.getMetadata().getType() == ContentType.FLASHCARDS) {
+            result = modelMapper.map(contentEntity, FlashcardSetAssessment.class);
+        } else {
+            // put other assessment types here
+            throw new IllegalStateException("Unsupported content type for assessment: " + contentEntity.getMetadata().getType());
+        }
+
+        result.getMetadata().setTagNames(contentEntity.getTagNames());
+        return result;
+    }
+
 }

@@ -1,7 +1,0 @@
-query($ids:[UUID!]!) {
-    contentsById(ids: $ids)
-     {
-        id
-        name
-    }
-}

@@ -1,3 +1,0 @@
-mutation($uuid: UUID!) {
-    deleteContent(id: $uuid)
-}

@@ -1,9 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
 import de.unistuttgart.iste.gits.content_service.service.ContentService;
-import de.unistuttgart.iste.gits.generated.dto.ContentDto;
-import de.unistuttgart.iste.gits.generated.dto.CreateContentInputDto;
-import de.unistuttgart.iste.gits.generated.dto.UpdateContentInputDto;
+import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -22,42 +20,52 @@ public class ContentController {
     private final ContentService contentService;
 
     @QueryMapping
-    public List<ContentDto> contents() {
+    public ContentPayload contents() {
         return contentService.getAllContents();
     }
 
     @QueryMapping
-    public List<ContentDto> contentsById(@Argument(name = "ids") List<UUID> ids) {
+    public ContentPayload contentsByIds(@Argument List<UUID> ids) {
         return contentService.getContentsById(ids);
     }
 
     @QueryMapping
-    List<List<ContentDto>> contentsByChapterIds(@Argument(name = "chapterIds") List<UUID> chapterIds) {
+    List<ContentPayload> contentsByChapterIds(@Argument List<UUID> chapterIds) {
         return contentService.getContentsByChapterIds(chapterIds);
     }
 
     @MutationMapping
-    public ContentDto createContent(@Argument(name = "input") CreateContentInputDto input) {
-        return contentService.createContent(input);
+    public MediaContent createMediaContent(@Argument CreateMediaContentInput input) {
+        return contentService.createMediaContent(input);
     }
 
     @MutationMapping
-    public ContentDto updateContent(@Argument(name = "input") UpdateContentInputDto input) {
-        return contentService.updateContent(input);
+    public MediaContent updateMediaContent(@Argument UpdateMediaContentInput input) {
+        return contentService.updateMediaContent(input);
     }
 
     @MutationMapping
-    public UUID deleteContent(@Argument(name = "id") UUID id) {
+    public Assessment createAssessment(@Argument CreateAssessmentInput input) {
+        return contentService.createAssessment(input);
+    }
+
+    @MutationMapping
+    public Assessment updateAssessment(@Argument UpdateAssessmentInput input) {
+        return contentService.updateAssessment(input);
+    }
+
+    @MutationMapping
+    public UUID deleteContent(@Argument UUID id) {
         return contentService.deleteContent(id);
     }
 
     @MutationMapping
-    public ContentDto addTagToContent(@Argument(name = "contentId") UUID id, @Argument(name = "tagName") String tagName) {
+    public Content addTagToContent(@Argument("contentId") UUID id, @Argument String tagName) {
         return contentService.addTagToContent(id, tagName);
     }
 
     @MutationMapping
-    public ContentDto removeTagFromContent(@Argument(name = "contentId") UUID id, @Argument(name = "tagName") String tagName) {
+    public Content removeTagFromContent(@Argument("contentId") UUID id, @Argument String tagName) {
         return contentService.removeTagFromContent(id, tagName);
     }
 

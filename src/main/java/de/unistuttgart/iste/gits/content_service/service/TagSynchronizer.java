@@ -31,10 +31,10 @@ public class TagSynchronizer {
         // the newly created tags and the existing tags which are not already assigned to the content need to be linked with the content
         // for n:m relationships the links have to be created on both sides, i.e. content -> tag and tag --> content
         tagsToAdd.addAll(tagSynchronizationResult.existingTagsToAdd());
-        if (content.getTags() == null) {
-            content.setTags(tagsToAdd);
+        if (content.getMetadata().getTags() == null) {
+            content.getMetadata().setTags(tagsToAdd);
         } else {
-            content.getTags().addAll(tagsToAdd);
+            content.getMetadata().getTags().addAll(tagsToAdd);
         }
         for (TagEntity tag : tagsToAdd) {
             if (tag.getContents() == null) {
