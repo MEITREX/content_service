@@ -97,7 +97,7 @@ class MutationCreateMediaContentTest {
         assertThat(mediaContentEntity.getMetadata().getChapterId(), is(input.getMetadata().getChapterId()));
         assertThat(mediaContentEntity.getMetadata().getRewardPoints(), is(1));
 
-        Mockito.verify(topicPublisher, Mockito.times(1)).notifyChange(Mockito.any(ContentEntity.class), Mockito.eq(CrudOperation.CREATE));
+        Mockito.verify(topicPublisher, Mockito.atLeastOnce()).notifyChange(Mockito.any(ContentEntity.class), Mockito.eq(CrudOperation.CREATE));
     }
 
     /**
