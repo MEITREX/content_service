@@ -1,18 +1,23 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
+import de.unistuttgart.iste.gits.common.dapr.CrudOperation;
 import de.unistuttgart.iste.gits.common.testutil.GitsPostgresSqlContainer;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
+import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.MediaContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.CreateContentMetadataInput;
 import de.unistuttgart.iste.gits.generated.dto.CreateMediaContentInput;
 import de.unistuttgart.iste.gits.generated.dto.MediaContent;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Container;
 
 import java.util.List;
@@ -21,6 +26,7 @@ import java.util.UUID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+@ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
 class MutationCreateMediaContentTest {
 
@@ -29,6 +35,9 @@ class MutationCreateMediaContentTest {
 
     @Autowired
     private ContentRepository contentRepository;
+
+    @Autowired
+    private TopicPublisher topicPublisher;
 
     /**
      * Given a valid CreateAssessmentInput
@@ -87,6 +96,8 @@ class MutationCreateMediaContentTest {
         assertThat(mediaContentEntity.getMetadata().getType(), is(ContentType.MEDIA));
         assertThat(mediaContentEntity.getMetadata().getChapterId(), is(input.getMetadata().getChapterId()));
         assertThat(mediaContentEntity.getMetadata().getRewardPoints(), is(1));
+
+        Mockito.verify(topicPublisher, Mockito.times(1)).notifyChange(Mockito.any(ContentEntity.class), Mockito.eq(CrudOperation.CREATE));
     }
 
     /**

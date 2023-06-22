@@ -1,15 +1,21 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
+import de.unistuttgart.iste.gits.common.dapr.CrudOperation;
 import de.unistuttgart.iste.gits.common.testutil.GitsPostgresSqlContainer;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
+import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.AssessmentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.transaction.Transactional;
+import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Container;
 
 import java.util.List;
@@ -18,6 +24,7 @@ import java.util.UUID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+@ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
 class MutationCreateAssessmentTest {
     @Container
@@ -25,6 +32,9 @@ class MutationCreateAssessmentTest {
 
     @Autowired
     private ContentRepository contentRepository;
+
+    @Autowired
+    private TopicPublisher topicPublisher;
 
     /**
      * Given a valid CreateAssessmentInput
@@ -95,6 +105,8 @@ class MutationCreateAssessmentTest {
         assertThat(assessmentEntity.getMetadata().getRewardPoints(), is(1));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillPoints(), is(1));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillType(), is(SkillType.REMEMBER));
+
+        Mockito.verify(topicPublisher, Mockito.times(1)).notifyChange(Mockito.any(AssessmentEntity.class), Mockito.eq(CrudOperation.CREATE));
     }
 
     /**
