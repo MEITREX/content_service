@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.gits.common.dapr.CrudOperation;
+import de.unistuttgart.iste.gits.common.dapr.ResourceUpdateDTO;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
@@ -237,8 +238,33 @@ public class ContentService {
 
         tagSynchronization.synchronizeTags(updatedContentEntity, tags);
         updatedContentEntity = contentRepository.save(updatedContentEntity);
+        //TODO: publish update if chapter ID is changed and added to a different course as a result
 
         return updatedContentEntity;
+    }
+
+    /**
+     * method to forward received resource updates with additional information to course association topic
+     * @param dto resource update dto
+     */
+    public void forwardResourceUpdates(ResourceUpdateDTO dto){
+
+        // completeness check of input
+        if (dto.getEntityId() == null || dto.getContentIds() == null || dto.getContentIds().isEmpty() || dto.getOperation() == null){
+            throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
+        }
+
+        // find all chapter IDs
+        List<UUID> contentEntities = contentRepository.findAllById(dto.getContentIds())
+                .stream()
+                .map(contentEntity -> contentEntity.getMetadata()
+                        .getChapterId())
+                .toList();
+
+
+        topicPublisher.forwardChange(dto.getEntityId(), contentEntities, dto.getOperation());
+
+
     }
 
     @SuppressWarnings("java:S1172")
