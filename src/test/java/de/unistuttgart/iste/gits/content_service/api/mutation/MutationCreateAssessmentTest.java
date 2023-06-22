@@ -10,7 +10,6 @@ import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentR
 import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.transaction.Transactional;
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
