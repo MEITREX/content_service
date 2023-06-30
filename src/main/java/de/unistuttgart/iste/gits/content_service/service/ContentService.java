@@ -1,7 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.common.dapr.CrudOperation;
-import de.unistuttgart.iste.gits.common.dapr.ResourceUpdateDTO;
+
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
+import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
@@ -28,7 +30,7 @@ public class ContentService {
     private final TagRepository tagRepository;
     private final ContentMapper contentMapper;
     private final ContentValidator contentValidator;
-    final TagSynchronizer tagSynchronization;
+    final TagService tagSynchronization;
     private final TopicPublisher topicPublisher;
 
     public ContentPayload getAllContents() {
@@ -53,6 +55,7 @@ public class ContentService {
 
         //publish changes
         topicPublisher.notifyChange(deletedEntity, CrudOperation.DELETE);
+        topicPublisher.informContentDependentServices(List.of(deletedEntity.getId()), CrudOperation.DELETE);
 
         return uuid;
     }
@@ -245,7 +248,11 @@ public class ContentService {
 
         tagSynchronization.synchronizeTags(updatedContentEntity, tags);
         updatedContentEntity = contentRepository.save(updatedContentEntity);
-        //TODO: publish update if chapter ID is changed and added to a different course as a result
+
+        // if the content is assigned to a different chapter course Links need to be potentially updated and therefore an Update request is sent to the resource services
+        if (!oldContentEntity.getMetadata().getChapterId().equals(updatedContentEntity.getMetadata().getChapterId())) {
+            topicPublisher.informContentDependentServices(List.of(updatedContentEntity.getId()), CrudOperation.UPDATE);
+        }
 
         return updatedContentEntity;
     }
@@ -255,7 +262,7 @@ public class ContentService {
      *
      * @param dto resource update dto
      */
-    public void forwardResourceUpdates(ResourceUpdateDTO dto) {
+    public void forwardResourceUpdates(ResourceUpdateEvent dto) {
 
         // completeness check of input
         if (dto.getEntityId() == null || dto.getContentIds() == null || dto.getContentIds().isEmpty() || dto.getOperation() == null) {
@@ -263,15 +270,50 @@ public class ContentService {
         }
 
         // find all chapter IDs
-        List<UUID> contentEntities = contentRepository.findAllById(dto.getContentIds())
+        List<UUID> contentEntityIds = contentRepository.findAllById(dto.getContentIds())
                 .stream()
                 .map(contentEntity -> contentEntity.getMetadata()
                         .getChapterId())
                 .toList();
 
 
-        topicPublisher.forwardChange(dto.getEntityId(), contentEntities, dto.getOperation());
+        topicPublisher.forwardChange(dto.getEntityId(), contentEntityIds, dto.getOperation());
     }
+
+    /**
+     * Method that cascades the deletion of chapters to chapter-dependant-content
+     *
+     * @param dto message containing information about to be deleted entities
+     */
+    public void cascadeContentDeletion(ChapterChangeEvent dto) {
+        List<UUID> chapterIds;
+        List<UUID> contentIds = new ArrayList<>();
+
+
+        chapterIds = dto.getChapterIds();
+
+        // make sure message is complete
+        if (chapterIds == null || chapterIds.isEmpty() || dto.getOperation() == null) {
+            throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
+        }
+
+        // ignore any messages that are not deletion messages
+        if (!dto.getOperation().equals(CrudOperation.DELETE)) {
+            return;
+        }
+
+        List<ContentEntity> contentEntities = contentRepository.findByChapterIdIn(chapterIds);
+
+        for (ContentEntity entity : contentEntities) {
+            contentIds.add(entity.getId());
+            contentRepository.delete(entity);
+        }
+
+        // inform dependant services that content entities were deleted
+        topicPublisher.informContentDependentServices(contentIds, CrudOperation.DELETE);
+
+    }
+
 
     @SuppressWarnings("java:S1172")
     private void checkPermissionsForChapter(UUID chapterId) {

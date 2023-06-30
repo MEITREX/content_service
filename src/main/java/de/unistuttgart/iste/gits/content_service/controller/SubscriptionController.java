@@ -1,6 +1,8 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
-import de.unistuttgart.iste.gits.common.dapr.ResourceUpdateDTO;
+
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.service.ContentService;
 import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
@@ -28,9 +30,10 @@ public class SubscriptionController {
     private final UserProgressDataService userProgressDataService;
 
     @Topic(name = "resource-update", pubsubName = "gits")
-    @PostMapping(path = "/course-service/resource-update-pubsub")
-    public Mono<Void> updateAssociation(@RequestBody(required = false) CloudEvent<ResourceUpdateDTO> cloudEvent, @RequestHeader Map<String, String> headers) {
-        return Mono.fromRunnable(() -> contentService.forwardResourceUpdates(cloudEvent.getData()));
+    @PostMapping(path = "/content-service/resource-update-pubsub")
+    public Mono<Void> updateAssociation(@RequestBody(required = false) CloudEvent<ResourceUpdateEvent> cloudEvent, @RequestHeader Map<String, String> headers){
+
+            return Mono.fromRunnable( () -> contentService.forwardResourceUpdates(cloudEvent.getData()));
     }
 
     /**
@@ -43,5 +46,12 @@ public class SubscriptionController {
             return Mono.error(new IllegalArgumentException("CloudEvent is null"));
         }
         return Mono.fromRunnable(() -> userProgressDataService.logUserProgress(cloudEvent.getData()));
+    }
+
+    @Topic(name = "chapter-changes", pubsubName = "gits")
+    @PostMapping(path = "/content-service/chapter-changes-pubsub")
+    public Mono<Void> cascadeCourseDeletion(@RequestBody(required = false) CloudEvent<ChapterChangeEvent> cloudEvent, @RequestHeader Map<String, String> headers){
+
+        return Mono.fromRunnable( () -> contentService.cascadeContentDeletion(cloudEvent.getData()));
     }
 }

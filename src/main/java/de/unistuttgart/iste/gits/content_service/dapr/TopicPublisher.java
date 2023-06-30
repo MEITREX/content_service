@@ -1,7 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.dapr;
 
-import de.unistuttgart.iste.gits.common.dapr.CourseAssociationDTO;
-import de.unistuttgart.iste.gits.common.dapr.CrudOperation;
+
+import de.unistuttgart.iste.gits.common.event.ContentChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CourseAssociationEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import io.dapr.client.DaprClient;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,9 @@ import java.util.UUID;
 public class TopicPublisher {
 
     private static final String PUBSUB_NAME = "gits";
-    private static final String TOPIC_NAME = "resource-association";
+    private static final String TOPIC_RESOURCE_ASSOCIATION = "resource-association";
+
+    private static final String TOPIC_CONTENT_CHANGES = "content-changes";
 
     private final DaprClient client;
 
@@ -26,11 +30,11 @@ public class TopicPublisher {
      * method used to publish dapr messages to a topic
      * @param dto message
      */
-    private void publishChanges(CourseAssociationDTO dto){
+    private void publishChanges(Object dto, String topic){
         log.info("publishing message");
         client.publishEvent(
                 PUBSUB_NAME,
-                TOPIC_NAME,
+                topic,
                 dto).block();
     }
 
@@ -40,14 +44,23 @@ public class TopicPublisher {
      * @param operation type of CRUD operation performed on entity
      */
     public void notifyChange(ContentEntity contentEntity, CrudOperation operation){
-        CourseAssociationDTO dto = CourseAssociationDTO.builder()
+        CourseAssociationEvent dto = CourseAssociationEvent.builder()
                 .resourceId(contentEntity.getId())
                 .chapterIds(List.of(contentEntity.getMetadata()
                         .getChapterId()))
                 .operation(operation)
                 .build();
 
-        publishChanges(dto);
+        publishChanges(dto, TOPIC_RESOURCE_ASSOCIATION);
+    }
+
+    public void informContentDependentServices(List<UUID> contentEntityIds, CrudOperation operation){
+        ContentChangeEvent dto = ContentChangeEvent.builder()
+                .contentIds(contentEntityIds)
+                .operation(operation)
+                .build();
+
+        publishChanges(dto, TOPIC_CONTENT_CHANGES);
     }
 
     /**
@@ -57,13 +70,13 @@ public class TopicPublisher {
      * @param operation type of CRUD operation performed
      */
     public void forwardChange(UUID resourceId, List<UUID> chapterIds, CrudOperation operation){
-        CourseAssociationDTO dto = CourseAssociationDTO.builder()
+        CourseAssociationEvent dto = CourseAssociationEvent.builder()
                 .resourceId(resourceId)
                 .chapterIds(chapterIds)
                 .operation(operation)
                 .build();
 
-        publishChanges(dto);
+        publishChanges(dto, TOPIC_RESOURCE_ASSOCIATION);
     }
 
 
