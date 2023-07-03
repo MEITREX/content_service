@@ -9,11 +9,9 @@ interface Content {
     """
     metadata: ContentMetadata!
     """
-    Progress data of the content, specific to given users.
-    If userId is not provided, the progress data of the current user is returned.
-    If the user has no permission to view the progress data to one or of the provided users, an error is thrown.
+    Progress data of the content for the current user.
     """
-    userProgressData(userId: UUID): UserProgressData!
+    userProgressData: UserProgressData!
 }
 
 type ContentMetadata {
@@ -56,11 +54,9 @@ type MediaContent implements Content {
     metadata: ContentMetadata!
 
     """
-    Progress data of the content, specific to given users.
-    If userId is not provided, the progress data of the current user is returned.
-    If the user has no permission to view the progress data to one or of the provided users, an error is thrown.
+    Progress data of the content for the current user.
     """
-    userProgressData(userId: UUID): UserProgressData!
+    userProgressData: UserProgressData!
 }
 
 interface Assessment implements Content {
@@ -80,11 +76,9 @@ interface Assessment implements Content {
     """
     metadata: ContentMetadata!
     """
-    Progress data of the content, specific to given users.
-    If userId is not provided, the progress data of the current user is returned.
-    If the user has no permission to view the progress data to one or of the provided users, an error is thrown.
+    Progress data of the content for the current user.
     """
-    userProgressData(userId: UUID): UserProgressData!
+    userProgressData: UserProgressData!
 }
 
 type AssessmentMetadata {
@@ -125,11 +119,9 @@ type FlashcardSetAssessment implements Assessment & Content {
     metadata: ContentMetadata!
 
     """
-    Progress data of the content, specific to given users.
-    If userId is not provided, the progress data of the current user is returned.
-    If the user has no permission to view the progress data to one or of the provided users, an error is thrown.
+    Progress data of the content for the current user.
     """
-    userProgressData(userId: UUID): UserProgressData!
+    userProgressData: UserProgressData!
 }
 
 # add more types here
