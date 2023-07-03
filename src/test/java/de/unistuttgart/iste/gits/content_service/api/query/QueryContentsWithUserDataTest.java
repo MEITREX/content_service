@@ -10,7 +10,7 @@ import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentR
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.graphql.test.tester.HttpGraphQlTester;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -32,7 +32,7 @@ class QueryContentsWithUserDataTest {
     private UserProgressDataRepository userProgressDataRepository;
 
     @Test
-    void testQueryWithUserData(GraphQlTester graphQlTester) {
+    void testQueryWithUserData(HttpGraphQlTester graphQlTester) {
         // arrange one content object with two user data objects
         UUID chapterId = UUID.randomUUID();
         UUID userId1 = UUID.randomUUID();
@@ -43,6 +43,15 @@ class QueryContentsWithUserDataTest {
                         .build())
                 .build();
         contentEntity = contentRepository.save(contentEntity);
+
+        String currentUser = """
+                {
+                    "id": "%s",
+                    "userName": "MyUserName",
+                    "firstName": "John",
+                    "lastName": "Doe"
+                }
+                """.formatted(userId1.toString());
 
         UserProgressDataEntity userProgressDataEntity1 = UserProgressDataEntity.builder()
                 .userId(userId1)
@@ -79,14 +88,14 @@ class QueryContentsWithUserDataTest {
         userProgressDataRepository.save(userProgressDataEntity2);
 
         String query = """ 
-                query($userId: UUID!) {
+                query {
                     contents {
                         elements {
                             id
                             metadata {
                                 chapterId
                             }
-                            userProgressData(userId: $userId) {
+                            userProgressData {
                                 userId
                                 learningInterval
                                 log {
@@ -100,8 +109,10 @@ class QueryContentsWithUserDataTest {
                     }
                 }
                 """;
-        graphQlTester.document(query)
-                .variable("userId", userId1)
+        graphQlTester.mutate()
+                .header("CurrentUser", currentUser)
+                .build()
+                .document(query)
                 .execute()
                 .path("contents.elements").entityList(Object.class).hasSize(1)
                 .path("contents.elements[0].id").entity(UUID.class).isEqualTo(contentEntity.getId())
