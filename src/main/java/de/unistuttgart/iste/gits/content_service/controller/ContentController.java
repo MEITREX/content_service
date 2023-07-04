@@ -26,7 +26,7 @@ public class ContentController {
     }
 
     @QueryMapping
-    public ContentPayload contentsByIds(@Argument List<UUID> ids) {
+    public List<Content> contentsByIds(@Argument List<UUID> ids) {
         return contentService.getContentsById(ids);
     }
 
