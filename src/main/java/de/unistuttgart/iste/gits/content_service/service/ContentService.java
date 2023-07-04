@@ -72,11 +72,11 @@ public class ContentService {
         }
     }
 
-    public ContentPayload getContentsById(List<UUID> ids) {
-        return createContentPayload(contentRepository.findByIdIn(ids)
+    public List<Content> getContentsById(List<UUID> ids) {
+        return contentRepository.findByIdIn(ids)
                 .stream()
                 .map(contentMapper::entityToDto)
-                .toList());
+                .toList();
     }
 
     public List<List<Content>> getContentsByChapterIds(List<UUID> chapterIds) {
