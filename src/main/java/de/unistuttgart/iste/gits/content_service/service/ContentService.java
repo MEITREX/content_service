@@ -265,7 +265,7 @@ public class ContentService {
     public void forwardResourceUpdates(ResourceUpdateEvent dto) {
 
         // completeness check of input
-        if (dto.getEntityId() == null || dto.getContentIds() == null || dto.getContentIds().isEmpty() || dto.getOperation() == null) {
+        if (dto.getEntityId() == null || dto.getContentIds() == null || dto.getOperation() == null) {
             throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
         }
 
@@ -307,6 +307,8 @@ public class ContentService {
         for (ContentEntity entity : contentEntities) {
             contentIds.add(entity.getId());
             contentRepository.delete(entity);
+            //notify course which resource can be removed. This is necessary if only a chapter is removed and not the entire course
+            topicPublisher.notifyChange(entity, CrudOperation.DELETE);
         }
 
         // inform dependant services that content entities were deleted
