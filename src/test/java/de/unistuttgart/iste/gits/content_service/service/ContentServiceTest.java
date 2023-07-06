@@ -93,7 +93,6 @@ class ContentServiceTest {
         //execute method under test
         assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(noEntityDto));
         assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(nullListDto));
-        assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(emptyListDto));
         assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(noOperationDto));
     }
 
@@ -169,7 +168,6 @@ class ContentServiceTest {
 
 
         //execute method under test
-        assertThrows(NullPointerException.class, () -> contentService.cascadeContentDeletion(emptyListDto));
         assertThrows(NullPointerException.class, () -> contentService.cascadeContentDeletion(nullListDto));
         assertThrows(NullPointerException.class, () -> contentService.cascadeContentDeletion(noOperationDto));
     }

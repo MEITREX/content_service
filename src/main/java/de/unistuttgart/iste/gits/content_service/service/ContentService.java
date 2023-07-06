@@ -311,8 +311,11 @@ public class ContentService {
             topicPublisher.notifyChange(entity, CrudOperation.DELETE);
         }
 
-        // inform dependant services that content entities were deleted
-        topicPublisher.informContentDependentServices(contentIds, CrudOperation.DELETE);
+        if (!contentIds.isEmpty()){
+            // inform dependant services that content entities were deleted
+            topicPublisher.informContentDependentServices(contentIds, CrudOperation.DELETE);
+        }
+
 
     }
 
