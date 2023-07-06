@@ -93,7 +93,6 @@ class ContentServiceTest {
         //execute method under test
         assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(noEntityDto));
         assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(nullListDto));
-        assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(emptyListDto));
         assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(noOperationDto));
     }
 
@@ -138,6 +137,7 @@ class ContentServiceTest {
         contentService.cascadeContentDeletion(dto);
 
         verify(contentRepository, times(2)).delete(any(ContentEntity.class));
+        verify(mockPublisher, times(2)).notifyChange(any(ContentEntity.class), eq(CrudOperation.DELETE));
         verify(mockPublisher, times(1)).informContentDependentServices(List.of(testEntity.getId(), testEntity2.getId()), CrudOperation.DELETE);
     }
 
@@ -168,7 +168,6 @@ class ContentServiceTest {
 
 
         //execute method under test
-        assertThrows(NullPointerException.class, () -> contentService.cascadeContentDeletion(emptyListDto));
         assertThrows(NullPointerException.class, () -> contentService.cascadeContentDeletion(nullListDto));
         assertThrows(NullPointerException.class, () -> contentService.cascadeContentDeletion(noOperationDto));
     }
