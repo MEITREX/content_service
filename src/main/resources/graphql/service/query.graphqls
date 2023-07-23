@@ -4,9 +4,15 @@ type Query {
     """
     contents: ContentPayload!
     """
-    get contents by ids
+    Get contents by ids. Throws an error if any of the ids are not found.
     """
     contentsByIds(ids: [UUID!]!): [Content!]!
+
+    """
+    Get contents by ids. If any of the given ids are not found, the corresponding element in the result list will be null.
+    """
+    findContentsByIds(ids: [UUID!]!): [Content]!
+
     """
     get contents by chapter ids. Returns a list containing sublists, where each sublist contains all contents
     associated with that chapter

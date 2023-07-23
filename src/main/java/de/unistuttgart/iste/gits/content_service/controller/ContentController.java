@@ -31,6 +31,11 @@ public class ContentController {
     }
 
     @QueryMapping
+    public List<Content> findContentsByIds(@Argument List<UUID> ids) {
+        return contentService.findContentsById(ids);
+    }
+
+    @QueryMapping
     List<List<Content>> contentsByChapterIds(@Argument List<UUID> chapterIds) {
         return contentService.getContentsByChapterIds(chapterIds);
     }
