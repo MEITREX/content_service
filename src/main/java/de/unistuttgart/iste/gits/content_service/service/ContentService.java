@@ -1,9 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 
-import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
-import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
+import de.unistuttgart.iste.gits.common.event.*;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
@@ -72,10 +70,49 @@ public class ContentService {
         }
     }
 
+    /**
+     * Like {@link #findContentsById(List)} but throws an EntityNotFoundException if a content with a given id
+     * does not exist.
+     *
+     * @param ids the ids of the contents to find
+     * @return the contents with the given ids. The size of the list will be the same as the size of the given list.
+     * The order of the contents will match the order of the given ids.
+     * @throws EntityNotFoundException If a content with a given id does not exist.
+     */
     public List<Content> getContentsById(List<UUID> ids) {
-        return contentRepository.findByIdIn(ids)
-                .stream()
-                .map(contentMapper::entityToDto)
+        List<Content> contents = findContentsById(ids);
+
+        List<UUID> notFound = new ArrayList<>();
+        for (int i = 0; i < contents.size(); i++) {
+            if (contents.get(i) == null) {
+                notFound.add(ids.get(i));
+            }
+        }
+
+        if (!notFound.isEmpty()) {
+            throw new EntityNotFoundException("Contents with ids "
+                                              + notFound.stream().map(UUID::toString).collect(Collectors.joining(", "))
+                                              + " not found");
+        }
+
+        return contents;
+    }
+
+    /**
+     * Finds contents by their ids. If a content with a given id does not exist,
+     * the corresponding list entry will be null.
+     * This way, the returned list will always have the same size as the given list
+     * and the order of the contents will match the order of the given ids.
+     *
+     * @param ids The ids of the contents to find.
+     * @return a list of nullable contents. The size of the list will be the same as the size of the given list.
+     * The order of the contents will match the order of the given ids.
+     */
+    public List<Content> findContentsById(List<UUID> ids) {
+        return ids.stream()
+                .map(contentRepository::findById)
+                .map(optionalContent -> optionalContent.map(contentMapper::entityToDto))
+                .map(optionalContent -> optionalContent.orElse(null))
                 .toList();
     }
 
@@ -310,7 +347,7 @@ public class ContentService {
             topicPublisher.notifyChange(entity, CrudOperation.DELETE);
         }
 
-        if (!contentIds.isEmpty()){
+        if (!contentIds.isEmpty()) {
             // inform dependant services that content entities were deleted
             topicPublisher.informContentDependentServices(contentIds, CrudOperation.DELETE);
         }
