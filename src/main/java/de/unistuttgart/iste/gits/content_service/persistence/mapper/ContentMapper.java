@@ -1,8 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.persistence.mapper;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.AssessmentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +55,8 @@ public class ContentMapper {
         Assessment result;
         if (contentEntity.getMetadata().getType() == ContentType.FLASHCARDS) {
             result = modelMapper.map(contentEntity, FlashcardSetAssessment.class);
+        } else if (contentEntity.getMetadata().getType() == ContentType.QUIZ) {
+            result = modelMapper.map(contentEntity, QuizAssessment.class);
         } else {
             // put other assessment types here
             throw new IllegalStateException("Unsupported content type for assessment: " + contentEntity.getMetadata().getType());

@@ -140,6 +140,34 @@ type FlashcardSetAssessment implements Assessment & Content {
     progressDataForUser(userId: UUID!): UserProgressData!
 }
 
+"""
+A quiz, quiz related fields are stored in the quiz service.
+"""
+type QuizAssessment implements Assessment & Content {
+    # inherited fields
+    """
+    Assessment metadata
+    """
+    assessmentMetadata: AssessmentMetadata!
+    """
+    ID of the content
+    """
+    id: UUID!
+    """
+    Metadata of the content
+    """
+    metadata: ContentMetadata!
+
+    """
+    Progress data of the content for the current user.
+    """
+    userProgressData: UserProgressData!
+    """
+    Progress data of the specified user.
+    """
+    progressDataForUser(userId: UUID!): UserProgressData!
+}
+
 # add more types here
 
 """
@@ -159,5 +187,6 @@ Type of the content
 enum ContentType {
     MEDIA
     FLASHCARDS
+    QUIZ
     # add more types here
 }

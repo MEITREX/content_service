@@ -87,13 +87,20 @@ public class ContentController {
         }
     }
 
-    public abstract class AssessmentResolver<T extends Assessment> extends ContentResolver<T> { }
+    public abstract class AssessmentResolver<T extends Assessment> extends ContentResolver<T> {
+    }
 
     @Controller
-    public class MediaContentResolver extends ContentResolver<MediaContent> { }
+    public class MediaContentResolver extends ContentResolver<MediaContent> {
+    }
 
     @Controller
-    public class FlashcardSetAssessmentResolver extends ContentResolver<FlashcardSetAssessment> { }
+    public class FlashcardSetAssessmentResolver extends ContentResolver<FlashcardSetAssessment> {
+    }
+
+    @Controller
+    public class QuizAssessmentResolver extends ContentResolver<QuizAssessment> {
+    }
 
 }
 
