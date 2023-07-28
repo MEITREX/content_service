@@ -31,6 +31,16 @@ type Mutation {
     Remove a tag from an existing content
     """
     removeTagFromContent(contentId: UUID!, tagName: String): Content!
+
+    createWorkPath(name: String!): WorkPath!
+    updateWorkPath(input: UpdateWorkPathInput!): WorkPath!
+    deleteWorkPath(id: UUID!): UUID!
+
+    createStage(input: CreateStageInput): Stage!
+    updateStage(input: UpdateStageInput): Stage!
+    deleteStage(id: UUID!):UUID!
+
+    updateStageOrder(input: StageOrderInput!):StageOrder!
 }
 
 """
@@ -147,4 +157,26 @@ input AssessmentMetadataInput {
     is useful for assessments that are not meant to be repeated.
     """
     initialLearningInterval: Int @PositiveOrZero
+}
+
+input UpdateWorkPathInput {
+    id: UUID!
+    name: String!
+}
+
+input CreateStageInput{
+    workPathId: UUID!
+    name: String!
+}
+
+input UpdateStageInput{
+    id: UUID!
+    name: String!
+    requiredContents: [UUID!]!
+    optionalContents: [UUID!]!
+}
+
+input StageOrderInput{
+    workPathId: UUID!
+    stageIds: [UUID!]!
 }

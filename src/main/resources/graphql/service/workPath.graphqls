@@ -1,0 +1,17 @@
+type WorkPath {
+    id: UUID!
+    name: String!
+    stages: [Stage!]!
+}
+
+type Stage{
+    id: UUID!
+    position: Int!
+    requiredContents: [UUID!]!
+    optionalContents: [UUID!]!
+}
+
+type StageOrder{
+    workPathId: UUID!
+    stageIds: [UUID!]!
+}
