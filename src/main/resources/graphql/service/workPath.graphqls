@@ -7,8 +7,8 @@ type WorkPath {
 type Stage{
     id: UUID!
     position: Int!
-    requiredContents: [UUID!]!
-    optionalContents: [UUID!]!
+    requiredContents: [Content!]!
+    optionalContents: [Content!]!
 }
 
 type StageOrder{
