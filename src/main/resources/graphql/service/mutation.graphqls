@@ -32,14 +32,39 @@ type Mutation {
     """
     removeTagFromContent(contentId: UUID!, tagName: String): Content!
 
+    """
+    create new Work-Path
+    """
     createWorkPath(name: String!): WorkPath!
+
+    """
+    update the name of a Work-Path
+    """
     updateWorkPath(input: UpdateWorkPathInput!): WorkPath!
+
+    """
+    delete a Work-Path by ID
+    """
     deleteWorkPath(id: UUID!): UUID!
 
+    """
+    create new Stage in Work-Path
+    """
     createStage(input: CreateStageInput): Stage!
+
+    """
+    Update Content of Stage
+    """
     updateStage(input: UpdateStageInput): Stage!
+
+    """
+    delete STage by ID
+    """
     deleteStage(id: UUID!):UUID!
 
+    """
+    update Order of Stages within a Work-Path
+    """
     updateStageOrder(input: StageOrderInput!):StageOrder!
 }
 

@@ -18,6 +18,12 @@ type Query {
     associated with that chapter
     """
     contentsByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!
+
+    """
+    retrieves all existing Work-Paths for a Chapter
+    """
+    getWorkPathsByChapter(id: UUID!): [WorkPath!]!
+
 }
 
 type ContentPayload {
