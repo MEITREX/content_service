@@ -21,6 +21,9 @@ public class WorkPathEntity {
     @GeneratedValue
     UUID id;
 
+    @Column
+    UUID chapterId;
+
     @Column(nullable = false, length = 255)
     String name;
 
