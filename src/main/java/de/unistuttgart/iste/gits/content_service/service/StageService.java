@@ -1,5 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
+import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.WorkPathEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
@@ -11,10 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -39,20 +37,50 @@ public class StageService {
 
     public Stage updateStage(UpdateStageInput input){
 
+        requireStageExisting(input.getId());
+
         StageEntity stageEntity = stageRepository.getReferenceById(input.getId());
 
+        requireWorkPathExisting(stageEntity.getWorkPathId());
+
+        WorkPathEntity workPathEntity = workPathRepository.getReferenceById(stageEntity.getWorkPathId());
+
         stageEntity.setRequiredContents(
-                Set.copyOf(
-                        contentRepository.findContentEntitiesByIdIsIn(input.getRequiredContents()
-                        )
+                validateStageContent(
+                        workPathEntity.getChapterId(),
+                        input.getRequiredContents()
                 ));
+
         stageEntity.setOptionalContent(
-                Set.copyOf(
-                        contentRepository.findContentEntitiesByIdIsIn(input.getOptionalContents()
-                        )
+                validateStageContent(
+                        workPathEntity.getChapterId(),
+                        input.getOptionalContents()
                 ));
 
         return stageMapper.entityToDto(stageRepository.save(stageEntity));
+    }
+
+    /**
+     * validates that received content is located in the same chapter as the Work-Path / Stage.
+     * If Content is not part of the same chapter, the content is removed
+     * @param chapterId chapter ID of the Work-Path / Stage
+     * @param contentIds
+     * @return
+     */
+    private Set<ContentEntity> validateStageContent(UUID chapterId, List<UUID> contentIds) {
+
+        Set<ContentEntity> resultSet = new HashSet<>();
+
+        List<ContentEntity> contentEntities = contentRepository.findContentEntitiesByIdIsIn(contentIds);
+
+        for (ContentEntity contentEntity: contentEntities) {
+            // only add content that is located in the same chapter as the Work-Path / Stage
+            if (contentEntity.getMetadata().getChapterId().equals(chapterId)){
+                resultSet.add(contentEntity);
+            }
+        }
+
+        return resultSet;
     }
 
     public UUID deleteStage(UUID stageId){
@@ -82,9 +110,14 @@ public class StageService {
 
         WorkPathEntity workPathEntity = workPathRepository.getReferenceById(input.getWorkPathId());
 
+        //ensure received list is complete
+        validateStageIds(input.getStageIds(), workPathEntity.getStages());
+
         for (StageEntity stageEntity: workPathEntity.getStages()) {
 
-            stageEntity.setPosition(input.getStageIds().indexOf(stageEntity.getId()));
+            int newPos = input.getStageIds().indexOf(stageEntity.getId());
+
+            stageEntity.setPosition(newPos);
             stageIds.add(stageEntity.getId());
         }
 
@@ -118,6 +151,15 @@ public class StageService {
     private void requireWorkPathExisting(UUID uuid) {
         if (!workPathRepository.existsById(uuid)) {
             throw new EntityNotFoundException("Work-Path with id " + uuid + " not found");
+        }
+    }
+
+    private void validateStageIds(List<UUID> receivedStageIds, Set<StageEntity> stageEntities){
+        List<UUID> stageIds = stageEntities.stream().map(StageEntity::getId).toList();
+        for (UUID stageId: stageIds) {
+            if (!receivedStageIds.contains(stageId)){
+                throw new EntityNotFoundException("Incomplete Stage ID list received");
+            }
         }
     }
 }
