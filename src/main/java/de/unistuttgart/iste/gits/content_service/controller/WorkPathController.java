@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
 import de.unistuttgart.iste.gits.content_service.service.WorkPathService;
+import de.unistuttgart.iste.gits.generated.dto.StageOrderInput;
 import de.unistuttgart.iste.gits.generated.dto.UpdateWorkPathInput;
 import de.unistuttgart.iste.gits.generated.dto.WorkPath;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,11 @@ public class WorkPathController {
     @MutationMapping
     public UUID deleteWorkPath(@Argument UUID uuid){
         return workPathService.deleteWorkPath(uuid);
+    }
+
+    @MutationMapping
+    public WorkPath updateStageOrder(@Argument StageOrderInput input){
+        return workPathService.reorderStages(input);
     }
 
     @QueryMapping

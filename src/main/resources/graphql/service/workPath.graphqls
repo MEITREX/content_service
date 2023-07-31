@@ -10,8 +10,3 @@ type Stage{
     requiredContents: [Content!]!
     optionalContents: [Content!]!
 }
-
-type StageOrder{
-    workPathId: UUID!
-    stageIds: [UUID!]!
-}

@@ -18,8 +18,8 @@ public class StageController {
     private final StageService stageService;
 
     @MutationMapping
-    public Stage createStage(@Argument CreateStageInput input){
-        return stageService.createNewStage(input);
+    public Stage createStage(@Argument UUID workPathId){
+        return stageService.createNewStage(workPathId);
     }
 
     @MutationMapping
@@ -32,8 +32,4 @@ public class StageController {
         return stageService.deleteStage(uuid);
     }
 
-    @MutationMapping
-    public StageOrder updateStageOrder(@Argument StageOrderInput input){
-        return stageService.reorderStages(input);
-    }
 }

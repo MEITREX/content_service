@@ -50,7 +50,7 @@ type Mutation {
     """
     create new Stage in Work-Path
     """
-    createStage(input: CreateStageInput): Stage!
+    createStage(workPathId: UUID!): Stage!
 
     """
     Update Content of Stage
@@ -65,7 +65,7 @@ type Mutation {
     """
     update Order of Stages within a Work-Path
     """
-    updateStageOrder(input: StageOrderInput!):StageOrder!
+    updateStageOrder(input: StageOrderInput!):WorkPath!
 }
 
 """
@@ -189,14 +189,8 @@ input UpdateWorkPathInput {
     name: String!
 }
 
-input CreateStageInput{
-    workPathId: UUID!
-    name: String!
-}
-
 input UpdateStageInput{
     id: UUID!
-    name: String!
     requiredContents: [UUID!]!
     optionalContents: [UUID!]!
 }

@@ -18,24 +18,31 @@ import java.util.*;
 @RequiredArgsConstructor
 public class StageService {
 
-    StageRepository stageRepository;
-    WorkPathRepository workPathRepository;
+    private final StageRepository stageRepository;
+    private final WorkPathRepository workPathRepository;
+    private final ContentRepository contentRepository;
+    private final StageMapper stageMapper;
 
-    ContentRepository contentRepository;
+    public Stage createNewStage(UUID workPathId){
 
-    StageMapper stageMapper;
+        requireWorkPathExisting(workPathId);
 
-    public Stage createNewStage(CreateStageInput input){
+        WorkPathEntity workPathEntity = workPathRepository.getReferenceById(workPathId);
+        StageEntity stageEntity = StageEntity.builder()
+                .workPathId(workPathId)
+                .position(workPathEntity.getStages().size())
+                .requiredContents(new HashSet<>())
+                .optionalContent(new HashSet<>())
+                .build();
 
-        requireWorkPathExisting(input.getWorkPathId());
-
-        WorkPathEntity workPathEntity = workPathRepository.getReferenceById(input.getWorkPathId());
-        StageEntity stageEntity = stageMapper.dtoToEntity(input);
-        stageEntity.setPosition(workPathEntity.getStages().size());
         return stageMapper.entityToDto(stageRepository.save(stageEntity));
     }
 
     public Stage updateStage(UpdateStageInput input){
+
+        if (input.getId() == null || input.getRequiredContents() == null || input.getOptionalContents() == null ){
+            throw new NullPointerException("request fields must not be null");
+        }
 
         requireStageExisting(input.getId());
 
@@ -88,6 +95,7 @@ public class StageService {
         requireStageExisting(stageId);
 
         StageEntity deletedStageEntity = stageRepository.getReferenceById(stageId);
+
         WorkPathEntity workPathEntity = workPathRepository.getReferenceById(deletedStageEntity.getWorkPathId());
 
         //if a stage is deleted all subsequent stages have to have their position moved up by 1 in the list
@@ -104,31 +112,6 @@ public class StageService {
         return deletedStageEntity.getId();
     }
 
-    public StageOrder reorderStages(StageOrderInput input){
-
-        List<UUID> stageIds = new ArrayList<>();
-
-        WorkPathEntity workPathEntity = workPathRepository.getReferenceById(input.getWorkPathId());
-
-        //ensure received list is complete
-        validateStageIds(input.getStageIds(), workPathEntity.getStages());
-
-        for (StageEntity stageEntity: workPathEntity.getStages()) {
-
-            int newPos = input.getStageIds().indexOf(stageEntity.getId());
-
-            stageEntity.setPosition(newPos);
-            stageIds.add(stageEntity.getId());
-        }
-
-        // persist changes
-        workPathRepository.save(workPathEntity);
-
-        return StageOrder.builder()
-                .setStageIds(stageIds)
-                .setWorkPathId(workPathEntity.getId())
-                .build();
-    }
 
     /**
      * Checks if a Stage exists.
@@ -149,17 +132,13 @@ public class StageService {
      * @throws EntityNotFoundException If the chapter does not exist.
      */
     private void requireWorkPathExisting(UUID uuid) {
+        if (uuid == null){
+            throw new NullPointerException("Work-Path ID must be not nulL!");
+        }
         if (!workPathRepository.existsById(uuid)) {
             throw new EntityNotFoundException("Work-Path with id " + uuid + " not found");
         }
     }
 
-    private void validateStageIds(List<UUID> receivedStageIds, Set<StageEntity> stageEntities){
-        List<UUID> stageIds = stageEntities.stream().map(StageEntity::getId).toList();
-        for (UUID stageId: stageIds) {
-            if (!receivedStageIds.contains(stageId)){
-                throw new EntityNotFoundException("Incomplete Stage ID list received");
-            }
-        }
-    }
+
 }

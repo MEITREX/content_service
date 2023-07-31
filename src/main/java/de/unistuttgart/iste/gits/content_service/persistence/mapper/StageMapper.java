@@ -3,20 +3,29 @@ package de.unistuttgart.iste.gits.content_service.persistence.mapper;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
+
 
 @Component
 @RequiredArgsConstructor
 public class StageMapper {
 
-    private final ModelMapper modelMapper;
-
-    public StageEntity dtoToEntity(CreateStageInput input){
-        return modelMapper.map(input, StageEntity.class);
-    }
+    private final ContentMapper contentMapper;
 
     public Stage entityToDto(StageEntity entity){
-        return modelMapper.map(entity, Stage.class);
+        return Stage.builder()
+                .setId(entity.getId())
+                .setPosition(entity.getPosition())
+                .setOptionalContents(entity.getOptionalContent()
+                        .stream()
+                        .map( x-> contentMapper.entityToDto(x))
+                        .toList()
+                )
+                .setRequiredContents(entity.getRequiredContents()
+                        .stream()
+                        .map( x-> contentMapper.entityToDto(x))
+                        .toList()
+                )
+                .build();
     }
 }
