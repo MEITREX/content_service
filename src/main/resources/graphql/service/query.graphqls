@@ -22,7 +22,7 @@ type Query {
     """
     retrieves all existing Work-Paths for a Chapter
     """
-    getWorkPathsByChapter(id: UUID!): [WorkPath!]!
+    findWorkPathsByChapter(id: UUID!): [WorkPath!]!
 
 }
 

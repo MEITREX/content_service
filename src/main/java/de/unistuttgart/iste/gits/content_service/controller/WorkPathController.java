@@ -32,8 +32,8 @@ public class WorkPathController {
     }
 
     @MutationMapping
-    public UUID deleteWorkPath(@Argument UUID uuid){
-        return workPathService.deleteWorkPath(uuid);
+    public UUID deleteWorkPath(@Argument UUID id){
+        return workPathService.deleteWorkPath(id);
     }
 
     @MutationMapping
@@ -42,8 +42,8 @@ public class WorkPathController {
     }
 
     @QueryMapping
-    public List<WorkPath> getWorkPathsByChapter(@Argument UUID uuid){
-        return workPathService.getWorkPathByChapterId(uuid);
+    public List<WorkPath> findWorkPathsByChapter(@Argument UUID id){
+        return workPathService.getWorkPathByChapterId(id);
     }
 
 }
