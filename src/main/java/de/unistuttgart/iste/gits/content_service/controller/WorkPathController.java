@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
 import de.unistuttgart.iste.gits.content_service.service.WorkPathService;
+import de.unistuttgart.iste.gits.generated.dto.CreateWorkPathInput;
 import de.unistuttgart.iste.gits.generated.dto.StageOrderInput;
 import de.unistuttgart.iste.gits.generated.dto.UpdateWorkPathInput;
 import de.unistuttgart.iste.gits.generated.dto.WorkPath;
@@ -22,8 +23,8 @@ public class WorkPathController {
     private final WorkPathService workPathService;
 
     @MutationMapping
-    public WorkPath createWorkPath(@Argument String name){
-        return workPathService.createWorkPath(name);
+    public WorkPath createWorkPath(@Argument CreateWorkPathInput input){
+        return workPathService.createWorkPath(input);
     }
     @MutationMapping
     public WorkPath updateWorkPath(@Argument UpdateWorkPathInput input){

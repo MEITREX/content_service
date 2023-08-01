@@ -35,7 +35,7 @@ type Mutation {
     """
     create new Work-Path
     """
-    createWorkPath(name: String!): WorkPath!
+    createWorkPath(input: CreateWorkPathInput!): WorkPath!
 
     """
     update the name of a Work-Path
@@ -182,6 +182,10 @@ input AssessmentMetadataInput {
     is useful for assessments that are not meant to be repeated.
     """
     initialLearningInterval: Int @PositiveOrZero
+}
+input CreateWorkPathInput {
+    chapterId: UUID!
+    name: String!
 }
 
 input UpdateWorkPathInput {

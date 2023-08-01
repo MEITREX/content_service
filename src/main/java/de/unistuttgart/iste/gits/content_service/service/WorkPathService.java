@@ -8,6 +8,8 @@ import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -19,15 +21,24 @@ public class WorkPathService {
     private final WorkPathMapper workPathMapper;
     private final WorkPathRepository workPathRepository;
 
-    public WorkPath createWorkPath(String name){
-        WorkPathEntity workPathEntity = workPathRepository.save(WorkPathEntity.builder().name(name).build());
+    public WorkPath createWorkPath(CreateWorkPathInput input){
+        WorkPathEntity workPathEntity = workPathRepository.save(
+                WorkPathEntity.builder()
+                        .name(input.getName())
+                        .chapterId(input.getChapterId())
+                        .stages(new HashSet<>())
+                        .build()
+        );
         return workPathMapper.entityToDto(workPathEntity);
     }
 
     public WorkPath updateWorkPath(UpdateWorkPathInput input){
 
+        requireWorkPathExisting(input.getId());
         //updates name only!
-        WorkPathEntity workPathEntity = workPathRepository.save(workPathMapper.dtoToEntity(input));
+        WorkPathEntity workPathEntity = workPathRepository.getReferenceById(input.getId());
+        workPathEntity.setName(input.getName());
+        workPathEntity = workPathRepository.save(workPathEntity);
         return workPathMapper.entityToDto(workPathEntity);
     }
 
@@ -60,6 +71,9 @@ public class WorkPathService {
     }
 
     private void validateStageIds(List<UUID> receivedStageIds, Set<StageEntity> stageEntities){
+        if (receivedStageIds.size() > stageEntities.size()){
+            throw new EntityNotFoundException("Stage ID list contains more elements than expected");
+        }
         List<UUID> stageIds = stageEntities.stream().map(StageEntity::getId).toList();
         for (UUID stageId: stageIds) {
             if (!receivedStageIds.contains(stageId)){

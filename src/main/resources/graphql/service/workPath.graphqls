@@ -1,6 +1,7 @@
 type WorkPath {
     id: UUID!
     name: String!
+    chapterId: UUID!
     stages: [Stage!]!
 }
 
