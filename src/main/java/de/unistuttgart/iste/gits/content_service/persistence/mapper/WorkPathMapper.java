@@ -13,8 +13,6 @@ public class WorkPathMapper {
 
     public WorkPath entityToDto(WorkPathEntity entity){
 
-
-
         return WorkPath.builder()
                 .setId(entity.getId())
                 .setChapterId(entity.getChapterId())

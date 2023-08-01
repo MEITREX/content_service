@@ -21,6 +21,11 @@ public class WorkPathService {
     private final WorkPathMapper workPathMapper;
     private final WorkPathRepository workPathRepository;
 
+    /**
+     * creates a new Work-Path for a given chapterId and name
+     * @param input input object containing a chapter ID and name
+     * @return new Work Path Object
+     */
     public WorkPath createWorkPath(CreateWorkPathInput input){
         WorkPathEntity workPathEntity = workPathRepository.save(
                 WorkPathEntity.builder()
@@ -32,6 +37,11 @@ public class WorkPathService {
         return workPathMapper.entityToDto(workPathEntity);
     }
 
+    /**
+     * Updates the name of a Work Path
+     * @param input input object containing id and new name
+     * @return updated Work-Path object
+     */
     public WorkPath updateWorkPath(UpdateWorkPathInput input){
 
         requireWorkPathExisting(input.getId());
@@ -42,6 +52,11 @@ public class WorkPathService {
         return workPathMapper.entityToDto(workPathEntity);
     }
 
+    /**
+     * deletes a Work-Path via ID
+     * @param workPathId ID of Work-Path
+     * @return ID of deleted Object
+     */
     public UUID deleteWorkPath(UUID workPathId){
         requireWorkPathExisting(workPathId);
 
@@ -50,6 +65,11 @@ public class WorkPathService {
         return workPathId;
     }
 
+    /**
+     * changes the order of Stages within a Work-Path
+     * @param input order list of stage IDs describing new Stage Order
+     * @return updated Work Path with new Stage Order
+     */
     public WorkPath reorderStages(StageOrderInput input){
 
         WorkPathEntity workPathEntity = workPathRepository.getReferenceById(input.getWorkPathId());
@@ -70,6 +90,11 @@ public class WorkPathService {
         return workPathMapper.entityToDto(workPathEntity);
     }
 
+    /**
+     * ensures received ID list is complete
+     * @param receivedStageIds received ID list
+     * @param stageEntities found entities in database
+     */
     private void validateStageIds(List<UUID> receivedStageIds, Set<StageEntity> stageEntities){
         if (receivedStageIds.size() > stageEntities.size()){
             throw new EntityNotFoundException("Stage ID list contains more elements than expected");
@@ -82,6 +107,11 @@ public class WorkPathService {
         }
     }
 
+    /**
+     * find all Work-Paths for a Chapter ID
+     * @param uuid chapter ID
+     * @return all Work-Paths that have received chapter ID in form of a List
+     */
     public List<WorkPath> getWorkPathByChapterId(UUID uuid){
         List<WorkPathEntity> entities = workPathRepository.findWorkPathEntitiesByChapterId(uuid);
 

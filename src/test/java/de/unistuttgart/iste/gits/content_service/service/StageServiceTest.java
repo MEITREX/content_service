@@ -60,11 +60,13 @@ class StageServiceTest {
 
     @Test
     void createNewStageWithInvalidWorkPathId(){
-        WorkPathEntity workPathEntity = WorkPathEntity.builder().id(UUID.randomUUID()).name("Test Work-Path").stages(new HashSet<>()).chapterId(UUID.randomUUID()).build();
+        UUID id = UUID.randomUUID();
+
+        WorkPathEntity workPathEntity = WorkPathEntity.builder().id(id).name("Test Work-Path").stages(new HashSet<>()).chapterId(UUID.randomUUID()).build();
 
         when(workPathRepository.existsById(workPathEntity.getId())).thenReturn(false);
 
-        assertThrows(EntityNotFoundException.class, () -> stageService.createNewStage(workPathEntity.getId()));
+        assertThrows(EntityNotFoundException.class, () -> stageService.createNewStage(id));
         assertThrows(NullPointerException.class, () -> stageService.createNewStage(null));
     }
 
@@ -125,8 +127,8 @@ class StageServiceTest {
         when(stageRepository.getReferenceById(input.getId())).thenReturn(oldStageEntity);
         when(workPathRepository.existsById(any())).thenReturn(true);
         when(workPathRepository.getReferenceById(oldStageEntity.getWorkPathId())).thenReturn(workPathEntity);
-        when(contentRepository.findContentEntitiesByIdIsIn(input.getRequiredContents())).thenReturn(expectedReqContents);
-        when(contentRepository.findContentEntitiesByIdIsIn(input.getOptionalContents())).thenReturn(expectedOptContents);
+        when(contentRepository.findContentEntitiesByIdIn(input.getRequiredContents())).thenReturn(expectedReqContents);
+        when(contentRepository.findContentEntitiesByIdIn(input.getOptionalContents())).thenReturn(expectedOptContents);
         when(stageRepository.save(any())).thenReturn(oldStageEntity);
 
         //execute method under test
@@ -265,8 +267,8 @@ class StageServiceTest {
         when(stageRepository.getReferenceById(input.getId())).thenReturn(oldStageEntity);
         when(workPathRepository.existsById(any())).thenReturn(true);
         when(workPathRepository.getReferenceById(oldStageEntity.getWorkPathId())).thenReturn(workPathEntity);
-        when(contentRepository.findContentEntitiesByIdIsIn(input.getRequiredContents())).thenReturn(expectedReqContents);
-        when(contentRepository.findContentEntitiesByIdIsIn(input.getOptionalContents())).thenReturn(expectedOptContents);
+        when(contentRepository.findContentEntitiesByIdIn(input.getRequiredContents())).thenReturn(expectedReqContents);
+        when(contentRepository.findContentEntitiesByIdIn(input.getOptionalContents())).thenReturn(expectedOptContents);
         when(stageRepository.save(any())).thenReturn(oldStageEntity);
 
         //execute method under test
@@ -323,7 +325,9 @@ class StageServiceTest {
         //mock database
         when(stageRepository.existsById(any())).thenReturn(false);
 
-        assertThrows(EntityNotFoundException.class, () -> stageService.deleteStage(UUID.randomUUID()));
+        UUID uuid = UUID.randomUUID();
+
+        assertThrows(EntityNotFoundException.class, () -> stageService.deleteStage(uuid));
     }
 
     private ContentEntity buildContentEntity(UUID chapterId){

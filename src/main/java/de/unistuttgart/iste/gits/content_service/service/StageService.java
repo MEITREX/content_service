@@ -23,6 +23,11 @@ public class StageService {
     private final ContentRepository contentRepository;
     private final StageMapper stageMapper;
 
+    /**
+     * creates a new Stage for an existing Work-Path
+     * @param workPathId Work Path ID the Stage belongs to
+     * @return created Stage
+     */
     public Stage createNewStage(UUID workPathId){
 
         requireWorkPathExisting(workPathId);
@@ -38,6 +43,11 @@ public class StageService {
         return stageMapper.entityToDto(stageRepository.save(stageEntity));
     }
 
+    /**
+     * Updates the Content of an existing Stage
+     * @param input Update Input. Fields must not be null
+     * @return updated Stage
+     */
     public Stage updateStage(UpdateStageInput input){
 
         if (input.getId() == null || input.getRequiredContents() == null || input.getOptionalContents() == null ){
@@ -46,12 +56,15 @@ public class StageService {
 
         requireStageExisting(input.getId());
 
+        // fetch old Stage Object
         StageEntity stageEntity = stageRepository.getReferenceById(input.getId());
 
         requireWorkPathExisting(stageEntity.getWorkPathId());
 
+        // fetch Work Path, Stage belongs to
         WorkPathEntity workPathEntity = workPathRepository.getReferenceById(stageEntity.getWorkPathId());
 
+        // set updated Content
         stageEntity.setRequiredContents(
                 validateStageContent(
                         workPathEntity.getChapterId(),
@@ -78,7 +91,7 @@ public class StageService {
 
         Set<ContentEntity> resultSet = new HashSet<>();
 
-        List<ContentEntity> contentEntities = contentRepository.findContentEntitiesByIdIsIn(contentIds);
+        List<ContentEntity> contentEntities = contentRepository.findContentEntitiesByIdIn(contentIds);
 
         for (ContentEntity contentEntity: contentEntities) {
             // only add content that is located in the same chapter as the Work-Path / Stage
@@ -90,6 +103,11 @@ public class StageService {
         return resultSet;
     }
 
+    /**
+     * Deletes a Stage via ID
+     * @param stageId Stage ID to be removed
+     * @return ID of deleted Stage
+     */
     public UUID deleteStage(UUID stageId){
 
         requireStageExisting(stageId);
@@ -106,7 +124,7 @@ public class StageService {
                 stageRepository.save(entity);
             }
         }
-
+        // perform deletion
         stageRepository.delete(deletedStageEntity);
 
         return deletedStageEntity.getId();
