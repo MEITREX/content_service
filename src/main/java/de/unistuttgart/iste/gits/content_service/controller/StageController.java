@@ -28,8 +28,8 @@ public class StageController {
     }
 
     @MutationMapping
-    public UUID deleteStage(@Argument UUID uuid){
-        return stageService.deleteStage(uuid);
+    public UUID deleteStage(@Argument UUID id){
+        return stageService.deleteStage(id);
     }
 
 }
