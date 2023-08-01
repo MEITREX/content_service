@@ -22,5 +22,5 @@ public interface ContentRepository extends JpaRepository<ContentEntity, UUID> {
      * @param contentIds list of content IDs to be retrieved from the database
      * @return List of Content Entities that match the content IDs given as input
      */
-    List<ContentEntity> findContentEntitiesByIdIsIn(List<UUID> contentIds);
+    List<ContentEntity> findContentEntitiesByIdIn(List<UUID> contentIds);
 }
