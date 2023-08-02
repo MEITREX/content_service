@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
+import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.WorkPathEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.WorkPathRepository;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 @GraphQlApiTest
+@TablesToDelete({"stage_required_contents", "stage_optional_content", "stage" ,"work_path" ,  "content_tags", "user_progress_data", "content", "tag"})
 class MutationDeleteWorkPathTest {
 
     @Autowired
