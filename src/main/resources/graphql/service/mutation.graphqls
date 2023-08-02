@@ -183,23 +183,59 @@ input AssessmentMetadataInput {
     """
     initialLearningInterval: Int @PositiveOrZero
 }
+
 input CreateWorkPathInput {
+
+    """
+    Chapter WorkPath will belong to
+    """
     chapterId: UUID!
+    """
+    name given to WorkPath
+    """
     name: String!
 }
 
 input UpdateWorkPathInput {
+
+    """
+    Identifier of the WorkPath
+    """
     id: UUID!
+
+    """
+    new name of the workPath
+    """
     name: String!
 }
 
 input UpdateStageInput{
+
+    """
+    Identifier of the Stage
+    """
     id: UUID!
+
+    """
+    updated List of UUIDs for content labeled as required in this Stage
+    """
     requiredContents: [UUID!]!
+
+    """
+    updated List of UUIDs for content labeled as optional in this Stage
+    """
     optionalContents: [UUID!]!
 }
 
 input StageOrderInput{
+
+    """
+    Identifier of target WorkPath
+    """
     workPathId: UUID!
+
+    """
+    new position of all stages determined by their position in the list
+    """
     stageIds: [UUID!]!
 }

@@ -1,13 +1,51 @@
+"""
+Representation of a WorkPath
+"""
 type WorkPath {
+
+    """
+    Unique identifier of the WorkPath Object
+    """
     id: UUID!
+
+    """
+    Name of the WorkPath
+    """
     name: String!
+
+    """
+    Chapter the WorkPath is located in
+    """
     chapterId: UUID!
+
+    """
+    List of Stages contained in a WorkPath
+    """
     stages: [Stage!]!
 }
 
+"""
+Representation of a Stage
+"""
 type Stage{
+
+    """
+    Unique identifier of the Stage Object
+    """
     id: UUID!
+
+    """
+    Position of the Stage within the WorkPath
+    """
     position: Int!
+
+    """
+    List of Content that is labeled as required content
+    """
     requiredContents: [Content!]!
+
+    """
+    List of Content that is labeled as optional content
+    """
     optionalContents: [Content!]!
 }
