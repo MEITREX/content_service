@@ -58,7 +58,7 @@ type Mutation {
     updateStage(input: UpdateStageInput): Stage!
 
     """
-    delete STage by ID
+    delete Stage by ID
     """
     deleteStage(id: UUID!):UUID!
 

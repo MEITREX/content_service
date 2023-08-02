@@ -11,7 +11,7 @@ public class WorkPathMapper {
 
     private final StageMapper stageMapper;
 
-    public WorkPath entityToDto(WorkPathEntity entity){
+    public WorkPath entityToDto(WorkPathEntity entity) {
 
         return WorkPath.builder()
                 .setId(entity.getId())

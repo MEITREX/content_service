@@ -7,12 +7,16 @@ import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.WorkPathRepository;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.gits.generated.dto.Stage;
+import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,10 +29,11 @@ public class StageService {
 
     /**
      * creates a new Stage for an existing Work-Path
+     *
      * @param workPathId Work Path ID the Stage belongs to
      * @return created Stage
      */
-    public Stage createNewStage(UUID workPathId){
+    public Stage createNewStage(UUID workPathId) {
 
         requireWorkPathExisting(workPathId);
 
@@ -45,14 +50,11 @@ public class StageService {
 
     /**
      * Updates the Content of an existing Stage
+     *
      * @param input Update Input. Fields must not be null
      * @return updated Stage
      */
-    public Stage updateStage(UpdateStageInput input){
-
-        if (input.getId() == null || input.getRequiredContents() == null || input.getOptionalContents() == null ){
-            throw new NullPointerException("request fields must not be null");
-        }
+    public Stage updateStage(UpdateStageInput input) {
 
         requireStageExisting(input.getId());
 
@@ -83,7 +85,8 @@ public class StageService {
     /**
      * validates that received content is located in the same chapter as the Work-Path / Stage.
      * If Content is not part of the same chapter, the content is removed
-     * @param chapterId chapter ID of the Work-Path / Stage
+     *
+     * @param chapterId  chapter ID of the Work-Path / Stage
      * @param contentIds
      * @return
      */
@@ -93,9 +96,9 @@ public class StageService {
 
         List<ContentEntity> contentEntities = contentRepository.findContentEntitiesByIdIn(contentIds);
 
-        for (ContentEntity contentEntity: contentEntities) {
+        for (ContentEntity contentEntity : contentEntities) {
             // only add content that is located in the same chapter as the Work-Path / Stage
-            if (contentEntity.getMetadata().getChapterId().equals(chapterId)){
+            if (contentEntity.getMetadata().getChapterId().equals(chapterId)) {
                 resultSet.add(contentEntity);
             }
         }
@@ -105,10 +108,11 @@ public class StageService {
 
     /**
      * Deletes a Stage via ID
+     *
      * @param stageId Stage ID to be removed
      * @return ID of deleted Stage
      */
-    public UUID deleteStage(UUID stageId){
+    public UUID deleteStage(UUID stageId) {
 
         requireStageExisting(stageId);
 
@@ -117,8 +121,8 @@ public class StageService {
         WorkPathEntity workPathEntity = workPathRepository.getReferenceById(deletedStageEntity.getWorkPathId());
 
         //if a stage is deleted all subsequent stages have to have their position moved up by 1 in the list
-        for (StageEntity entity: workPathEntity.getStages()) {
-            if (entity.getPosition() > deletedStageEntity.getPosition()){
+        for (StageEntity entity : workPathEntity.getStages()) {
+            if (entity.getPosition() > deletedStageEntity.getPosition()) {
                 //move entity one position up
                 entity.setPosition(entity.getPosition() - 1);
                 stageRepository.save(entity);
@@ -150,7 +154,7 @@ public class StageService {
      * @throws EntityNotFoundException If the chapter does not exist.
      */
     private void requireWorkPathExisting(UUID uuid) {
-        if (uuid == null){
+        if (uuid == null) {
             throw new NullPointerException("Work-Path ID must be not nulL!");
         }
         if (!workPathRepository.existsById(uuid)) {

@@ -163,28 +163,6 @@ class StageServiceTest {
     }
 
     @Test
-    void updateStageIncompleteDataTest(){
-        UpdateStageInput noIdInput = UpdateStageInput.builder()
-                .setRequiredContents(new ArrayList<>())
-                .setOptionalContents(new ArrayList<>())
-                .build();
-        UpdateStageInput noReqInput = UpdateStageInput.builder()
-                .setRequiredContents(null)
-                .setOptionalContents(new ArrayList<>())
-                .build();
-        UpdateStageInput noOptInput = UpdateStageInput.builder()
-                .setRequiredContents(new ArrayList<>())
-                .setOptionalContents(null)
-                .build();
-
-
-        //execute method under test
-        assertThrows(NullPointerException.class, () -> stageService.updateStage(noIdInput));
-        assertThrows(NullPointerException.class, () -> stageService.updateStage(noReqInput));
-        assertThrows(NullPointerException.class, () -> stageService.updateStage(noOptInput));
-    }
-
-    @Test
     void updateStageInvalidWorkPathTest(){
         //invalid Work-Path ID
         UpdateStageInput input = UpdateStageInput.builder()

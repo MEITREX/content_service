@@ -19,13 +19,13 @@ public class WorkPathEntity {
 
     @Id
     @GeneratedValue
-    UUID id;
+    private UUID id;
 
     @Column
-    UUID chapterId;
+    private UUID chapterId;
 
     @Column(nullable = false, length = 255)
-    String name;
+    private String name;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "workPathId")
     Set<StageEntity> stages;
