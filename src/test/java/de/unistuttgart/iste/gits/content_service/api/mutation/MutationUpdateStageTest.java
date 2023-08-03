@@ -5,7 +5,7 @@ import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.WorkPathRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
 import jakarta.transaction.Transactional;
@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.UUID;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_content", "stage" ,"work_path" ,  "content_tags", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_content", "stage" ,"section" , "content_tags", "user_progress_data", "content", "tag"})
 class MutationUpdateStageTest {
 
     @Autowired
-    private WorkPathRepository workPathRepository;
+    private SectionRepository sectionRepository;
 
     @Autowired
     private StageRepository stageRepository;
@@ -38,15 +38,15 @@ class MutationUpdateStageTest {
     @Commit
     void testUpdateStage(GraphQlTester tester){
         List<UUID> contentIds = new ArrayList<>();
-        WorkPathEntity workPathEntity = WorkPathEntity.builder()
-                .name("Test Work-Path")
+        SectionEntity sectionEntity = SectionEntity.builder()
+                .name("Test Section")
                 .chapterId(UUID.randomUUID())
                 .stages(new HashSet<>())
                 .build();
-        workPathEntity = workPathRepository.save(workPathEntity);
+        sectionEntity = sectionRepository.save(sectionEntity);
 
         StageEntity stageEntity = StageEntity.builder()
-                .workPathId(workPathEntity.getId())
+                .sectionId(sectionEntity.getId())
                 .position(0)
                 .optionalContent(new HashSet<>())
                 .requiredContents(new HashSet<>())
@@ -55,7 +55,7 @@ class MutationUpdateStageTest {
 
 
         for (int i = 0; i < 2; i++) {
-            MediaContentEntity entity = buildContentEntity(workPathEntity.getChapterId());
+            MediaContentEntity entity = buildContentEntity(sectionEntity.getChapterId());
             entity = contentRepository.save(entity);
             contentIds.add(entity.getId());
         }

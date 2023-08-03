@@ -18,8 +18,8 @@ public class StageController {
     private final StageService stageService;
 
     @MutationMapping
-    public Stage createStage(@Argument UUID workPathId){
-        return stageService.createNewStage(workPathId);
+    public Stage createStage(@Argument UUID sectionId){
+        return stageService.createNewStage(sectionId);
     }
 
     @MutationMapping

@@ -1,19 +1,19 @@
 package de.unistuttgart.iste.gits.content_service.persistence.mapper;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.WorkPathEntity;
-import de.unistuttgart.iste.gits.generated.dto.WorkPath;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.generated.dto.Section;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class WorkPathMapper {
+public class SectionMapper {
 
     private final StageMapper stageMapper;
 
-    public WorkPath entityToDto(WorkPathEntity entity) {
+    public Section entityToDto(SectionEntity entity) {
 
-        return WorkPath.builder()
+        return Section.builder()
                 .setId(entity.getId())
                 .setChapterId(entity.getChapterId())
                 .setName(entity.getName())

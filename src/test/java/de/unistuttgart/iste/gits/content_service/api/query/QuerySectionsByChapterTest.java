@@ -1,11 +1,12 @@
 package de.unistuttgart.iste.gits.content_service.api.query;
 
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
+import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.WorkPathEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.WorkPathRepository;
-import de.unistuttgart.iste.gits.generated.dto.WorkPath;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.generated.dto.Section;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
@@ -16,38 +17,39 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @GraphQlApiTest
-class QueryWorkPathsByChapterTest {
+@TablesToDelete({"stage_required_contents", "stage_optional_content", "stage" ,"section" , "content_tags", "user_progress_data", "content", "tag"})
+class QuerySectionsByChapterTest {
 
     @Autowired
-    private WorkPathRepository workPathRepository;
+    private SectionRepository sectionRepository;
 
     @Autowired
     private StageRepository stageRepository;
 
-    private List<WorkPathEntity> fillDatabase(){
+    private List<SectionEntity> fillDatabase(){
         UUID chapterId = UUID.randomUUID();
-        WorkPathEntity workPathEntity = WorkPathEntity.builder()
-                .name("Test Work-Path")
+        SectionEntity sectionEntity = SectionEntity.builder()
+                .name("Test Section")
                 .chapterId(chapterId)
                 .stages(new HashSet<>())
                 .build();
-        WorkPathEntity workPathEntity2 = WorkPathEntity.builder()
-                .name("Test Work-Path2")
+        SectionEntity sectionEntity2 = SectionEntity.builder()
+                .name("Test Section2")
                 .chapterId(chapterId)
                 .stages(new HashSet<>())
                 .build();
 
-        workPathEntity = workPathRepository.save(workPathEntity);
-        workPathEntity2 = workPathRepository.save(workPathEntity2);
+        sectionEntity = sectionRepository.save(sectionEntity);
+        sectionEntity2 = sectionRepository.save(sectionEntity2);
 
         StageEntity stageEntity = StageEntity.builder()
-                .workPathId(workPathEntity.getId())
+                .sectionId(sectionEntity.getId())
                 .position(0)
                 .optionalContent(new HashSet<>())
                 .requiredContents(new HashSet<>())
                 .build();
         StageEntity stageEntity2 = StageEntity.builder()
-                .workPathId(workPathEntity2.getId())
+                .sectionId(sectionEntity2.getId())
                 .position(0)
                 .optionalContent(new HashSet<>())
                 .requiredContents(new HashSet<>())
@@ -55,21 +57,21 @@ class QueryWorkPathsByChapterTest {
         stageEntity = stageRepository.save(stageEntity);
         stageEntity2 = stageRepository.save(stageEntity2);
 
-        workPathEntity.getStages().add(stageEntity);
-        workPathEntity2.getStages().add(stageEntity2);
+        sectionEntity.getStages().add(stageEntity);
+        sectionEntity2.getStages().add(stageEntity2);
 
-        workPathEntity = workPathRepository.save(workPathEntity);
-        workPathEntity2 = workPathRepository.save(workPathEntity2);
+        sectionEntity = sectionRepository.save(sectionEntity);
+        sectionEntity2 = sectionRepository.save(sectionEntity2);
 
-        return List.of(workPathEntity,workPathEntity2);
+        return List.of(sectionEntity, sectionEntity2);
     }
     @Test
-    void testQueryWorkPathsByChapter(GraphQlTester tester){
-        List<WorkPathEntity> entities = fillDatabase();
+    void testQuerySectionsByChapter(GraphQlTester tester){
+        List<SectionEntity> entities = fillDatabase();
 
         String query = """
                 query($chapterId: UUID!) {
-                findWorkPathsByChapter(id: $chapterId){
+                findSectionsByChapter(id: $chapterId){
                     id
                     chapterId
                     name
@@ -86,31 +88,31 @@ class QueryWorkPathsByChapterTest {
                     }
                 }
                 """;
-        List<WorkPath> result = tester.document(query)
+        List<Section> result = tester.document(query)
                 .variable("chapterId", entities.get(0).getChapterId())
                 .execute()
-                .path("findWorkPathsByChapter")
-                .entityList(WorkPath.class).get();
+                .path("findSectionsByChapter")
+                .entityList(Section.class).get();
 
-        for (WorkPath workPath: result) {
+        for (Section section: result) {
             boolean foundEntity = false;
             // completeness checks
-            assertNotNull(workPath);
-            assertNotNull(workPath.getId());
-            assertNotNull(workPath.getChapterId());
-            assertNotNull(workPath.getName());
-            assertNotNull(workPath.getStages());
-            assertFalse(workPath.getStages().isEmpty());
+            assertNotNull(section);
+            assertNotNull(section.getId());
+            assertNotNull(section.getChapterId());
+            assertNotNull(section.getName());
+            assertNotNull(section.getStages());
+            assertFalse(section.getStages().isEmpty());
 
             // entity comparison
-            for (WorkPathEntity workPathEntity: entities) {
-                if (!workPath.getId().equals(workPathEntity.getId())){
+            for (SectionEntity sectionEntity : entities) {
+                if (!section.getId().equals(sectionEntity.getId())){
                     continue;
                 }
                 foundEntity = true;
-                assertEquals(workPathEntity.getChapterId(), workPath.getChapterId());
-                assertEquals(workPathEntity.getName(), workPath.getName());
-                assertEquals(workPathEntity.getStages().size(), workPath.getStages().size());
+                assertEquals(sectionEntity.getChapterId(), section.getChapterId());
+                assertEquals(sectionEntity.getName(), section.getName());
+                assertEquals(sectionEntity.getStages().size(), section.getStages().size());
             }
 
             assertTrue(foundEntity, "Entity was successfully retrieved");

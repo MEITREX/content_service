@@ -1,25 +1,25 @@
 """
-Representation of a WorkPath
+Representation of a Section
 """
-type WorkPath {
+type Section {
 
     """
-    Unique identifier of the WorkPath Object
+    Unique identifier of the Section Object
     """
     id: UUID!
 
     """
-    Name of the WorkPath
+    Name of the Section
     """
     name: String!
 
     """
-    Chapter the WorkPath is located in
+    Chapter the Section is located in
     """
     chapterId: UUID!
 
     """
-    List of Stages contained in a WorkPath
+    List of Stages contained in a Section
     """
     stages: [Stage!]!
 }
@@ -35,7 +35,7 @@ type Stage{
     id: UUID!
 
     """
-    Position of the Stage within the WorkPath
+    Position of the Stage within the Section
     """
     position: Int!
 

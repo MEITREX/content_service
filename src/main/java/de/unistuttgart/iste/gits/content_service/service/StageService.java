@@ -2,11 +2,11 @@ package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.WorkPathEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.WorkPathRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.gits.generated.dto.Stage;
 import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,24 +23,24 @@ import java.util.UUID;
 public class StageService {
 
     private final StageRepository stageRepository;
-    private final WorkPathRepository workPathRepository;
+    private final SectionRepository sectionRepository;
     private final ContentRepository contentRepository;
     private final StageMapper stageMapper;
 
     /**
-     * creates a new Stage for an existing Work-Path
+     * creates a new Stage for an existing Section
      *
-     * @param workPathId Work Path ID the Stage belongs to
+     * @param sectionId Section ID the Stage belongs to
      * @return created Stage
      */
-    public Stage createNewStage(UUID workPathId) {
+    public Stage createNewStage(UUID sectionId) {
 
-        requireWorkPathExisting(workPathId);
+        requireSectionExisting(sectionId);
 
-        WorkPathEntity workPathEntity = workPathRepository.getReferenceById(workPathId);
+        SectionEntity sectionEntity = sectionRepository.getReferenceById(sectionId);
         StageEntity stageEntity = StageEntity.builder()
-                .workPathId(workPathId)
-                .position(workPathEntity.getStages().size())
+                .sectionId(sectionId)
+                .position(sectionEntity.getStages().size())
                 .requiredContents(new HashSet<>())
                 .optionalContent(new HashSet<>())
                 .build();
@@ -61,21 +61,21 @@ public class StageService {
         // fetch old Stage Object
         StageEntity stageEntity = stageRepository.getReferenceById(input.getId());
 
-        requireWorkPathExisting(stageEntity.getWorkPathId());
+        requireSectionExisting(stageEntity.getSectionId());
 
         // fetch Work Path, Stage belongs to
-        WorkPathEntity workPathEntity = workPathRepository.getReferenceById(stageEntity.getWorkPathId());
+        SectionEntity sectionEntity = sectionRepository.getReferenceById(stageEntity.getSectionId());
 
         // set updated Content
         stageEntity.setRequiredContents(
                 validateStageContent(
-                        workPathEntity.getChapterId(),
+                        sectionEntity.getChapterId(),
                         input.getRequiredContents()
                 ));
 
         stageEntity.setOptionalContent(
                 validateStageContent(
-                        workPathEntity.getChapterId(),
+                        sectionEntity.getChapterId(),
                         input.getOptionalContents()
                 ));
 
@@ -83,10 +83,10 @@ public class StageService {
     }
 
     /**
-     * validates that received content is located in the same chapter as the Work-Path / Stage.
+     * validates that received content is located in the same chapter as the Section / Stage.
      * If Content is not part of the same chapter, the content is removed
      *
-     * @param chapterId  chapter ID of the Work-Path / Stage
+     * @param chapterId  chapter ID of the Section / Stage
      * @param contentIds
      * @return
      */
@@ -118,10 +118,10 @@ public class StageService {
 
         StageEntity deletedStageEntity = stageRepository.getReferenceById(stageId);
 
-        WorkPathEntity workPathEntity = workPathRepository.getReferenceById(deletedStageEntity.getWorkPathId());
+        SectionEntity sectionEntity = sectionRepository.getReferenceById(deletedStageEntity.getSectionId());
 
         //if a stage is deleted all subsequent stages have to have their position moved up by 1 in the list
-        for (StageEntity entity : workPathEntity.getStages()) {
+        for (StageEntity entity : sectionEntity.getStages()) {
             if (entity.getPosition() > deletedStageEntity.getPosition()) {
                 //move entity one position up
                 entity.setPosition(entity.getPosition() - 1);
@@ -148,17 +148,17 @@ public class StageService {
     }
 
     /**
-     * Checks if a Work-Path exists.
+     * Checks if a Section exists.
      *
-     * @param uuid The id of the Work-Path to check.
+     * @param uuid The id of the Section to check.
      * @throws EntityNotFoundException If the chapter does not exist.
      */
-    private void requireWorkPathExisting(UUID uuid) {
+    private void requireSectionExisting(UUID uuid) {
         if (uuid == null) {
-            throw new NullPointerException("Work-Path ID must be not nulL!");
+            throw new NullPointerException("Section must be not nulL!");
         }
-        if (!workPathRepository.existsById(uuid)) {
-            throw new EntityNotFoundException("Work-Path with id " + uuid + " not found");
+        if (!sectionRepository.existsById(uuid)) {
+            throw new EntityNotFoundException("Section with id " + uuid + " not found");
         }
     }
 

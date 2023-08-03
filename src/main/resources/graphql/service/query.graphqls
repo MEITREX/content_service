@@ -20,9 +20,9 @@ type Query {
     contentsByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!
 
     """
-    retrieves all existing Work-Paths for a Chapter
+    retrieves all existing Sections for a Chapter
     """
-    findWorkPathsByChapter(id: UUID!): [WorkPath!]!
+    findSectionsByChapter(id: UUID!): [Section!]!
 
 }
 

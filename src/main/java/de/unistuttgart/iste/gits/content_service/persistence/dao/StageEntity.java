@@ -22,7 +22,7 @@ public class StageEntity {
     private UUID id;
 
     @Column
-    private UUID workPathId;
+    private UUID sectionId;
 
     @Column(nullable = false)
     private int position;

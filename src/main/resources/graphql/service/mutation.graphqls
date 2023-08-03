@@ -33,24 +33,24 @@ type Mutation {
     removeTagFromContent(contentId: UUID!, tagName: String): Content!
 
     """
-    create new Work-Path
+    create new Section
     """
-    createWorkPath(input: CreateWorkPathInput!): WorkPath!
+    createSection(input: CreateSectionInput!): Section!
 
     """
-    update the name of a Work-Path
+    update the name of a Section
     """
-    updateWorkPath(input: UpdateWorkPathInput!): WorkPath!
+    updateSection(input: UpdateSectionInput!): Section!
 
     """
-    delete a Work-Path by ID
+    delete a Section by ID
     """
-    deleteWorkPath(id: UUID!): UUID!
+    deleteSection(id: UUID!): UUID!
 
     """
-    create new Stage in Work-Path
+    create new Stage in Section
     """
-    createStage(workPathId: UUID!): Stage!
+    createStage(sectionId: UUID!): Stage!
 
     """
     Update Content of Stage
@@ -63,9 +63,9 @@ type Mutation {
     deleteStage(id: UUID!):UUID!
 
     """
-    update Order of Stages within a Work-Path
+    update Order of Stages within a Section
     """
-    updateStageOrder(input: StageOrderInput!):WorkPath!
+    updateStageOrder(input: StageOrderInput!):Section!
 }
 
 """
@@ -184,27 +184,27 @@ input AssessmentMetadataInput {
     initialLearningInterval: Int @PositiveOrZero
 }
 
-input CreateWorkPathInput {
+input CreateSectionInput {
 
     """
-    Chapter WorkPath will belong to
+    Chapter Section will belong to
     """
     chapterId: UUID!
     """
-    name given to WorkPath
+    name given to Section
     """
     name: String!
 }
 
-input UpdateWorkPathInput {
+input UpdateSectionInput {
 
     """
-    Identifier of the WorkPath
+    Identifier of the Section
     """
     id: UUID!
 
     """
-    new name of the workPath
+    new name of the Section
     """
     name: String!
 }
@@ -230,9 +230,9 @@ input UpdateStageInput{
 input StageOrderInput{
 
     """
-    Identifier of target WorkPath
+    Identifier of target Section
     """
-    workPathId: UUID!
+    sectionId: UUID!
 
     """
     new position of all stages determined by their position in the list

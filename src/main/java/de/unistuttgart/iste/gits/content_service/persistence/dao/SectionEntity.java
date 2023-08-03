@@ -10,12 +10,12 @@ import java.util.Set;
 import java.util.UUID;
 
 
-@Entity(name = "WorkPath")
+@Entity(name = "Section")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WorkPathEntity {
+public class SectionEntity {
 
     @Id
     @GeneratedValue
@@ -27,6 +27,6 @@ public class WorkPathEntity {
     @Column(nullable = false, length = 255)
     private String name;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "workPathId")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "sectionId")
     Set<StageEntity> stages;
 }
