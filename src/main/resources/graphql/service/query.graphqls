@@ -18,6 +18,12 @@ type Query {
     associated with that chapter
     """
     contentsByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!
+
+    """
+    retrieves all existing Sections for a Chapter
+    """
+    findSectionsByChapter(id: UUID!): [Section!]!
+
 }
 
 type ContentPayload {

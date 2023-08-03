@@ -31,6 +31,41 @@ type Mutation {
     Remove a tag from an existing content
     """
     removeTagFromContent(contentId: UUID!, tagName: String): Content!
+
+    """
+    create new Section
+    """
+    createSection(input: CreateSectionInput!): Section!
+
+    """
+    update the name of a Section
+    """
+    updateSection(input: UpdateSectionInput!): Section!
+
+    """
+    delete a Section by ID
+    """
+    deleteSection(id: UUID!): UUID!
+
+    """
+    create new Stage in Section
+    """
+    createStage(sectionId: UUID!): Stage!
+
+    """
+    Update Content of Stage
+    """
+    updateStage(input: UpdateStageInput): Stage!
+
+    """
+    delete Stage by ID
+    """
+    deleteStage(id: UUID!):UUID!
+
+    """
+    update Order of Stages within a Section
+    """
+    updateStageOrder(input: StageOrderInput!):Section!
 }
 
 """
@@ -147,4 +182,60 @@ input AssessmentMetadataInput {
     is useful for assessments that are not meant to be repeated.
     """
     initialLearningInterval: Int @PositiveOrZero
+}
+
+input CreateSectionInput {
+
+    """
+    Chapter Section will belong to
+    """
+    chapterId: UUID!
+    """
+    name given to Section
+    """
+    name: String!
+}
+
+input UpdateSectionInput {
+
+    """
+    Identifier of the Section
+    """
+    id: UUID!
+
+    """
+    new name of the Section
+    """
+    name: String!
+}
+
+input UpdateStageInput{
+
+    """
+    Identifier of the Stage
+    """
+    id: UUID!
+
+    """
+    updated List of UUIDs for content labeled as required in this Stage
+    """
+    requiredContents: [UUID!]!
+
+    """
+    updated List of UUIDs for content labeled as optional in this Stage
+    """
+    optionalContents: [UUID!]!
+}
+
+input StageOrderInput{
+
+    """
+    Identifier of target Section
+    """
+    sectionId: UUID!
+
+    """
+    new position of all stages determined by their position in the list
+    """
+    stageIds: [UUID!]!
 }
