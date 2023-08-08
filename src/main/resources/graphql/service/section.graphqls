@@ -45,7 +45,22 @@ type Stage{
     requiredContents: [Content!]!
 
     """
+    Percentage of User Progress made to required Content
+    """
+    requiredContentsProgress: Float!
+
+    """
     List of Content that is labeled as optional content
     """
     optionalContents: [Content!]!
+
+    """
+    Percentage of Progress made to optional Content
+    """
+    optionalContentsProgress: Float!
+}
+
+type StageContentProgress {
+    contents: [Content!]!
+    progress: Float!
 }
