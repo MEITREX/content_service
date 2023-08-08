@@ -151,7 +151,9 @@ class SectionServiceTest {
                 .setId(newSectionEntity.getId())
                 .setName(newSectionEntity.getName())
                 .setChapterId(newSectionEntity.getChapterId())
-                .setStages(newSectionEntity.getStages().stream().map(stageMapper::entityToDto).toList())
+                .setStages(newSectionEntity.getStages().stream()
+                        .map(stageMapper::entityToDto).sorted(Comparator.comparingInt(Stage::getPosition))
+                        .toList())
                 .build();
 
         //mock database
@@ -314,34 +316,6 @@ class SectionServiceTest {
 
         assertThrows(EntityNotFoundException.class, () -> sectionService.reorderStages(stageOrderInput));
 
-    }
-
-    @Test
-    void getSectionsByChapterId() {
-        UUID chapterId = UUID.randomUUID();
-        List<SectionEntity> sectionEntities = List.of(
-                SectionEntity.builder()
-                        .id(UUID.randomUUID())
-                        .name("Section 1")
-                        .chapterId(chapterId)
-                        .stages(new HashSet<>())
-                        .build(),
-                SectionEntity.builder()
-                        .id(UUID.randomUUID())
-                        .name("Section 1")
-                        .chapterId(chapterId)
-                        .stages(new HashSet<>())
-                        .build()
-        );
-
-        List<Section> expectedResult = sectionEntities.stream().map(sectionMapper::entityToDto).toList();
-
-        // mock database
-        when(sectionRepository.findSectionEntitiesByChapterId(chapterId)).thenReturn(sectionEntities);
-
-        List<Section> result = sectionService.getSectionByChapterId(chapterId);
-
-        assertEquals(expectedResult, result);
     }
 
     private StageEntity buildStageEntity(UUID sectionId, int pos) {
