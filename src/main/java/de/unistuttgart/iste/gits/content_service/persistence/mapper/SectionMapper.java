@@ -2,8 +2,11 @@ package de.unistuttgart.iste.gits.content_service.persistence.mapper;
 
 import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
 import de.unistuttgart.iste.gits.generated.dto.Section;
+import de.unistuttgart.iste.gits.generated.dto.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class SectionMapper {
                         entity.getStages()
                                 .stream()
                                 .map(stageMapper::entityToDto)
+                                .sorted(Comparator.comparingInt(Stage::getPosition))
                                 .toList()
                 )
                 .build();

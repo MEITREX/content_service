@@ -12,11 +12,5 @@ import java.util.UUID;
  */
 @Repository
 public interface SectionRepository extends JpaRepository<SectionEntity, UUID> {
-
-    /**
-     * retrieve all Section for a chapter ID
-     * @param chapterId must be non-null and UUID
-     * @return all Section having the given chapter ID
-     */
-    List<SectionEntity> findSectionEntitiesByChapterId(UUID chapterId);
+    List<SectionEntity> findByChapterIdIn(List<UUID> ids);
 }
