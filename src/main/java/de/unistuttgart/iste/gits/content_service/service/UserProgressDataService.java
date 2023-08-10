@@ -124,7 +124,7 @@ public class UserProgressDataService {
      * @param stage Stage DTO
      * @param userId the User progress is being tracked
      * @param requiredContent true - consider required content, false - consider optional content
-     * @return
+     * @return progress percentage
      */
     public double getStageProgressForUser(Stage stage, UUID userId, boolean requiredContent){
         int numbOfCompletedContent = 0;
