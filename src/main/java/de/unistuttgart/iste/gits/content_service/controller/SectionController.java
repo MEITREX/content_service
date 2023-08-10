@@ -42,8 +42,8 @@ public class SectionController {
     }
 
     @QueryMapping
-    public List<Section> findSectionsByChapter(@Argument UUID id){
-        return sectionService.getSectionByChapterId(id);
+    public List<List<Section>> sectionsByChapterIds(@Argument List<UUID> chapterIds){
+        return sectionService.getSectionsByChapterIds(chapterIds);
     }
 
 }

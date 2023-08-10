@@ -20,9 +20,9 @@ type Query {
     contentsByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!
 
     """
-    retrieves all existing Sections for a Chapter
+    Retrieves all existing sections for multiple chapters.
     """
-    findSectionsByChapter(id: UUID!): [Section!]!
+    sectionsByChapterIds(chapterIds: [UUID!]!): [[Section!]!]!
 
 }
 

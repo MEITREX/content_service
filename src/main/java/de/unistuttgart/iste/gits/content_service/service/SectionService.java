@@ -12,10 +12,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -116,17 +114,30 @@ public class SectionService {
     }
 
     /**
-     * find all Section for a Chapter ID
-     *
-     * @param uuid chapter ID
-     * @return all Sections that have received chapter ID in form of a List
+     * Gets all sections for multiple chapters.
+     * @param chapterIds The ids of the chapters to get the sections for.
+     * @return A list of lists of sections. The outer list contains sublists which each contain the sections
+     *         for one chapter.
      */
-    public List<Section> getSectionByChapterId(UUID uuid) {
-        List<SectionEntity> entities = sectionRepository.findSectionEntitiesByChapterId(uuid);
+    public List<List<Section>> getSectionsByChapterIds(List<UUID> chapterIds) {
+        List<List<Section>> result = new ArrayList<>(chapterIds.size());
 
-        return entities.stream()
+        // get a list containing all sections for the given chapters, but not divided by chapter yet
+        List<SectionEntity> entities = sectionRepository.findByChapterIdIn(chapterIds);
+
+        // map the different sections into groups by chapter
+        Map<UUID, List<Section>> sectionsByChapterId = entities.stream()
                 .map(sectionMapper::entityToDto)
-                .toList();
+                .collect(Collectors.groupingBy(Section::getChapterId));
+
+        // put the different groups of sections into the result list such that the order matches the order of chapter
+        // ids given in the chapterIds argument
+        for(UUID chapterId : chapterIds) {
+            List<Section> sections = sectionsByChapterId.getOrDefault(chapterId, Collections.emptyList());
+            result.add(sections);
+        }
+
+        return result;
     }
 
     /**
