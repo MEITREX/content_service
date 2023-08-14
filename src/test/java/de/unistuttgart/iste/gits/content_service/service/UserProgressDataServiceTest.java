@@ -6,6 +6,7 @@ import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.gits.generated.dto.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -17,6 +18,7 @@ import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -306,5 +308,129 @@ class UserProgressDataServiceTest {
 
         var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
         assertThat(actual, is(10));
+    }
+
+    /**
+     * Test for retrieving progress data for Stages within a section.
+     * In this Test scenario the UserProgress for content is also requested.
+     * Therefor the expected behaviour of the method under test is to not do another database request for the individual progress data of contents within the Stage
+     * but rather directly work with data made available by the provided contents in the Stage.
+     */
+    @Test
+    void getStageProgressWithContentUserdataTests(){
+
+        // init test data
+        UUID userId = UUID.randomUUID();
+        MediaContent mediaContent = buildDummyMediaContent();
+        MediaContent mediaContent2 = buildDummyMediaContent();
+
+        UserProgressData userProgressData  = userProgressDataMapper.entityToDto(buildDummyUserProgressData(true, userId, mediaContent.getId()));
+        UserProgressData userProgressData2  = userProgressDataMapper.entityToDto(buildDummyUserProgressData(false, userId, mediaContent2.getId()));
+
+        mediaContent.setUserProgressData(userProgressData);
+        mediaContent2.setUserProgressData(userProgressData2);
+
+        Stage stage = Stage.builder()
+                .setId(UUID.randomUUID())
+                .setPosition(0)
+                .setRequiredContents(new ArrayList<>())
+                .setOptionalContents(List.of(mediaContent, mediaContent2))
+                .build();
+
+        // run method under test
+        double result = userProgressDataService.getStageProgressForUser(stage, userId, false);
+
+        // verify methods called
+        verify(userProgressDataRepository, never()).findByUserIdAndContentId(any(), any());
+
+        // assertions
+        assertEquals(50.0, result);
+
+
+    }
+
+    /**
+     * Test for retrieving progress data for Stages within a section.
+     * In this Test scenario the UserProgress for content is not requested.
+     * Expected behaviour therefor contains the retrieval of all progress data for contents within the Stage.
+     */
+    @Test
+    void getStageProgressWithDbQueryTests(){
+
+        // init test data
+        UUID userId = UUID.randomUUID();
+        MediaContent mediaContent = buildDummyMediaContent();
+        MediaContent mediaContent2 = buildDummyMediaContent();
+
+        Stage stage = Stage.builder()
+                .setId(UUID.randomUUID())
+                .setPosition(0)
+                .setRequiredContents(List.of(mediaContent, mediaContent2))
+                .setOptionalContents(new ArrayList<>())
+                .build();
+
+        UserProgressDataEntity progressDataEntity = buildDummyUserProgressData(true, userId, mediaContent.getId());
+        UserProgressDataEntity progressDataEntity2 = buildDummyUserProgressData(false, userId, mediaContent2.getId());
+
+        // mock repository
+        doReturn(Optional.of(progressDataEntity)).when(userProgressDataRepository).findByUserIdAndContentId(userId, mediaContent.getId());
+        doReturn(Optional.of(progressDataEntity2)).when(userProgressDataRepository).findByUserIdAndContentId(userId, mediaContent2.getId());
+
+        // run method under test
+        double result = userProgressDataService.getStageProgressForUser(stage, userId, true);
+
+        // verify methods called
+        verify(userProgressDataRepository, never()).save(any());
+        verify(userProgressDataRepository, times(2)).findByUserIdAndContentId(any(), any());
+
+        // assertions
+        assertEquals(50.0, result);
+    }
+
+    /**
+     * helper method to generate some generic media content DTO
+     * @return media content Object
+     */
+    private MediaContent buildDummyMediaContent(){
+        UUID contentId = UUID.randomUUID();
+        ContentMetadata metadata = ContentMetadata.builder()
+                .setChapterId(UUID.randomUUID())
+                .setName("TestContent")
+                .setRewardPoints(10)
+                .setTagNames(new ArrayList<>())
+                .setType(ContentType.MEDIA)
+                .setSuggestedDate(OffsetDateTime.now())
+                .build();
+
+        MediaContent mediaContent = MediaContent.builder()
+                .setId(contentId)
+                .setMetadata(metadata)
+                .build();
+
+        return mediaContent;
+    }
+
+    /**
+     * helper method to generate some progress data
+     * @param success if evaluation of progress is a success
+     * @param userId ID of the User this Progress data belongs to
+     * @param contentId ID of the Content the Progress is tracked for
+     * @return database representation of a Progress data Item
+     */
+    private UserProgressDataEntity buildDummyUserProgressData(boolean success, UUID userId, UUID contentId){
+        ProgressLogItemEmbeddable logItem = ProgressLogItemEmbeddable.builder()
+                .correctness(70.00)
+                .timestamp(OffsetDateTime.now())
+                .hintsUsed(0)
+                .success(success)
+                .timeToComplete(null)
+                .build();
+        UserProgressDataEntity userProgressData = UserProgressDataEntity.builder()
+                .userId(userId)
+                .contentId(contentId)
+                .progressLog(List.of(logItem))
+                .learningInterval(null)
+                .build();
+        return userProgressData;
     }
 }
