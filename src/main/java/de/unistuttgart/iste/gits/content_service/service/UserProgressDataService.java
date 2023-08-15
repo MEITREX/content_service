@@ -5,6 +5,9 @@ import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.gits.generated.dto.Content;
+import de.unistuttgart.iste.gits.generated.dto.ProgressLogItem;
+import de.unistuttgart.iste.gits.generated.dto.Stage;
 import de.unistuttgart.iste.gits.generated.dto.UserProgressData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -113,5 +117,49 @@ public class UserProgressDataService {
         }
 
         return (int) Math.floor(Math.max(1, newLearningInterval));
+    }
+
+    /**
+     * Method retrieving the progress of all content within a Stage. Progress is returned as a percentage
+     * @param stage Stage DTO
+     * @param userId the User progress is being tracked
+     * @param requiredContent true - consider required content, false - consider optional content
+     * @return progress percentage
+     */
+    public double getStageProgressForUser(Stage stage, UUID userId, boolean requiredContent){
+        int numbOfCompletedContent = 0;
+
+        List<Content> contentList;
+
+        if (requiredContent){
+            contentList = stage.getRequiredContents();
+        }else {
+            contentList = stage.getOptionalContents();
+        }
+
+        if (contentList.isEmpty()){
+            return 100.00;
+        }
+
+
+        for (Content content: contentList) {
+            UserProgressData contentProgress = content.getUserProgressData();
+            if (contentProgress == null){
+                contentProgress = getUserProgressData(userId, content.getId());
+            }
+
+            // retrieve number of successful attempts
+            long numbSuccess = contentProgress.getLog()
+                    .stream().
+                    filter(ProgressLogItem::getSuccess)
+                    .count();
+
+            if(numbSuccess > 0){
+                numbOfCompletedContent+= 1;
+            }
+
+        }
+
+        return (double) numbOfCompletedContent / contentList.size() * 100;
     }
 }

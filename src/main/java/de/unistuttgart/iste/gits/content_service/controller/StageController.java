@@ -1,11 +1,15 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.gits.content_service.service.StageService;
+import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.ContextValue;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
 import java.util.UUID;
@@ -16,6 +20,7 @@ import java.util.UUID;
 public class StageController {
 
     private final StageService stageService;
+    private final UserProgressDataService userProgressDataService;
 
     @MutationMapping
     public Stage createStage(@Argument UUID sectionId){
@@ -30,6 +35,19 @@ public class StageController {
     @MutationMapping
     public UUID deleteStage(@Argument UUID id){
         return stageService.deleteStage(id);
+    }
+
+    public abstract class SectionResolver<T extends Stage>{
+
+        @SchemaMapping(field = "requiredContentsProgress")
+        public double requiredContentsProgress(T stage, @ContextValue LoggedInUser currentUser){
+            return userProgressDataService.getStageProgressForUser(stage, currentUser.getId(), true);
+        }
+
+        @SchemaMapping(field = "optionalContentsProgress")
+        public double optionalContentsProgress(T stage, @ContextValue LoggedInUser currentUser){
+            return userProgressDataService.getStageProgressForUser(stage, currentUser.getId(), false);
+        }
     }
 
 }
