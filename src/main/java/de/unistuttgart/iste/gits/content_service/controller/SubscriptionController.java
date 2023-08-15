@@ -31,9 +31,9 @@ public class SubscriptionController {
 
     @Topic(name = "resource-update", pubsubName = "gits")
     @PostMapping(path = "/content-service/resource-update-pubsub")
-    public Mono<Void> updateAssociation(@RequestBody(required = false) CloudEvent<ResourceUpdateEvent> cloudEvent, @RequestHeader Map<String, String> headers){
+    public Mono<Void> updateAssociation(@RequestBody CloudEvent<ResourceUpdateEvent> cloudEvent, @RequestHeader Map<String, String> headers) {
 
-            return Mono.fromRunnable( () -> contentService.forwardResourceUpdates(cloudEvent.getData()));
+        return Mono.fromRunnable(() -> contentService.forwardResourceUpdates(cloudEvent.getData()));
     }
 
     /**
@@ -41,7 +41,7 @@ public class SubscriptionController {
      */
     @Topic(name = "content-progressed", pubsubName = "gits")
     @PostMapping(path = "/content-progressed-pubsub")
-    public Mono<Void> logUserProgress(@RequestBody(required = false) CloudEvent<UserProgressLogEvent> cloudEvent) {
+    public Mono<Void> logUserProgress(@RequestBody CloudEvent<UserProgressLogEvent> cloudEvent) {
         if (cloudEvent == null) {
             return Mono.error(new IllegalArgumentException("CloudEvent is null"));
         }
@@ -50,8 +50,8 @@ public class SubscriptionController {
 
     @Topic(name = "chapter-changes", pubsubName = "gits")
     @PostMapping(path = "/content-service/chapter-changes-pubsub")
-    public Mono<Void> cascadeCourseDeletion(@RequestBody(required = false) CloudEvent<ChapterChangeEvent> cloudEvent, @RequestHeader Map<String, String> headers){
+    public Mono<Void> cascadeCourseDeletion(@RequestBody CloudEvent<ChapterChangeEvent> cloudEvent, @RequestHeader Map<String, String> headers) {
 
-        return Mono.fromRunnable( () -> contentService.cascadeContentDeletion(cloudEvent.getData()));
+        return Mono.fromRunnable(() -> contentService.cascadeContentDeletion(cloudEvent.getData()));
     }
 }
