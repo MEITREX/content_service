@@ -137,6 +137,21 @@ public class StageService {
         return deletedStageEntity.getId();
     }
 
+    /**
+     * Helper function to deleted Content Links in Stage Entities if Content gets deleted
+     *
+     * @param contentEntities
+     */
+    public void deleteContentLinksFromStages(ContentEntity contentEntity) {
+        List<StageEntity> stageEntities = stageRepository.findAllByRequiredContentsContainingOrOptionalContentsContaining(contentEntity, contentEntity);
+
+        for (StageEntity stageEntity : stageEntities) {
+            stageEntity.getRequiredContents().remove(contentEntity);
+            stageEntity.getOptionalContents().remove(contentEntity);
+        }
+        stageRepository.saveAll(stageEntities);
+    }
+
 
     /**
      * Checks if a Stage exists.
