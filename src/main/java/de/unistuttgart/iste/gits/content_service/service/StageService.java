@@ -1,15 +1,22 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.generated.dto.Stage;
 import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -66,7 +73,7 @@ public class StageService {
                         input.getRequiredContents()
                 ));
 
-        stageEntity.setOptionalContent(
+        stageEntity.setOptionalContents(
                 validateStageContent(
                         sectionEntity.getChapterId(),
                         input.getOptionalContents()
@@ -113,16 +120,19 @@ public class StageService {
 
         SectionEntity sectionEntity = sectionRepository.getReferenceById(deletedStageEntity.getSectionId());
 
+        sectionEntity.getStages().remove(deletedStageEntity);
+
         //if a stage is deleted all subsequent stages have to have their position moved up by 1 in the list
         for (StageEntity entity : sectionEntity.getStages()) {
+
             if (entity.getPosition() > deletedStageEntity.getPosition()) {
                 //move entity one position up
                 entity.setPosition(entity.getPosition() - 1);
-                stageRepository.save(entity);
             }
         }
         // perform deletion
         stageRepository.delete(deletedStageEntity);
+        sectionRepository.save(sectionEntity);
 
         return deletedStageEntity.getId();
     }
