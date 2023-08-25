@@ -140,7 +140,7 @@ public class StageService {
     /**
      * Helper function to deleted Content Links in Stage Entities if Content gets deleted
      *
-     * @param contentEntities
+     * @param contentEntity a content Entity that is up for deletion
      */
     public void deleteContentLinksFromStages(ContentEntity contentEntity) {
         List<StageEntity> stageEntities = stageRepository.findAllByRequiredContentsContainingOrOptionalContentsContaining(contentEntity, contentEntity);
