@@ -2,14 +2,16 @@ package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentMetadataEmbeddable;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
+import de.unistuttgart.iste.gits.generated.dto.ContentType;
+import de.unistuttgart.iste.gits.generated.dto.Stage;
+import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -41,7 +43,7 @@ class StageServiceTest {
     void createNewStageTest() {
         SectionEntity sectionEntity = SectionEntity.builder().id(UUID.randomUUID()).name("Test Work-Path").stages(new HashSet<>()).chapterId(UUID.randomUUID()).build();
 
-        StageEntity stageEntity = StageEntity.builder().sectionId(sectionEntity.getId()).position(0).optionalContent(new HashSet<>()).requiredContents(new HashSet<>()).build();
+        StageEntity stageEntity = StageEntity.builder().sectionId(sectionEntity.getId()).position(0).optionalContents(new HashSet<>()).requiredContents(new HashSet<>()).build();
 
         //mock repository
         when(sectionRepository.existsById(sectionEntity.getId())).thenReturn(true);
@@ -90,7 +92,7 @@ class StageServiceTest {
                 .position(0)
                 .sectionId(sectionId)
                 .requiredContents(Set.of(expectedReqContents.get(0)))
-                .optionalContent(new HashSet<>())
+                .optionalContents(new HashSet<>())
                 .build();
 
         StageEntity expectedStageEntity = StageEntity.builder()
@@ -98,7 +100,7 @@ class StageServiceTest {
                 .position(0)
                 .sectionId(sectionId)
                 .requiredContents(Set.copyOf(expectedReqContents))
-                .optionalContent(Set.copyOf(expectedOptContents))
+                .optionalContents(Set.copyOf(expectedOptContents))
                 .build();
 
         Stage expectedResult = stageMapper.entityToDto(expectedStageEntity);
@@ -175,7 +177,7 @@ class StageServiceTest {
                 .position(0)
                 .sectionId(UUID.randomUUID())
                 .requiredContents(new HashSet<>())
-                .optionalContent(new HashSet<>())
+                .optionalContents(new HashSet<>())
                 .build();
 
         //mock database
@@ -208,7 +210,7 @@ class StageServiceTest {
                 .position(0)
                 .sectionId(sectionId)
                 .requiredContents(Set.of(expectedReqContents.get(0)))
-                .optionalContent(new HashSet<>())
+                .optionalContents(new HashSet<>())
                 .build();
 
         StageEntity expectedStageEntity = StageEntity.builder()
@@ -216,7 +218,7 @@ class StageServiceTest {
                 .position(0)
                 .sectionId(sectionId)
                 .requiredContents(Set.copyOf(expectedReqContents))
-                .optionalContent(Set.of(expectedOptContents.get(0)))
+                .optionalContents(Set.of(expectedOptContents.get(0)))
                 .build();
 
 
@@ -329,7 +331,7 @@ class StageServiceTest {
                 .sectionId(sectionId)
                 .position(pos)
                 .requiredContents(new HashSet<>())
-                .optionalContent(new HashSet<>())
+                .optionalContents(new HashSet<>())
                 .build();
     }
 }

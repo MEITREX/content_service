@@ -42,7 +42,7 @@ public class StageService {
                 .sectionId(sectionId)
                 .position(sectionEntity.getStages().size())
                 .requiredContents(new HashSet<>())
-                .optionalContent(new HashSet<>())
+                .optionalContents(new HashSet<>())
                 .build();
 
         return stageMapper.entityToDto(stageRepository.save(stageEntity));
