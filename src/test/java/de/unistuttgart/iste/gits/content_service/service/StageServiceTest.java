@@ -268,15 +268,17 @@ class StageServiceTest {
     void deleteStageTest() {
         //init
         UUID sectionId = UUID.randomUUID();
+        Set<StageEntity> stageEntities = new HashSet<>();
+
+
         StageEntity deletedEntity = buildStageEntity(sectionId, 1);
 
-        Set<StageEntity> stageEntities = Set.of(
+        stageEntities.addAll(Set.of(
                 buildStageEntity(sectionId, 0),
                 deletedEntity,
                 buildStageEntity(sectionId, 2),
                 buildStageEntity(sectionId, 3)
-        );
-
+        ));
 
 
         SectionEntity sectionEntity = SectionEntity.builder()
@@ -294,8 +296,8 @@ class StageServiceTest {
 
         UUID result = stageService.deleteStage(deletedEntity.getId());
 
-        verify(stageRepository, times(2)).save(any());
         verify(stageRepository, times(1)).delete(deletedEntity);
+        verify(sectionRepository, times(1)).save(sectionEntity);
 
         assertEquals(deletedEntity.getId(), result);
     }
