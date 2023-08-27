@@ -54,7 +54,8 @@ public class ContentService {
         //publish changes
         topicPublisher.notifyChange(deletedEntity, CrudOperation.DELETE);
         topicPublisher.informContentDependentServices(List.of(deletedEntity.getId()), CrudOperation.DELETE);
-
+        // Call the extended synchronizeTags method to handle unused tag deletion
+        tagSynchronization.synchronizeTags(deletedEntity, Collections.emptyList());
         return uuid;
     }
 
