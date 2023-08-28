@@ -24,9 +24,7 @@ public class TagService {
         TagSynchronizationResult result = prepareSynchronization(tagNames, currentTags, existingTagsWithGivenNames);
         synchronizeWithDatabase(content, result);
         List<TagEntity> unusedTags = tagRepository.findUnusedTags();
-        for (TagEntity unusedTag : unusedTags) {
-            tagRepository.delete(unusedTag);
-        }
+        tagRepository.deleteAll(unusedTags);
     }
     void synchronizeWithDatabase(ContentEntity content, TagSynchronizationResult tagSynchronizationResult) {
         // the prepareSynchronization created TagEntity instances for new tags but did not store them --> save them to the DB
