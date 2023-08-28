@@ -2,10 +2,10 @@ package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.generated.dto.Section;
 import de.unistuttgart.iste.gits.generated.dto.Stage;
 import de.unistuttgart.iste.gits.generated.dto.StageOrderInput;
@@ -14,10 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 
 import java.util.*;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_content", "stage" ,"section" , "content_tags", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content", "tag"})
 class MutationChangeStageOrderTest {
 
     @Autowired
@@ -99,7 +100,7 @@ class MutationChangeStageOrderTest {
                 .sectionId(sectionId)
                 .position(pos)
                 .requiredContents(new HashSet<>())
-                .optionalContent(new HashSet<>())
+                .optionalContents(new HashSet<>())
                 .build();
     }
 }

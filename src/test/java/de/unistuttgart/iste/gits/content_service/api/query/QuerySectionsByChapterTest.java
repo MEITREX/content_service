@@ -2,27 +2,25 @@ package de.unistuttgart.iste.gits.content_service.api.query;
 
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.generated.dto.Section;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.graphql.test.tester.GraphQlTester;
 
-import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_content", "stage" ,"section" , "content_tags", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content", "tag"})
 class QuerySectionsByChapterTest {
 
     @Autowired
@@ -61,13 +59,13 @@ class QuerySectionsByChapterTest {
         StageEntity stageEntity = StageEntity.builder()
                 .sectionId(sectionEntity.getId())
                 .position(0)
-                .optionalContent(new HashSet<>())
+                .optionalContents(new HashSet<>())
                 .requiredContents(new HashSet<>())
                 .build();
         StageEntity stageEntity2 = StageEntity.builder()
                 .sectionId(sectionEntity2.getId())
                 .position(0)
-                .optionalContent(new HashSet<>())
+                .optionalContents(new HashSet<>())
                 .requiredContents(new HashSet<>())
                 .build();
         stageEntity = stageRepository.save(stageEntity);
