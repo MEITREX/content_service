@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -71,6 +71,10 @@ class MutationRemoveTagFromContentTest {
         ContentEntity updatedContentEntity = contentRepository.findById(contentEntity.getId()).orElseThrow();
         assertThat(updatedContentEntity.getMetadata().getTags(), hasSize(1));
         assertThat(updatedContentEntity.getTagNames(), containsInAnyOrder("tag2"));
+        List<TagEntity> tags=tagRepository.findAll();
+        assertThat(tags, hasSize(2));
+        assertThat(tags.get(0).getName(), is("tag2"));
+
     }
 
     /**
@@ -111,25 +115,6 @@ class MutationRemoveTagFromContentTest {
         assertThat(updatedContentEntity.getMetadata().getTags(), hasSize(2));
         assertThat(updatedContentEntity.getTagNames(), containsInAnyOrder("tag1", "tag2"));
     }
-    /**
-     * Given a content with tags
-     * When the synchronizeTags method is called to remove unused tags
-     * Then the unused tags should be removed from the tag repository
-     */
-    @Test
-    @Transactional
-    @Commit
-    void testRemoveUnusedTags() {
-        ContentEntity contentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder()
-                .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
-                        .tags(Set.of(TagEntity.fromName("tag1"), TagEntity.fromName("tag2")))
-                        .build())
-                .build());
 
-        // Call the synchronizeTags method to handle unused tag removal
-        tagServiceMock.synchronizeTags(contentEntity, Collections.emptyList());
 
-        // Verify that unused tags have been removed
-        assertThat(tagRepository.count(), is(0L));
-    }
 }

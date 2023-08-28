@@ -10,18 +10,14 @@ import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.UserProgressDataEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
-import de.unistuttgart.iste.gits.content_service.service.TagService;
 import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -43,8 +39,7 @@ class MutationDeleteContentTest {
     private TagRepository tagRepository;
     @Autowired
     private TopicPublisher topicPublisher;
-    @Mock
-    private TagService tagServiceMock;
+
 
     /**
      * Given a UUID of an existing content
@@ -86,20 +81,11 @@ class MutationDeleteContentTest {
         assertThat(contentRepository.findById(contentEntity.getId()).isEmpty(), is(true));
         System.out.println(contentRepository.findAll());
         assertThat(contentRepository.count(), is(0L));
-        // Tags are not deleted (yet)
+        //Test that tag is deleted
         assertThat(tagRepository.count(), is(0L));
 
         verify(topicPublisher, times(1))
                 .notifyChange(any(ContentEntity.class), eq(CrudOperation.DELETE));
-        // Mock the behavior of tagServiceMock.synchronizeTags()
-        doNothing().when(tagServiceMock).synchronizeTags(any(ContentEntity.class), anyList());
-
-        // Call the extended synchronizeTags method to handle unused tag deletion
-        tagServiceMock.synchronizeTags(contentEntity, Collections.emptyList());
-
-        // Verify that the synchronizeTags method was called
-        verify(tagServiceMock, times(1)).synchronizeTags(eq(contentEntity), eq(Collections.emptyList()));
-
 
     }
 
