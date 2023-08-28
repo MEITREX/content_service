@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
@@ -97,7 +98,8 @@ class MutationDeleteContentTest {
         tagServiceMock.synchronizeTags(contentEntity, Collections.emptyList());
 
         // Verify that the synchronizeTags method was called
-        verify(tagServiceMock, times(1)).synchronizeTags(contentEntity, Collections.emptyList());
+        verify(tagServiceMock, times(1)).synchronizeTags(eq(contentEntity), eq(Collections.emptyList()));
+
 
     }
 
