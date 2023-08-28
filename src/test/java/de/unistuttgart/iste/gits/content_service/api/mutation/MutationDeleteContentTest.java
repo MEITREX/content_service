@@ -79,7 +79,6 @@ class MutationDeleteContentTest {
                 .path("deleteContent").entity(UUID.class).isEqualTo(contentEntity.getId());
 
         assertThat(contentRepository.findById(contentEntity.getId()).isEmpty(), is(true));
-        System.out.println(contentRepository.findAll());
         assertThat(contentRepository.count(), is(0L));
         //Test that tag is deleted
         assertThat(tagRepository.count(), is(0L));
