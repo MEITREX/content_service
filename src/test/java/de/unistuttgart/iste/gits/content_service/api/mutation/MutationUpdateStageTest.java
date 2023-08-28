@@ -2,10 +2,13 @@ package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentMetadataEmbeddable;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
 import jakarta.transaction.Transactional;
@@ -21,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_content", "stage" ,"section" , "content_tags", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content", "tag"})
 class MutationUpdateStageTest {
 
     @Autowired
@@ -48,7 +51,7 @@ class MutationUpdateStageTest {
         StageEntity stageEntity = StageEntity.builder()
                 .sectionId(sectionEntity.getId())
                 .position(0)
-                .optionalContent(new HashSet<>())
+                .optionalContents(new HashSet<>())
                 .requiredContents(new HashSet<>())
                 .build();
         stageEntity = stageRepository.save(stageEntity);

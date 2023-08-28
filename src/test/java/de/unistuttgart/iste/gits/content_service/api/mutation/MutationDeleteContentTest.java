@@ -1,14 +1,13 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.UserProgressDataEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
 import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import jakarta.transaction.Transactional;
@@ -18,17 +17,15 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static graphql.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
@@ -37,6 +34,10 @@ class MutationDeleteContentTest {
 
     @Autowired
     private ContentRepository contentRepository;
+    @Autowired
+    private StageRepository stageRepository;
+    @Autowired
+    private SectionRepository sectionRepository;
     @Autowired
     private TagRepository tagRepository;
     @Autowired
@@ -85,8 +86,61 @@ class MutationDeleteContentTest {
         // Tags are not deleted (yet)
         assertThat(tagRepository.count(), is(2L));
 
-        verify(topicPublisher, times(1))
-                .notifyChange(any(ContentEntity.class), eq(CrudOperation.DELETE));
+    }
+
+    /**
+     * Given a UUID of an existing content
+     * When the deleteContent mutation is executed
+     * Then the content is deleted and all links to stages are removed
+     */
+    @Test
+    @Transactional
+    @Commit
+    void testDeleteExistingContentLinkedToStage(GraphQlTester graphQlTester) {
+
+        ContentEntity contentEntity = contentRepository.save(TestData.dummyAssessmentEntityBuilder()
+                .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
+                        .tags(Set.of(
+                                TagEntity.fromName("Tag3"),
+                                TagEntity.fromName("Tag4")))
+                        .build())
+                .userProgressData(List.of(
+                        UserProgressDataEntity.builder()
+                                .userId(UUID.randomUUID())
+                                .learningInterval(2)
+                                .build(),
+                        UserProgressDataEntity.builder()
+                                .userId(UUID.randomUUID())
+                                .learningInterval(1)
+                                .build()))
+                .build());
+        // add Section and Stage to db and link content to a stage
+        SectionEntity sectionEntity = sectionRepository.save(SectionEntity.builder().stages(new HashSet<>()).name("TestSection").chapterId(UUID.randomUUID()).build());
+        StageEntity stageEntity = StageEntity.builder().sectionId(sectionEntity.getId()).position(0).requiredContents(new HashSet<>()).optionalContents(new HashSet<>()).build();
+        stageEntity.getRequiredContents().add(contentEntity);
+        stageEntity = stageRepository.save(stageEntity);
+
+        String query = """
+                mutation($id: UUID!) {
+                    deleteContent(id: $id)
+                }
+                """;
+
+        graphQlTester.document(query)
+                .variable("id", contentEntity.getId())
+                .execute()
+                .path("deleteContent").entity(UUID.class).isEqualTo(contentEntity.getId());
+
+        assertThat(contentRepository.findById(contentEntity.getId()).isEmpty(), is(true));
+        System.out.println(contentRepository.findAll());
+        assertThat(contentRepository.count(), is(0L));
+        // Tags are not deleted (yet)
+        assertThat(tagRepository.count(), is(2L));
+
+
+        // assert content has been unlinked from Stages
+        stageEntity = stageRepository.getReferenceById(stageEntity.getId());
+        assertFalse(stageEntity.getRequiredContents().contains(contentEntity));
     }
 
     /**

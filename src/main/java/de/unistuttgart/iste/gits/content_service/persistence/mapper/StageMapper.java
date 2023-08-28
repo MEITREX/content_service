@@ -16,7 +16,7 @@ public class StageMapper {
         return Stage.builder()
                 .setId(entity.getId())
                 .setPosition(entity.getPosition())
-                .setOptionalContents(entity.getOptionalContent()
+                .setOptionalContents(entity.getOptionalContents()
                         .stream()
                         .map(contentMapper::entityToDto)
                         .toList()

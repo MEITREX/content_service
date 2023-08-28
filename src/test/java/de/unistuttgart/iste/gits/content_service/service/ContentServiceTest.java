@@ -31,12 +31,13 @@ class ContentServiceTest {
 
     private final ContentRepository contentRepository = Mockito.mock(ContentRepository.class);
     private final TagRepository tagRepository = Mockito.mock(TagRepository.class);
+    private final StageService stageService = Mockito.mock(StageService.class);
     private final ContentMapper contentMapper = new ContentMapper(new ModelMapper());
     private final ContentValidator contentValidator = Mockito.spy(ContentValidator.class);
     private final TagService tagService = Mockito.mock(TagService.class);
     private final TopicPublisher mockPublisher = Mockito.mock(TopicPublisher.class);
 
-    private final ContentService contentService = new ContentService(contentRepository, tagRepository, contentMapper, contentValidator, tagService, mockPublisher);
+    private final ContentService contentService = new ContentService(contentRepository, tagRepository, stageService, contentMapper, contentValidator, tagService, mockPublisher);
 
     @Test
     void forwardResourceUpdates() {

@@ -11,10 +11,11 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 
 import java.util.HashSet;
 import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_content", "stage" ,"section" , "content_tags", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content", "tag"})
 class MutationCreateStageTest {
 
     @Autowired
