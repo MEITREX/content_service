@@ -7,18 +7,22 @@ import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
+import de.unistuttgart.iste.gits.content_service.service.TagService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 
 @GraphQlApiTest
 @TablesToDelete({"content_tags", "content", "tag"})
@@ -26,7 +30,10 @@ class MutationRemoveTagFromContentTest {
 
     @Autowired
     private ContentRepository contentRepository;
-
+    @Autowired
+    private TagRepository tagRepository;
+    @Autowired
+    private TagService tagServiceMock; // Mock the TagService
     /**
      * Given a content with tags
      * When the removeTagFromContent mutation is called
@@ -103,5 +110,26 @@ class MutationRemoveTagFromContentTest {
         ContentEntity updatedContentEntity = contentRepository.findById(contentEntity.getId()).orElseThrow();
         assertThat(updatedContentEntity.getMetadata().getTags(), hasSize(2));
         assertThat(updatedContentEntity.getTagNames(), containsInAnyOrder("tag1", "tag2"));
+    }
+    /**
+     * Given a content with tags
+     * When the synchronizeTags method is called to remove unused tags
+     * Then the unused tags should be removed from the tag repository
+     */
+    @Test
+    @Transactional
+    @Commit
+    void testRemoveUnusedTags() {
+        ContentEntity contentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder()
+                .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
+                        .tags(Set.of(TagEntity.fromName("tag1"), TagEntity.fromName("tag2")))
+                        .build())
+                .build());
+
+        // Call the synchronizeTags method to handle unused tag removal
+        tagServiceMock.synchronizeTags(contentEntity, Collections.emptyList());
+
+        // Verify that unused tags have been removed
+        assertThat(tagRepository.count(), is(0L));
     }
 }
