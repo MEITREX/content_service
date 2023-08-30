@@ -59,8 +59,3 @@ type Stage {
     """
     optionalContentsProgress: Float!
 }
-
-type StageContentProgress {
-    contents: [Content!]!
-    progress: Float!
-}
