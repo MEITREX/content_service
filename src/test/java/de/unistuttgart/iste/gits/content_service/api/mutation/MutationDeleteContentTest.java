@@ -1,5 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.TestData;
@@ -27,6 +28,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+
+
 @ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
 @TablesToDelete({"content_tags", "user_progress_data", "content", "tag"})
@@ -42,6 +48,7 @@ class MutationDeleteContentTest {
     private TagRepository tagRepository;
     @Autowired
     private TopicPublisher topicPublisher;
+
 
     /**
      * Given a UUID of an existing content
@@ -81,12 +88,13 @@ class MutationDeleteContentTest {
                 .path("deleteContent").entity(UUID.class).isEqualTo(contentEntity.getId());
 
         assertThat(contentRepository.findById(contentEntity.getId()).isEmpty(), is(true));
-        System.out.println(contentRepository.findAll());
         assertThat(contentRepository.count(), is(0L));
-        // Tags are not deleted (yet)
-        assertThat(tagRepository.count(), is(2L));
+        //Test that tag is deleted
+        assertThat(tagRepository.count(), is(0L));
 
     }
+
+
 
     /**
      * Given a UUID of an existing content
@@ -134,13 +142,12 @@ class MutationDeleteContentTest {
         assertThat(contentRepository.findById(contentEntity.getId()).isEmpty(), is(true));
         System.out.println(contentRepository.findAll());
         assertThat(contentRepository.count(), is(0L));
-        // Tags are not deleted (yet)
-        assertThat(tagRepository.count(), is(2L));
-
+        assertThat(tagRepository.count(), is(0L));
 
         // assert content has been unlinked from Stages
         stageEntity = stageRepository.getReferenceById(stageEntity.getId());
         assertFalse(stageEntity.getRequiredContents().contains(contentEntity));
+
     }
 
     /**

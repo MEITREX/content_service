@@ -61,6 +61,7 @@ public class ContentService {
         topicPublisher.notifyChange(deletedEntity, CrudOperation.DELETE);
         topicPublisher.informContentDependentServices(List.of(deletedEntity.getId()), CrudOperation.DELETE);
 
+        tagSynchronization.deleteUnusedTags();
         return uuid;
     }
 
@@ -191,6 +192,7 @@ public class ContentService {
             content.removeFromTags(tagEntity);
             tagEntity.removeFromContents(content);
         }
+        tagSynchronization.deleteUnusedTags();
         return contentMapper.entityToDto(content);
     }
 

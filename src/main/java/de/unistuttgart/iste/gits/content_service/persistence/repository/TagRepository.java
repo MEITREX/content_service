@@ -22,4 +22,7 @@ public interface TagRepository extends JpaRepository<TagEntity, UUID> {
 
     @Query("select tag from Tag tag join tag.contents content where content.id = :contentId and tag.name = :tagName")
     List<TagEntity> findByContentIdAndTagName(@Param("contentId") UUID contentId, @Param("tagName") String tagName);
+
+    @Query("SELECT tag FROM Tag tag WHERE tag.contents IS EMPTY")
+    List<TagEntity> findUnusedTags();
 }
