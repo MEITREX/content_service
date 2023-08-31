@@ -1,7 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 
-import de.unistuttgart.iste.gits.common.event.*;
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
+import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
@@ -26,6 +28,7 @@ public class ContentService {
 
     private final ContentRepository contentRepository;
     private final TagRepository tagRepository;
+    private final StageService stageService;
     private final ContentMapper contentMapper;
     private final ContentValidator contentValidator;
     final TagService tagSynchronization;
@@ -48,6 +51,9 @@ public class ContentService {
         requireContentExisting(uuid);
 
         ContentEntity deletedEntity = contentRepository.getReferenceById(uuid);
+
+        // remove content from sections
+        stageService.deleteContentLinksFromStages(deletedEntity);
 
         contentRepository.delete(deletedEntity);
 
