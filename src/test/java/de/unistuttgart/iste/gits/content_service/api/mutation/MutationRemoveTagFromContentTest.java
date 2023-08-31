@@ -32,8 +32,6 @@ class MutationRemoveTagFromContentTest {
     private ContentRepository contentRepository;
     @Autowired
     private TagRepository tagRepository;
-    @Autowired
-    private TagService tagServiceMock; // Mock the TagService
     /**
      * Given a content with tags
      * When the removeTagFromContent mutation is called
@@ -72,7 +70,7 @@ class MutationRemoveTagFromContentTest {
         assertThat(updatedContentEntity.getMetadata().getTags(), hasSize(1));
         assertThat(updatedContentEntity.getTagNames(), containsInAnyOrder("tag2"));
         List<TagEntity> tags=tagRepository.findAll();
-        assertThat(tags, hasSize(2));
+        assertThat(tags, hasSize(1));
         assertThat(tags.get(0).getName(), is("tag2"));
 
     }
