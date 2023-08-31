@@ -8,7 +8,6 @@ import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
-import de.unistuttgart.iste.gits.content_service.service.TagService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 @GraphQlApiTest
 @TablesToDelete({"content_tags", "content", "tag"})
@@ -32,6 +29,7 @@ class MutationRemoveTagFromContentTest {
     private ContentRepository contentRepository;
     @Autowired
     private TagRepository tagRepository;
+
     /**
      * Given a content with tags
      * When the removeTagFromContent mutation is called
@@ -69,7 +67,8 @@ class MutationRemoveTagFromContentTest {
         ContentEntity updatedContentEntity = contentRepository.findById(contentEntity.getId()).orElseThrow();
         assertThat(updatedContentEntity.getMetadata().getTags(), hasSize(1));
         assertThat(updatedContentEntity.getTagNames(), containsInAnyOrder("tag2"));
-        List<TagEntity> tags=tagRepository.findAll();
+
+        List<TagEntity> tags = tagRepository.findAll();
         assertThat(tags, hasSize(1));
         assertThat(tags.get(0).getName(), is("tag2"));
 
