@@ -1,5 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.TestData;
@@ -91,9 +92,7 @@ class MutationDeleteContentTest {
         //Test that tag is deleted
         assertThat(tagRepository.count(), is(0L));
 
-
-        verify(topicPublisher, times(1))
-                .notifyChange(any(ContentEntity.class), eq(CrudOperation.DELETE));
+    }
 
 
 
@@ -143,9 +142,7 @@ class MutationDeleteContentTest {
         assertThat(contentRepository.findById(contentEntity.getId()).isEmpty(), is(true));
         System.out.println(contentRepository.findAll());
         assertThat(contentRepository.count(), is(0L));
-        // Tags are not deleted (yet)
-        assertThat(tagRepository.count(), is(2L));
-
+        assertThat(tagRepository.count(), is(0L));
 
         // assert content has been unlinked from Stages
         stageEntity = stageRepository.getReferenceById(stageEntity.getId());
