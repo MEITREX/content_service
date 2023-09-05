@@ -1,5 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
@@ -72,13 +73,20 @@ public class SectionService {
     /**
      * Deletes a Section and all its associated Stages.
      *
-     * @param sectionId ID of Section to delete
+     * @param dto of Section to delete
      */
-    public void deleteSection(UUID sectionId) {
-        requireSectionExisting(sectionId);
+    public void cascadeSectionDeletion(ChapterChangeEvent dto) {
+        List<UUID> chapterIds;
+        List<SectionEntity> sections;
 
-        // Delete the section by ID
-        sectionRepository.deleteById(sectionId);
+        chapterIds = dto.getChapterIds();
+
+        // make sure message is complete
+        if (chapterIds == null || chapterIds.isEmpty() || dto.getOperation() == null) {
+            throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
+        }
+        sections = sectionRepository.findByChapterIdIn(chapterIds);
+        sectionRepository.deleteAllInBatch(sections);
     }
 
     /**

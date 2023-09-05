@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * REST Controller Class listening to a dapr Topic.
@@ -53,19 +52,26 @@ public class SubscriptionController {
 
     @Topic(name = "chapter-changes", pubsubName = "gits")
     @PostMapping(path = "/content-service/chapter-changes-pubsub")
-    public Mono<Void> cascadeCourseDeletion(@RequestBody CloudEvent<?> cloudEvent, @RequestHeader Map<String, String> headers) {
-        if (cloudEvent == null) {
-            return Mono.error(new IllegalArgumentException("CloudEvent is null"));
+    public Mono<Void> cascadeCourseDeletion(@RequestBody CloudEvent<ChapterChangeEvent> cloudEvent, @RequestHeader Map<String, String> headers) {
+        if (cloudEvent == null || cloudEvent.getData() == null) {
+            return Mono.error(new IllegalArgumentException("CloudEvent or ChapterChangeEvent is null"));
         }
-        if (cloudEvent.getData() instanceof UUID sectionId) {
-            // Perform section deletion logic here
-            return Mono.fromRunnable(() -> sectionService.deleteSection(sectionId));
-        } else if (cloudEvent.getData() instanceof ChapterChangeEvent chapterChangeEvent) {
-            // Perform cascading content deletion logic here
-            return Mono.fromRunnable(() -> contentService.cascadeContentDeletion(chapterChangeEvent));
-        } else {
-            return Mono.error(new IllegalArgumentException("Unsupported event type"));
-        }
+        return Mono.fromRunnable(() -> {
+            try {
+                // Delete content associated with the chapter
+                sectionService.cascadeSectionDeletion(cloudEvent.getData());
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+            try {
+                // Delete section
+                contentService.cascadeContentDeletion(cloudEvent.getData());
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+
+        });
+
     }
 
 
