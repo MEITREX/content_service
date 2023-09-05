@@ -5,6 +5,7 @@ import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.service.ContentService;
+import de.unistuttgart.iste.gits.content_service.service.SectionService;
 import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
 import io.dapr.Topic;
 import io.dapr.client.domain.CloudEvent;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * REST Controller Class listening to a dapr Topic.
@@ -27,6 +29,7 @@ import java.util.Map;
 public class SubscriptionController {
 
     private final ContentService contentService;
+    private final SectionService sectionService;
     private final UserProgressDataService userProgressDataService;
 
     @Topic(name = "resource-update", pubsubName = "gits")
@@ -50,8 +53,30 @@ public class SubscriptionController {
 
     @Topic(name = "chapter-changes", pubsubName = "gits")
     @PostMapping(path = "/content-service/chapter-changes-pubsub")
-    public Mono<Void> cascadeCourseDeletion(@RequestBody CloudEvent<ChapterChangeEvent> cloudEvent, @RequestHeader Map<String, String> headers) {
-
-        return Mono.fromRunnable(() -> contentService.cascadeContentDeletion(cloudEvent.getData()));
+    public Mono<Void> cascadeCourseDeletion(@RequestBody CloudEvent<?> cloudEvent, @RequestHeader Map<String, String> headers) {
+        if (cloudEvent == null) {
+            return Mono.error(new IllegalArgumentException("CloudEvent is null"));
+        }
+        if (cloudEvent.getData() instanceof UUID sectionId) {
+            // Perform section deletion logic here
+            return Mono.fromRunnable(() -> sectionService.deleteSection(sectionId));
+        } else if (cloudEvent.getData() instanceof ChapterChangeEvent chapterChangeEvent) {
+            // Perform cascading content deletion logic here
+            return Mono.fromRunnable(() -> contentService.cascadeContentDeletion(chapterChangeEvent));
+        } else {
+            return Mono.error(new IllegalArgumentException("Unsupported event type"));
+        }
     }
+
+
+
+
+
+
+
+
+
+
+
+
 }

@@ -198,6 +198,35 @@ class SectionServiceTest {
         assertThrows(EntityNotFoundException.class, () -> sectionService.deleteWorkPath(input));
     }
 
+    @Test
+    void deleteSectionTest() {
+        UUID sectionId = UUID.randomUUID();
+
+        // Mock the case where the section exists
+        when(sectionRepository.existsById(sectionId)).thenReturn(true);
+
+        sectionService.deleteSection(sectionId);
+
+        // Verify that the existsById and deleteById methods were called once
+        verify(sectionRepository, times(1)).existsById(sectionId);
+        verify(sectionRepository, times(1)).deleteById(sectionId);
+    }
+
+    @Test
+    void deleteNonExistingSectionTest() {
+        UUID sectionId = UUID.randomUUID();
+
+        // Mock the case where the section does not exist
+        when(sectionRepository.existsById(sectionId)).thenReturn(false);
+
+        assertThrows(EntityNotFoundException.class, () -> sectionService.deleteSection(sectionId));
+
+        // Verify that existsById was called once and deleteById was not called in this case
+        verify(sectionRepository, times(1)).existsById(sectionId);
+        verify(sectionRepository, never()).deleteById(sectionId);
+    }
+
+
     // case: valid input provided
     @Test
     void reorderStagesTest() {
@@ -328,4 +357,5 @@ class SectionServiceTest {
                 .optionalContents(new HashSet<>())
                 .build();
     }
+
 }

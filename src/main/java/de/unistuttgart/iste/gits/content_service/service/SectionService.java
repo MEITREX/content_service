@@ -1,7 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.gits.generated.dto.CreateSectionInput;
@@ -67,6 +67,18 @@ public class SectionService {
         sectionRepository.deleteById(sectionId);
 
         return sectionId;
+    }
+
+    /**
+     * Deletes a Section and all its associated Stages.
+     *
+     * @param sectionId ID of Section to delete
+     */
+    public void deleteSection(UUID sectionId) {
+        requireSectionExisting(sectionId);
+
+        // Delete the section by ID
+        sectionRepository.deleteById(sectionId);
     }
 
     /**
@@ -151,5 +163,6 @@ public class SectionService {
             throw new EntityNotFoundException("Section with id " + uuid + " not found");
         }
     }
+
 
 }
