@@ -173,7 +173,7 @@ input AssessmentMetadataInput {
     """
     Type of the assessment
     """
-    skillType: SkillType!
+    skillType: [SkillType!]!
     """
     The initial learning interval for the assessment in days.
     This is the interval that is applied after the assessment is completed the first time.

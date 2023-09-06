@@ -122,7 +122,7 @@ class MutationCreateAssessmentTest {
         assertThat(assessmentEntity.getMetadata().getChapterId(), is(chapterId));
         assertThat(assessmentEntity.getMetadata().getRewardPoints(), is(1));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillPoints(), is(1));
-        assertThat(assessmentEntity.getAssessmentMetadata().getSkillType(), is(SkillType.REMEMBER));
+        assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(SkillType.REMEMBER));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(2));
 
         verify(topicPublisher, times(1))

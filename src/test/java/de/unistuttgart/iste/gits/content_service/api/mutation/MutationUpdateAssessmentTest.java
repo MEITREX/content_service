@@ -109,7 +109,7 @@ class MutationUpdateAssessmentTest {
         assertThat(assessmentEntity.getMetadata().getType(), is(ContentType.FLASHCARDS));
         assertThat(assessmentEntity.getMetadata().getChapterId(), is(newChapterId));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillPoints(), is(3));
-        assertThat(assessmentEntity.getAssessmentMetadata().getSkillType(), is(SkillType.UNDERSTAND));
+        assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(SkillType.UNDERSTAND));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(7));
     }
 }
