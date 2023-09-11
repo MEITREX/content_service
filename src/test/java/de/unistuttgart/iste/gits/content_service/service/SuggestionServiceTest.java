@@ -482,7 +482,7 @@ class SuggestionServiceTest {
                         .setName(name)
                         .build())
                 .setAssessmentMetadata(AssessmentMetadata.builder()
-                        .setSkillType(skillTypes)
+                        .setSkillTypes(skillTypes)
                         .build())
                 .build();
     }
