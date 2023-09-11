@@ -1,5 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
@@ -14,8 +16,7 @@ import org.modelmapper.ModelMapper;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -120,6 +121,48 @@ class SectionServiceTest {
         assertThrows(EntityNotFoundException.class, () -> sectionService.updateSection(input));
     }
 
+    @Test
+    void cascadeSectionDeletionWithValidData() {
+        // Initialize a ChapterChangeEvent DTO with valid data
+        ChapterChangeEvent dto = ChapterChangeEvent.builder()
+                .chapterIds(Collections.singletonList(UUID.randomUUID()))
+                .operation(CrudOperation.DELETE)
+                .build();
+
+        // Create a list of SectionEntity objects to mock the repository's response
+        SectionEntity sectionEntity = SectionEntity.builder()
+                .id(UUID.randomUUID())
+                .chapterId(dto.getChapterIds().get(0))
+                .build();
+
+        // Mock the repository's behavior
+        when(sectionRepository.findByChapterIdIn(dto.getChapterIds())).thenReturn(Collections.singletonList(sectionEntity));
+        doNothing().when(sectionRepository).deleteAllInBatch(any());
+
+        // Execute the method under test
+        assertDoesNotThrow(() -> sectionService.cascadeSectionDeletion(dto));
+
+        // Verify that the repository methods were called as expected
+        verify(sectionRepository, times(1)).findByChapterIdIn(dto.getChapterIds());
+        verify(sectionRepository, times(1)).deleteAllInBatch(Collections.singletonList(sectionEntity));
+    }
+
+    @Test
+    void cascadeSectionDeletionWithIncompleteData() {
+        // Initialize a ChapterChangeEvent DTO with incomplete data
+        ChapterChangeEvent dto = ChapterChangeEvent.builder()
+                .chapterIds(Collections.emptyList())
+                .operation(null)
+                .build();
+
+        // Execute the method under test and expect a NullPointerException
+        assertThrows(NullPointerException.class, () -> sectionService.cascadeSectionDeletion(dto));
+
+        // Verify that the repository methods were not called
+        verify(sectionRepository, never()).findByChapterIdIn(any());
+        verify(sectionRepository, never()).deleteAllInBatch(any());
+    }
+
     // case: update Section with existing Stages
     @Test
     void updateSectionWithStagesTest() {
@@ -197,6 +240,7 @@ class SectionServiceTest {
 
         assertThrows(EntityNotFoundException.class, () -> sectionService.deleteWorkPath(input));
     }
+
 
     // case: valid input provided
     @Test
@@ -328,4 +372,5 @@ class SectionServiceTest {
                 .optionalContents(new HashSet<>())
                 .build();
     }
+
 }

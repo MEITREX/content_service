@@ -1,7 +1,8 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.gits.generated.dto.CreateSectionInput;
@@ -67,6 +68,25 @@ public class SectionService {
         sectionRepository.deleteById(sectionId);
 
         return sectionId;
+    }
+
+    /**
+     * Deletes a Section and all its associated Stages.
+     *
+     * @param dto of Section to delete
+     */
+    public void cascadeSectionDeletion(ChapterChangeEvent dto) {
+        List<UUID> chapterIds;
+        List<SectionEntity> sections;
+
+        chapterIds = dto.getChapterIds();
+
+        // make sure message is complete
+        if (chapterIds == null || chapterIds.isEmpty() || dto.getOperation() == null) {
+            throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
+        }
+        sections = sectionRepository.findByChapterIdIn(chapterIds);
+        sectionRepository.deleteAllInBatch(sections);
     }
 
     /**
@@ -151,5 +171,6 @@ public class SectionService {
             throw new EntityNotFoundException("Section with id " + uuid + " not found");
         }
     }
+
 
 }
