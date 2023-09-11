@@ -53,9 +53,6 @@ public class SubscriptionController {
     @Topic(name = "chapter-changes", pubsubName = "gits")
     @PostMapping(path = "/content-service/chapter-changes-pubsub")
     public Mono<Void> cascadeCourseDeletion(@RequestBody CloudEvent<ChapterChangeEvent> cloudEvent, @RequestHeader Map<String, String> headers) {
-        if (cloudEvent == null || cloudEvent.getData() == null) {
-            return Mono.error(new IllegalArgumentException("CloudEvent or ChapterChangeEvent is null"));
-        }
         return Mono.fromRunnable(() -> {
             try {
                 // Delete content associated with the chapter
