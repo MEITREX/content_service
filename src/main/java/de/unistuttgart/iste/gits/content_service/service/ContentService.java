@@ -52,14 +52,9 @@ public class ContentService {
 
         ContentEntity deletedEntity = contentRepository.getReferenceById(uuid);
 
-        // remove content from sections
-        stageService.deleteContentLinksFromStages(deletedEntity);
+        UUID removedId = removeContentDependencies(deletedEntity);
 
-        contentRepository.delete(deletedEntity);
-
-        //publish changes
-        topicPublisher.notifyChange(deletedEntity, CrudOperation.DELETE);
-        topicPublisher.informContentDependentServices(List.of(deletedEntity.getId()), CrudOperation.DELETE);
+        topicPublisher.informContentDependentServices(List.of(removedId), CrudOperation.DELETE);
 
         tagSynchronization.deleteUnusedTags();
         return uuid;
@@ -214,12 +209,12 @@ public class ContentService {
      * @param input containing updated version of entity
      * @return DTO with updated entity
      */
-    public MediaContent updateMediaContent(UpdateMediaContentInput input) {
+    public MediaContent updateMediaContent(UUID contentId, UpdateMediaContentInput input) {
         contentValidator.validateUpdateMediaContentInput(input);
-        requireContentExisting(input.getId());
+        requireContentExisting(contentId);
 
-        ContentEntity oldContentEntity = contentRepository.getReferenceById(input.getId());
-        ContentEntity updatedContentEntity = contentMapper.mediaContentDtoToEntity(input,
+        ContentEntity oldContentEntity = contentRepository.getReferenceById(contentId);
+        ContentEntity updatedContentEntity = contentMapper.mediaContentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
 
         updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity, input.getMetadata().getTagNames());
@@ -246,12 +241,12 @@ public class ContentService {
      * @param input containing updated version of entity
      * @return DTO with updated entity
      */
-    public Assessment updateAssessment(UpdateAssessmentInput input) {
+    public Assessment updateAssessment(UUID contentId, UpdateAssessmentInput input) {
         contentValidator.validateUpdateAssessmentContentInput(input);
-        requireContentExisting(input.getId());
+        requireContentExisting(contentId);
 
-        ContentEntity oldContentEntity = contentRepository.getReferenceById(input.getId());
-        ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(input,
+        ContentEntity oldContentEntity = contentRepository.getReferenceById(contentId);
+        ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
 
         updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity, input.getMetadata().getTagNames());
@@ -349,16 +344,34 @@ public class ContentService {
         List<ContentEntity> contentEntities = contentRepository.findByChapterIdIn(chapterIds);
 
         for (ContentEntity entity : contentEntities) {
-            contentIds.add(entity.getId());
-            contentRepository.delete(entity);
-            //notify course which resource can be removed. This is necessary if only a chapter is removed and not the entire course
-            topicPublisher.notifyChange(entity, CrudOperation.DELETE);
+            // remove all links from stages to content
+            // and collect IDs of deleted content entities
+            contentIds.add(removeContentDependencies(entity));
         }
 
         if (!contentIds.isEmpty()) {
             // inform dependant services that content entities were deleted
             topicPublisher.informContentDependentServices(contentIds, CrudOperation.DELETE);
         }
+    }
+
+    /**
+     * Removes a stage links to the content entity and then deleted the content entity afterwards
+     *
+     * @param contentEntity content entity to be deleted
+     * @return the ID of the deleted content entity
+     */
+    private UUID removeContentDependencies(ContentEntity contentEntity) {
+
+        // remove content from sections
+        stageService.deleteContentLinksFromStages(contentEntity);
+
+        contentRepository.delete(contentEntity);
+
+        // publish changes applied to content entity
+        topicPublisher.notifyChange(contentEntity, CrudOperation.DELETE);
+
+        return contentEntity.getId();
     }
 
     @SuppressWarnings("java:S1172")

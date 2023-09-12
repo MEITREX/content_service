@@ -1,13 +1,12 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.gits.generated.dto.CreateSectionInput;
 import de.unistuttgart.iste.gits.generated.dto.Section;
-import de.unistuttgart.iste.gits.generated.dto.StageOrderInput;
-import de.unistuttgart.iste.gits.generated.dto.UpdateSectionInput;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,15 +41,16 @@ public class SectionService {
     /**
      * Updates the name of a Section
      *
-     * @param input input object containing id and new name
+     * @param sectionId ID of the section to be changed
+     * @param name      new name for the section
      * @return updated Section object
      */
-    public Section updateSection(UpdateSectionInput input) {
+    public Section updateSectionName(UUID sectionId, String name) {
 
-        requireSectionExisting(input.getId());
+        requireSectionExisting(sectionId);
         //updates name only!
-        SectionEntity sectionEntity = sectionRepository.getReferenceById(input.getId());
-        sectionEntity.setName(input.getName());
+        SectionEntity sectionEntity = sectionRepository.getReferenceById(sectionId);
+        sectionEntity.setName(name);
         sectionEntity = sectionRepository.save(sectionEntity);
         return sectionMapper.entityToDto(sectionEntity);
     }
@@ -70,21 +70,40 @@ public class SectionService {
     }
 
     /**
+     * Deletes a Section and all its associated Stages.
+     *
+     * @param dto of Section to delete
+     */
+    public void cascadeSectionDeletion(ChapterChangeEvent dto) {
+        List<UUID> chapterIds;
+        List<SectionEntity> sections;
+
+        chapterIds = dto.getChapterIds();
+
+        // make sure message is complete
+        if (chapterIds == null || chapterIds.isEmpty() || dto.getOperation() == null) {
+            throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
+        }
+        sections = sectionRepository.findByChapterIdIn(chapterIds);
+        sectionRepository.deleteAllInBatch(sections);
+    }
+
+    /**
      * changes the order of Stages within a Section
      *
      * @param input order list of stage IDs describing new Stage Order
      * @return updated Section with new Stage Order
      */
-    public Section reorderStages(StageOrderInput input) {
+    public Section reorderStages(UUID sectionId, List<UUID> input) {
 
-        SectionEntity sectionEntity = sectionRepository.getReferenceById(input.getSectionId());
+        SectionEntity sectionEntity = sectionRepository.getReferenceById(sectionId);
 
         //ensure received list is complete
-        validateStageIds(input.getStageIds(), sectionEntity.getStages());
+        validateStageIds(input, sectionEntity.getStages());
 
         for (StageEntity stageEntity : sectionEntity.getStages()) {
 
-            int newPos = input.getStageIds().indexOf(stageEntity.getId());
+            int newPos = input.indexOf(stageEntity.getId());
 
             stageEntity.setPosition(newPos);
         }
@@ -151,5 +170,6 @@ public class SectionService {
             throw new EntityNotFoundException("Section with id " + uuid + " not found");
         }
     }
+
 
 }

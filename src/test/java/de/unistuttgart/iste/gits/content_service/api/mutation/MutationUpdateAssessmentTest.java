@@ -44,20 +44,20 @@ class MutationUpdateAssessmentTest {
 
         String query = """
                 mutation($assessmentId: UUID!, $chapterId: UUID!) {
-                    updateAssessment(input: {
-                        id: $assessmentId,
-                        metadata: {
-                            name: "newName",
-                            suggestedDate: "2022-01-01T00:00:00.000Z",
-                            chapterId: $chapterId,
-                            rewardPoints: 3,
-                            tagNames: ["newTag1", "newTag2"]
-                        },
-                        assessmentMetadata: {
-                            skillPoints: 3,
-                            skillTypes: [UNDERSTAND, REMEMBER]
-                            initialLearningInterval: 7
-                        },
+                    mutateContent(contentId: $assessmentId){
+                        updateAssessment(input: {
+                            metadata: {
+                                name: "newName",
+                                suggestedDate: "2022-01-01T00:00:00.000Z",
+                                chapterId: $chapterId,
+                                rewardPoints: 3,
+                                tagNames: ["newTag1", "newTag2"]
+                            },
+                            assessmentMetadata: {
+                                skillPoints: 3,
+                                skillTypes: [UNDERSTAND, REMEMBER]
+                                initialLearningInterval: 7
+                            },
                     }) {
                         id
                         metadata {
@@ -75,13 +75,15 @@ class MutationUpdateAssessmentTest {
                         }
                     }
                 }
+                    
+                }
                 """;
 
         FlashcardSetAssessment updatedAssessment = graphQlTester.document(query)
                 .variable("assessmentId", contentEntity.getId())
                 .variable("chapterId", newChapterId)
                 .execute()
-                .path("updateAssessment").entity(FlashcardSetAssessment.class).get();
+                .path("mutateContent.updateAssessment").entity(FlashcardSetAssessment.class).get();
 
         // check that returned assessment is correct
         assertThat(updatedAssessment.getId(), is(notNullValue()));

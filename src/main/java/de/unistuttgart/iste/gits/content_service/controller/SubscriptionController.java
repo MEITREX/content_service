@@ -5,6 +5,7 @@ import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.service.ContentService;
+import de.unistuttgart.iste.gits.content_service.service.SectionService;
 import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
 import io.dapr.Topic;
 import io.dapr.client.domain.CloudEvent;
@@ -27,6 +28,7 @@ import java.util.Map;
 public class SubscriptionController {
 
     private final ContentService contentService;
+    private final SectionService sectionService;
     private final UserProgressDataService userProgressDataService;
 
     @Topic(name = "resource-update", pubsubName = "gits")
@@ -51,7 +53,33 @@ public class SubscriptionController {
     @Topic(name = "chapter-changes", pubsubName = "gits")
     @PostMapping(path = "/content-service/chapter-changes-pubsub")
     public Mono<Void> cascadeCourseDeletion(@RequestBody CloudEvent<ChapterChangeEvent> cloudEvent, @RequestHeader Map<String, String> headers) {
+        return Mono.fromRunnable(() -> {
+            try {
+                // Delete content associated with the chapter
+                sectionService.cascadeSectionDeletion(cloudEvent.getData());
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+            try {
+                // Delete section
+                contentService.cascadeContentDeletion(cloudEvent.getData());
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
 
-        return Mono.fromRunnable(() -> contentService.cascadeContentDeletion(cloudEvent.getData()));
+        });
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
 }

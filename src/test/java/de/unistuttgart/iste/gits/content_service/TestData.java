@@ -9,6 +9,7 @@ import de.unistuttgart.iste.gits.generated.dto.SkillType;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.HashSet;
 import java.util.UUID;
 
 public class TestData {
@@ -40,5 +41,20 @@ public class TestData {
                 .rewardPoints(0)
                 .suggestedDate(OffsetDateTime.now())
                 .type(ContentType.MEDIA);
+    }
+
+    public static MediaContentEntity buildContentEntity(UUID chapterId) {
+        return MediaContentEntity.builder()
+                .id(UUID.randomUUID())
+                .metadata(
+                        ContentMetadataEmbeddable.builder()
+                                .tags(new HashSet<>())
+                                .name("Test")
+                                .type(ContentType.MEDIA)
+                                .suggestedDate(OffsetDateTime.parse("2020-01-01T00:00:00.000Z"))
+                                .rewardPoints(20)
+                                .chapterId(chapterId)
+                                .build()
+                ).build();
     }
 }
