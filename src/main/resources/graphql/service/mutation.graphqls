@@ -3,15 +3,41 @@ type Mutation {
     Create new media content
     """
     createMediaContent(input: CreateMediaContentInput!): MediaContent!
-    """
-    Update an existing Content
-    """
-    updateMediaContent(input: UpdateMediaContentInput!): MediaContent!
 
     """
     Create a new Assessment
     """
     createAssessment(input: CreateAssessmentInput!): Assessment!
+
+    """
+    Modify Content
+    """
+    mutateContent(contentId: UUID!): ContentMutation!
+
+    """
+    Create new Section
+    """
+    createSection(input: CreateSectionInput!): Section!
+
+    """
+    Modify Sections
+    """
+    mutateSection(sectionId: UUID!): SectionMutation!
+
+}
+
+type ContentMutation{
+
+    """
+    Identifier of Content
+    """
+    contentId: UUID!
+
+    """
+    Update an existing Content
+    """
+    updateMediaContent(input: UpdateMediaContentInput!): MediaContent!
+
     """
     Update an existing Assessment
     """
@@ -20,33 +46,25 @@ type Mutation {
     """
     Delete an existing Content, throws an error if no Content with the given id exists
     """
-    deleteContent(id: UUID!): UUID!
+    deleteContent: UUID!
 
     """
     Add a tag to an existing content
     """
-    addTagToContent(contentId: UUID!, tagName: String): Content!
+    addTagToContent(tagName: String): Content!
+
     """
     Remove a tag from an existing content
     """
-    removeTagFromContent(contentId: UUID!, tagName: String): Content!
-
-    """
-    create new Section
-    """
-    createSection(input: CreateSectionInput!): Section!
-
-    """
-    update the name of a Section
-    """
-    mutateSection(sectionId: UUID!): SectionMutation!
-
+    removeTagFromContent(tagName: String): Content!
 
 }
 
 type SectionMutation {
 
-
+    """
+    Identifier of the section
+    """
     sectionId: UUID!
     """
     update the name of a Section
@@ -91,10 +109,6 @@ input CreateMediaContentInput {
 
 input UpdateMediaContentInput {
     """
-    ID of the Content to update
-    """
-    id: UUID!
-    """
     Metadata for the new Content
     """
     metadata: UpdateContentMetadataInput!
@@ -112,10 +126,6 @@ input CreateAssessmentInput {
 }
 
 input UpdateAssessmentInput {
-    """
-    ID of the Content to update
-    """
-    id: UUID!
     """
     Metadata for the new Content
     """
