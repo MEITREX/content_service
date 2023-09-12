@@ -8,6 +8,7 @@ import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.SkillType;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.HashSet;
 import java.util.UUID;
 
@@ -29,7 +30,7 @@ public class TestData {
     public static AssessmentMetadataEmbeddable.AssessmentMetadataEmbeddableBuilder dummyAssessmentMetadataEmbeddableBuilder() {
         return AssessmentMetadataEmbeddable.builder()
                 .skillPoints(2)
-                .skillType(SkillType.REMEMBER)
+                .skillTypes(List.of(SkillType.REMEMBER))
                 .initialLearningInterval(1);
     }
 

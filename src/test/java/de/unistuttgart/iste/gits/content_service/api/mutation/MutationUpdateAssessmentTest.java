@@ -16,6 +16,7 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -54,7 +55,7 @@ class MutationUpdateAssessmentTest {
                             },
                             assessmentMetadata: {
                                 skillPoints: 3,
-                                skillType: UNDERSTAND
+                                skillTypes: [UNDERSTAND, REMEMBER]
                                 initialLearningInterval: 7
                             },
                     }) {
@@ -69,7 +70,7 @@ class MutationUpdateAssessmentTest {
                         }
                         assessmentMetadata {
                             skillPoints
-                            skillType
+                            skillTypes
                             initialLearningInterval
                         }
                     }
@@ -94,7 +95,7 @@ class MutationUpdateAssessmentTest {
         assertThat(updatedAssessment.getMetadata().getChapterId(), is(newChapterId));
         assertThat(updatedAssessment.getMetadata().getRewardPoints(), is(3));
         assertThat(updatedAssessment.getAssessmentMetadata().getSkillPoints(), is(3));
-        assertThat(updatedAssessment.getAssessmentMetadata().getSkillType(), is(SkillType.UNDERSTAND));
+        assertThat(updatedAssessment.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.UNDERSTAND, SkillType.REMEMBER)));
         assertThat(updatedAssessment.getAssessmentMetadata().getInitialLearningInterval(), is(7));
 
         ContentEntity newContentEntity = contentRepository.findById(updatedAssessment.getId()).orElseThrow();
@@ -111,7 +112,7 @@ class MutationUpdateAssessmentTest {
         assertThat(assessmentEntity.getMetadata().getType(), is(ContentType.FLASHCARDS));
         assertThat(assessmentEntity.getMetadata().getChapterId(), is(newChapterId));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillPoints(), is(3));
-        assertThat(assessmentEntity.getAssessmentMetadata().getSkillType(), is(SkillType.UNDERSTAND));
+        assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.UNDERSTAND, SkillType.REMEMBER)));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(7));
     }
 }
