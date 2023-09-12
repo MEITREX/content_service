@@ -17,7 +17,6 @@ type Mutation {
     """
     updateAssessment(input: UpdateAssessmentInput!): Assessment!
 
-
     """
     Delete an existing Content, throws an error if no Content with the given id exists
     """
@@ -40,17 +39,29 @@ type Mutation {
     """
     update the name of a Section
     """
-    updateSection(input: UpdateSectionInput!): Section!
+    mutateSection(sectionId: UUID!): SectionMutation!
+
+
+}
+
+type SectionMutation {
+
+
+    sectionId: UUID!
+    """
+    update the name of a Section
+    """
+    updateSectionName(name: String!): Section!
 
     """
     delete a Section by ID
     """
-    deleteSection(id: UUID!): UUID!
+    deleteSection: UUID!
 
     """
     create new Stage in Section
     """
-    createStage(sectionId: UUID!): Stage!
+    createStage(input: CreateStageInput): Stage!
 
     """
     Update Content of Stage
@@ -65,7 +76,7 @@ type Mutation {
     """
     update Order of Stages within a Section
     """
-    updateStageOrder(input: StageOrderInput!):Section!
+    updateStageOrder(stages: [UUID!]!):Section!
 }
 
 """
@@ -196,17 +207,18 @@ input CreateSectionInput {
     name: String!
 }
 
-input UpdateSectionInput {
+
+input CreateStageInput{
 
     """
-    Identifier of the Section
+    updated List of UUIDs for content labeled as required in this Stage
     """
-    id: UUID!
+    requiredContents: [UUID!]!
 
     """
-    new name of the Section
+    updated List of UUIDs for content labeled as optional in this Stage
     """
-    name: String!
+    optionalContents: [UUID!]!
 }
 
 input UpdateStageInput{
@@ -227,15 +239,3 @@ input UpdateStageInput{
     optionalContents: [UUID!]!
 }
 
-input StageOrderInput{
-
-    """
-    Identifier of target Section
-    """
-    sectionId: UUID!
-
-    """
-    new position of all stages determined by their position in the list
-    """
-    stageIds: [UUID!]!
-}
