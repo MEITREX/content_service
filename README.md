@@ -1,24 +1,24 @@
-# Content service
+# Content Service
 
-This service serves as the architectural backbone for structuring the educational content provided by lecturers within
-the platform. It offers a systematic approach by categorizing and interconnecting all content, whether uploaded or
-created by the lecturer, through a comprehensive tagging system. This tagging system not only organizes the content but
-also establishes crucial dependencies between them.
+The Content Service serves as a critical component within our system, providing essential information about course
+content:
 
-In practical terms, this implies that the system possesses an intrinsic understanding of which foundational content is
-essential to grasp before delving into more advanced material. As a result, it can intelligently guide students by
-recommending a return to foundational content for review and improvement when necessary. This dynamic approach ensures
-that learners build a solid knowledge base before progressing to more complex topics, enhancing their overall
-comprehension and retention.
+1. **Content Information:** This service offers detailed insights into the content that is part of a course. Users can
+   access information about which chapters the content belongs to, the unlock dates for specific content, and any
+   prerequisites that need to be learned before unlocking certain content.
 
-Furthermore, this service extends its functionality to consumable content formats like scripts, slides, videos, and
-more. It meticulously links these resources to their corresponding quizzes or interactive learning components, such as
-games. This linkage facilitates a highly personalized learning experience for students.
+2. **Dependency Annotations:** Lecturers can use the Content Service to annotate non-trivial dependencies between
+   different pieces of content, enhancing the learning experience.
 
-For instance, when a student faces challenges or difficulties in quizzes, the platform can seamlessly direct them to the
-relevant supporting materials, whether it's a script, a slide presentation, or a video. This guidance empowers students
-to identify and focus on the specific content areas where they may be struggling, enabling them to bridge knowledge gaps
-and improve their performance.
+## Purpose
 
+The Content Service plays a pivotal role in our system by:
 
+- **Supporting Learning:** It ensures that students have access to information about course content, helping them
+  understand what needs to be learned and in what order.
+
+- **Enhancing Learning Paths:** By providing unlock dates and prerequisites, the service can suggest foundational
+  content for students who may need additional preparation for quizzes or games.
+
+- **Facilitating Lecturer Engagement:** Lecturers can annotate content dependencies.
 
