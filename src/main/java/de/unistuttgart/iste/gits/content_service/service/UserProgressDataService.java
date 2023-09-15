@@ -38,12 +38,26 @@ public class UserProgressDataService {
         return userProgressDataMapper.entityToDto(dbProgressData);
     }
 
+    /**
+     * Retrieves a User Progress Object for a user, content combination from the database
+     *
+     * @param userId    ID of user
+     * @param contentId ID of content
+     * @return User Progress Entity from the database
+     */
     private UserProgressDataEntity getUserProgressDataEntity(UUID userId, UUID contentId) {
         return userProgressDataRepository
                 .findByUserIdAndContentId(userId, contentId)
                 .orElseGet(() -> createInitialUserProgressData(userId, contentId));
     }
 
+    /**
+     * Creates a User Progress Entity in the Database with no initial Progress tracked
+     *
+     * @param userId    ID of user
+     * @param contentId ID of Content
+     * @return a newly initialized User Progress Entity
+     */
     public UserProgressDataEntity createInitialUserProgressData(UUID userId, UUID contentId) {
         log.info("Creating initial user progress data for user {} and content {}", userId, contentId);
         ContentEntity contentEntity = contentService.getContentById(contentId);
@@ -121,19 +135,20 @@ public class UserProgressDataService {
 
     /**
      * Method retrieving the progress of all content within a Stage. Progress is returned as a percentage
-     * @param stage Stage DTO
-     * @param userId the User progress is being tracked
+     *
+     * @param stage           Stage DTO
+     * @param userId          the User progress is being tracked
      * @param requiredContent true - consider required content, false - consider optional content
      * @return progress percentage
      */
-    public double getStageProgressForUser(Stage stage, UUID userId, boolean requiredContent){
+    public double getStageProgressForUser(Stage stage, UUID userId, boolean requiredContent) {
         int numbOfCompletedContent = 0;
 
         List<Content> contentList;
 
-        if (requiredContent){
+        if (requiredContent) {
             contentList = stage.getRequiredContents();
-        }else {
+        } else {
             contentList = stage.getOptionalContents();
         }
 
