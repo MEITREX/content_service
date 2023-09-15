@@ -7,6 +7,7 @@ import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentMetad
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
@@ -32,8 +33,10 @@ class ContentServiceTest {
     private final ContentValidator contentValidator = Mockito.spy(ContentValidator.class);
     private final TagService tagService = Mockito.mock(TagService.class);
     private final TopicPublisher mockPublisher = Mockito.mock(TopicPublisher.class);
+    private final UserProgressDataRepository userProgressDataRepository = Mockito.mock(UserProgressDataRepository.class);
 
-    private final ContentService contentService = new ContentService(contentRepository, tagRepository, stageService, contentMapper, contentValidator, tagService, mockPublisher);
+    private final ContentService contentService = new ContentService(contentRepository, userProgressDataRepository,
+            tagRepository, stageService, contentMapper, contentValidator, tagService, mockPublisher);
 
     @Test
     void forwardResourceUpdates() {
@@ -133,9 +136,12 @@ class ContentServiceTest {
         //execute method under test
         contentService.cascadeContentDeletion(dto);
 
-        verify(contentRepository, times(2)).delete(any(ContentEntity.class));
+        verify(contentRepository, times(1)).delete(argThat(content -> content.getId().equals(testEntity.getId())));
+        verify(contentRepository, times(1)).delete(argThat(content -> content.getId().equals(testEntity2.getId())));
         verify(mockPublisher, times(2)).notifyChange(any(ContentEntity.class), eq(CrudOperation.DELETE));
         verify(mockPublisher, times(1)).informContentDependentServices(List.of(testEntity.getId(), testEntity2.getId()), CrudOperation.DELETE);
+        verify(userProgressDataRepository, times(1)).deleteByContentId(argThat(content -> content.equals(testEntity.getId())));
+        verify(userProgressDataRepository, times(1)).deleteByContentId(argThat(content -> content.equals(testEntity2.getId())));
     }
 
     @Test

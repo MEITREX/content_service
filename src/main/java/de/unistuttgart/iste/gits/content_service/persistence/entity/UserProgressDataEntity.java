@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OrderBy;
 
+import java.io.Serializable;
 import java.util.*;
 
 @Entity(name = "UserProgressData")
@@ -11,16 +12,15 @@ import java.util.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@IdClass(UserProgressDataEntity.UserProgressPk.class)
 public class UserProgressDataEntity {
 
+    @Column(name = "user_id", nullable = false)
     @Id
-    @GeneratedValue
-    private UUID id;
-
-    @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "content_id")
+    @Column(name = "content_id", nullable = false)
+    @Id
     private UUID contentId;
 
     @ElementCollection
@@ -30,4 +30,9 @@ public class UserProgressDataEntity {
 
     @Column(nullable = true)
     private Integer learningInterval;
+
+    public static final class UserProgressPk implements Serializable {
+        private UUID userId;
+        private UUID contentId;
+    }
 }
