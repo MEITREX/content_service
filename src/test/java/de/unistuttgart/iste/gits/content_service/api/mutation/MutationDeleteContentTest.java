@@ -30,6 +30,8 @@ class MutationDeleteContentTest {
     @Autowired
     private ContentRepository contentRepository;
     @Autowired
+    private UserProgressDataRepository userProgressRepository;
+    @Autowired
     private StageRepository stageRepository;
     @Autowired
     private SectionRepository sectionRepository;
@@ -54,21 +56,24 @@ class MutationDeleteContentTest {
                                 TagEntity.fromName("Tag"),
                                 TagEntity.fromName("Tag2"))))
                         .build())
-                .userProgressData(new ArrayList<>())
                 .build());
-
-        contentEntity.setUserProgressData(new ArrayList<>(List.of(
-                UserProgressDataEntity.builder()
-                        .contentId(contentEntity.getId())
-                        .userId(UUID.randomUUID())
-                        .learningInterval(2)
-                        .build(),
-                UserProgressDataEntity.builder()
-                        .contentId(contentEntity.getId())
-                        .userId(UUID.randomUUID())
-                        .learningInterval(1)
-                        .build())));
         contentEntity = contentRepository.save(contentEntity);
+
+        UserProgressDataEntity progress1 = UserProgressDataEntity.builder()
+                .contentId(contentEntity.getId())
+                .userId(UUID.randomUUID())
+                .learningInterval(2)
+                .build();
+        progress1 = userProgressRepository.save(progress1);
+
+        UserProgressDataEntity progress2 = UserProgressDataEntity.builder()
+                .contentId(contentEntity.getId())
+                .userId(UUID.randomUUID())
+                .learningInterval(1)
+                .build();
+        progress2 = userProgressRepository.save(progress2);
+
+
 
         String query = """
                 mutation($id: UUID!) {
@@ -83,8 +88,12 @@ class MutationDeleteContentTest {
                 .execute()
                 .path("mutateContent.deleteContent").entity(UUID.class).isEqualTo(contentEntity.getId());
 
-        assertThat(contentRepository.findById(contentEntity.getId()).isEmpty(), is(true));
+        // test that content is deleted
         assertThat(contentRepository.count(), is(0L));
+
+        // test that user progress is deleted
+        assertThat(userProgressRepository.count(), is(0L));
+
         //Test that tag is deleted
         assertThat(tagRepository.count(), is(0L));
 
@@ -107,16 +116,20 @@ class MutationDeleteContentTest {
                                 TagEntity.fromName("Tag3"),
                                 TagEntity.fromName("Tag4")))
                         .build())
-                .userProgressData(List.of(
-                        UserProgressDataEntity.builder()
-                                .userId(UUID.randomUUID())
-                                .learningInterval(2)
-                                .build(),
-                        UserProgressDataEntity.builder()
-                                .userId(UUID.randomUUID())
-                                .learningInterval(1)
-                                .build()))
                 .build());
+
+        UserProgressDataEntity progress1 = userProgressRepository.save(UserProgressDataEntity.builder()
+                .contentId(contentEntity.getId())
+                .userId(UUID.randomUUID())
+                .learningInterval(1)
+                .build());
+
+        UserProgressDataEntity progress2 = userProgressRepository.save(UserProgressDataEntity.builder()
+                .contentId(contentEntity.getId())
+                .userId(UUID.randomUUID())
+                .learningInterval(2)
+                .build());
+
         // add Section and Stage to db and link content to a stage
         SectionEntity sectionEntity = sectionRepository.save(SectionEntity.builder().stages(new HashSet<>()).name("TestSection").chapterId(UUID.randomUUID()).build());
         StageEntity stageEntity = StageEntity.builder().sectionId(sectionEntity.getId()).position(0).requiredContents(new HashSet<>()).optionalContents(new HashSet<>()).build();
@@ -127,7 +140,7 @@ class MutationDeleteContentTest {
                 mutation($id: UUID!) {
                     mutateContent(contentId: $id){
                         deleteContent
-                    } 
+                    }
                 }
                 """;
 
@@ -145,6 +158,8 @@ class MutationDeleteContentTest {
         stageEntity = stageRepository.getReferenceById(stageEntity.getId());
         assertFalse(stageEntity.getRequiredContents().contains(contentEntity));
 
+        // assert user progress has been deleted
+        assertThat(userProgressRepository.count(), is(0L));
     }
 
     /**

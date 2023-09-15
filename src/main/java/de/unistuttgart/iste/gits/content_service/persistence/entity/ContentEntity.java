@@ -52,10 +52,6 @@ public class ContentEntity {
     @Builder.Default
     private ContentMetadataEmbeddable metadata = new ContentMetadataEmbeddable();
 
-    @Builder.Default
-    @Transient // todo remove
-    private List<UserProgressDataEntity> userProgressData = new ArrayList<>();
-
     public List<String> getTagNames() {
         return Optional.ofNullable(metadata.getTags())
                 .map(tags -> tags.stream().map(TagEntity::getName).toList())
