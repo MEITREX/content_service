@@ -2,7 +2,7 @@ package de.unistuttgart.iste.gits.content_service.api.query;
 
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

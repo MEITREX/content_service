@@ -1,7 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.mapper;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ProgressLogItemEmbeddable;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.UserProgressDataEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ProgressLogItemEmbeddable;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.UserProgressDataEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.generated.dto.UserProgressData;
 import org.junit.jupiter.api.Test;

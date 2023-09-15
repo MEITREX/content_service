@@ -2,9 +2,7 @@ package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.AssessmentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.UserProgressDataEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.gits.generated.dto.*;
@@ -13,10 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor

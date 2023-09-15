@@ -1,8 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.persistence.mapper;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.AssessmentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

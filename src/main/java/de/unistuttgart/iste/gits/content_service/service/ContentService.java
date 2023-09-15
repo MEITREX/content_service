@@ -1,13 +1,11 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 
-import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
-import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
+import de.unistuttgart.iste.gits.common.event.*;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.TagEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;

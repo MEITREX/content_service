@@ -2,8 +2,8 @@ package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.generated.dto.Section;

@@ -2,7 +2,7 @@ package de.unistuttgart.iste.gits.content_service.test_config;
 
 import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

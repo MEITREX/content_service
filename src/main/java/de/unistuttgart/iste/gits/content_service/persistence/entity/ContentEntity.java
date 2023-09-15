@@ -1,13 +1,12 @@
-package de.unistuttgart.iste.gits.content_service.persistence.dao;
+package de.unistuttgart.iste.gits.content_service.persistence.entity;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.DiscriminatorFormula;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -1,6 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.persistence.repository;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

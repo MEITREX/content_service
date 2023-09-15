@@ -1,13 +1,11 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.TagEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;

@@ -1,6 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.persistence.mapper;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
 import de.unistuttgart.iste.gits.generated.dto.Section;
 import de.unistuttgart.iste.gits.generated.dto.Stage;
 import lombok.RequiredArgsConstructor;

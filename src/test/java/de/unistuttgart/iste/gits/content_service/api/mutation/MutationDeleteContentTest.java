@@ -4,11 +4,8 @@ import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
 import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -17,10 +14,7 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static graphql.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
