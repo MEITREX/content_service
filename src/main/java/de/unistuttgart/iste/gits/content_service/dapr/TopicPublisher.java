@@ -2,7 +2,7 @@ package de.unistuttgart.iste.gits.content_service.dapr;
 
 
 import de.unistuttgart.iste.gits.common.event.*;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import io.dapr.client.DaprClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
