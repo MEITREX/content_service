@@ -22,7 +22,6 @@ class TestUserProgressDataMapper {
     void testFullMapping() {
         UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .userId(UUID.randomUUID())
-                .id(UUID.randomUUID())
                 .contentId(UUID.randomUUID())
                 .learningInterval(2)
                 .progressLog(List.of(
@@ -57,7 +56,6 @@ class TestUserProgressDataMapper {
     void testContentNotLearnedSuccessful() {
         UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .userId(UUID.randomUUID())
-                .id(UUID.randomUUID())
                 .contentId(UUID.randomUUID())
                 .learningInterval(2)
                 .progressLog(List.of(
@@ -81,7 +79,6 @@ class TestUserProgressDataMapper {
     void testContentNotLearnedYet() {
         UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .userId(UUID.randomUUID())
-                .id(UUID.randomUUID())
                 .contentId(UUID.randomUUID())
                 .learningInterval(2).build();
 
@@ -97,7 +94,6 @@ class TestUserProgressDataMapper {
     void testContentNotDueForRepetitionYet() {
         UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .userId(UUID.randomUUID())
-                .id(UUID.randomUUID())
                 .contentId(UUID.randomUUID())
                 .learningInterval(2)
                 .progressLog(List.of(

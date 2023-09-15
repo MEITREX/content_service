@@ -1,12 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.persistence.entity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.DiscriminatorFormula;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -55,10 +52,8 @@ public class ContentEntity {
     @Builder.Default
     private ContentMetadataEmbeddable metadata = new ContentMetadataEmbeddable();
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "content_id")
     @Builder.Default
+    @Transient // todo remove
     private List<UserProgressDataEntity> userProgressData = new ArrayList<>();
 
     public List<String> getTagNames() {

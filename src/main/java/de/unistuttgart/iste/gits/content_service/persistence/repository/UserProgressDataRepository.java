@@ -12,4 +12,5 @@ public interface UserProgressDataRepository extends JpaRepository<UserProgressDa
 
     Optional<UserProgressDataEntity> findByUserIdAndContentId(UUID userId, UUID contentId);
 
+    void deleteByContentId(UUID id);
 }

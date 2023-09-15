@@ -33,7 +33,7 @@ class ContentServiceTest {
     private final TagService tagService = Mockito.mock(TagService.class);
     private final TopicPublisher mockPublisher = Mockito.mock(TopicPublisher.class);
 
-    private final ContentService contentService = new ContentService(contentRepository, tagRepository, stageService, contentMapper, contentValidator, tagService, mockPublisher);
+    private final ContentService contentService = new ContentService(contentRepository, null, tagRepository, stageService, contentMapper, contentValidator, tagService, mockPublisher);
 
     @Test
     void forwardResourceUpdates() {

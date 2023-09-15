@@ -7,8 +7,7 @@ import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.TagEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
 import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,6 +24,7 @@ import java.util.stream.Collectors;
 public class ContentService {
 
     private final ContentRepository contentRepository;
+    private final UserProgressDataRepository userProgressDataRepository;
     private final TagRepository tagRepository;
     private final StageService stageService;
     private final ContentMapper contentMapper;
@@ -360,7 +360,7 @@ public class ContentService {
      * @return the ID of the deleted content entity
      */
     private UUID removeContentDependencies(ContentEntity contentEntity) {
-
+        userProgressDataRepository.deleteByContentId(contentEntity.getId());
         // remove content from sections
         stageService.deleteContentLinksFromStages(contentEntity);
 

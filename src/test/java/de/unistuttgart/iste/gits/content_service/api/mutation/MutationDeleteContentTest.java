@@ -22,7 +22,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
 
-
 @ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
 @TablesToDelete({"content_tags", "user_progress_data", "content", "tag"})
@@ -51,20 +50,25 @@ class MutationDeleteContentTest {
     void testDeleteExistingContent(GraphQlTester graphQlTester) {
         ContentEntity contentEntity = contentRepository.save(TestData.dummyAssessmentEntityBuilder()
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
-                        .tags(Set.of(
+                        .tags(new HashSet<>(Set.of(
                                 TagEntity.fromName("Tag"),
-                                TagEntity.fromName("Tag2")))
+                                TagEntity.fromName("Tag2"))))
                         .build())
-                .userProgressData(List.of(
-                        UserProgressDataEntity.builder()
-                                .userId(UUID.randomUUID())
-                                .learningInterval(2)
-                                .build(),
-                        UserProgressDataEntity.builder()
-                                .userId(UUID.randomUUID())
-                                .learningInterval(1)
-                                .build()))
+                .userProgressData(new ArrayList<>())
                 .build());
+
+        contentEntity.setUserProgressData(new ArrayList<>(List.of(
+                UserProgressDataEntity.builder()
+                        .contentId(contentEntity.getId())
+                        .userId(UUID.randomUUID())
+                        .learningInterval(2)
+                        .build(),
+                UserProgressDataEntity.builder()
+                        .contentId(contentEntity.getId())
+                        .userId(UUID.randomUUID())
+                        .learningInterval(1)
+                        .build())));
+        contentEntity = contentRepository.save(contentEntity);
 
         String query = """
                 mutation($id: UUID!) {
@@ -85,7 +89,6 @@ class MutationDeleteContentTest {
         assertThat(tagRepository.count(), is(0L));
 
     }
-
 
 
     /**
