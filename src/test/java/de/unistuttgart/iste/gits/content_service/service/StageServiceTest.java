@@ -1,18 +1,10 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentMetadataEmbeddable;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.gits.generated.dto.ContentType;
-import de.unistuttgart.iste.gits.generated.dto.CreateStageInput;
-import de.unistuttgart.iste.gits.generated.dto.Stage;
-import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

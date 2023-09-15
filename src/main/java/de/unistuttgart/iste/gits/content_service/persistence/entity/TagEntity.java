@@ -1,11 +1,9 @@
-package de.unistuttgart.iste.gits.content_service.persistence.dao;
+package de.unistuttgart.iste.gits.content_service.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity(name = "Tag")
 @Table(indexes = {

@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.gits.content_service.persistence.dao;
+package de.unistuttgart.iste.gits.content_service.persistence.entity;
 
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import jakarta.persistence.*;
