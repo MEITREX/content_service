@@ -123,9 +123,7 @@ public class ContentService {
 
         // get a list containing all contents with a matching chapter id, then map them by chapter id (multiple
         // contents might have the same chapter id)
-        Map<UUID, List<Content>> contentsByChapterId = contentRepository.findByChapterIdIn(chapterIds).stream()
-                .map(contentMapper::entityToDto)
-                .collect(Collectors.groupingBy(content -> content.getMetadata().getChapterId()));
+        Map<UUID, List<Content>> contentsByChapterId = getContentEntitiesSortedByChapterId(chapterIds);
 
         // put the different groups of chapters into the result list such that the order matches the order
         // of chapter ids given by the chapterIds argument
@@ -372,6 +370,12 @@ public class ContentService {
         topicPublisher.notifyChange(contentEntity, CrudOperation.DELETE);
 
         return contentEntity.getId();
+    }
+
+    public Map<UUID, List<Content>> getContentEntitiesSortedByChapterId(List<UUID> chapterIds) {
+        return contentRepository.findByChapterIdIn(chapterIds).stream()
+                .map(contentMapper::entityToDto)
+                .collect(Collectors.groupingBy(content -> content.getMetadata().getChapterId()));
     }
 
     @SuppressWarnings("java:S1172")

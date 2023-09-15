@@ -2,13 +2,12 @@ package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.dao.UserProgressDataEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
-import de.unistuttgart.iste.gits.generated.dto.Content;
-import de.unistuttgart.iste.gits.generated.dto.ProgressLogItem;
-import de.unistuttgart.iste.gits.generated.dto.Stage;
-import de.unistuttgart.iste.gits.generated.dto.UserProgressData;
+import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -137,29 +137,64 @@ public class UserProgressDataService {
             contentList = stage.getOptionalContents();
         }
 
-        if (contentList.isEmpty()){
+        if (contentList.isEmpty()) {
             return 100.00;
         }
 
 
-        for (Content content: contentList) {
+        numbOfCompletedContent = countNumCompletedContent(userId, contentList);
+
+        return (double) numbOfCompletedContent / contentList.size() * 100;
+    }
+
+    /**
+     * Method that calculated the progress of content for an individual user for each Chapter
+     *
+     * @param chapterIds list of chapters for which the progress has to be evaluated
+     * @param userId     the ID of the user for whom progress is evaluated
+     * @return Progress for each chapter, containing a percentage of progress, absolut number of content and completed content
+     */
+    public List<CompositeProgressInformation> getProgressByChapterIdsForUser(List<UUID> chapterIds, UUID userId) {
+        List<CompositeProgressInformation> chapterProgressItems = new ArrayList<>();
+        Map<UUID, List<Content>> contentEntitiesByChapterIds = contentService.getContentEntitiesSortedByChapterId(chapterIds);
+
+        for (Map.Entry<UUID, List<Content>> entry : contentEntitiesByChapterIds.entrySet()) {
+            List<Content> contentList = entry.getValue();
+            int numCompletedContent = countNumCompletedContent(userId, contentList);
+
+            CompositeProgressInformation compositeProgressInformation = CompositeProgressInformation.builder()
+                    .setChapterId(entry.getKey())
+                    .setProgress((double) numCompletedContent / contentList.size() * 100)
+                    .setCompletedContents(numCompletedContent)
+                    .setTotalContents(contentList.size())
+                    .build();
+            chapterProgressItems.add(compositeProgressInformation);
+        }
+        return chapterProgressItems;
+    }
+
+    /**
+     * function counting how many Content objects have been successfully progressed/completed
+     *
+     * @param userId      ID of the user progress is to be checked
+     * @param contentList all content objects for which the progress has to be evaluated
+     * @return number of successfully completed contents
+     */
+    private int countNumCompletedContent(UUID userId, List<Content> contentList) {
+        int numbCompletedContent = 0;
+
+        for (Content content : contentList) {
             UserProgressData contentProgress = content.getUserProgressData();
-            if (contentProgress == null){
+            if (contentProgress == null) {
                 contentProgress = getUserProgressData(userId, content.getId());
             }
 
-            // retrieve number of successful attempts
-            long numbSuccess = contentProgress.getLog()
-                    .stream().
-                    filter(ProgressLogItem::getSuccess)
-                    .count();
-
-            if(numbSuccess > 0){
-                numbOfCompletedContent+= 1;
+            if (contentProgress.getLog()
+                    .stream().anyMatch(ProgressLogItem::getSuccess)) {
+                numbCompletedContent += 1;
             }
 
         }
-
-        return (double) numbOfCompletedContent / contentList.size() * 100;
+        return numbCompletedContent;
     }
 }
