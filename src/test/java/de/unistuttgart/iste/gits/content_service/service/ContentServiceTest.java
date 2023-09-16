@@ -65,11 +65,8 @@ class ContentServiceTest {
         //mock repository
         when(contentRepository.findAllById(dto.getContentIds())).thenReturn(List.of(testEntity));
 
-        try {
-            contentService.forwardResourceUpdates(dto);
-        } catch (IncompleteEventMessageException e) {
-            throw new RuntimeException(e);
-        }
+        // execute method under test
+        assertDoesNotThrow(() -> contentService.forwardResourceUpdates(dto));
 
 
         verify(mockPublisher, times(1))
@@ -140,11 +137,8 @@ class ContentServiceTest {
         Mockito.doNothing().when(contentRepository).delete(any(ContentEntity.class));
 
         //execute method under test
-        try {
-            contentService.cascadeContentDeletion(dto);
-        } catch (IncompleteEventMessageException e) {
-            throw new RuntimeException(e);
-        }
+        assertDoesNotThrow(() -> contentService.cascadeContentDeletion(dto));
+
 
         verify(contentRepository, times(2)).delete(any(ContentEntity.class));
         verify(mockPublisher, times(2)).notifyChange(any(ContentEntity.class), eq(CrudOperation.DELETE));

@@ -56,7 +56,6 @@ class QueryProgressByChapterIdsTest {
         String query = """ 
                 query($chapterIds: [UUID!]!) {
                     progressByChapterIds(chapterIds: $chapterIds){
-                        chapterId
                         progress
                         completedContents
                         totalContents
@@ -105,7 +104,6 @@ class QueryProgressByChapterIdsTest {
         String query = """ 
                 query($chapterIds: [UUID!]!) {
                     progressByChapterIds(chapterIds: $chapterIds){
-                        chapterId
                         progress
                         completedContents
                         totalContents
@@ -151,7 +149,6 @@ class QueryProgressByChapterIdsTest {
         String query = """ 
                 query($chapterIds: [UUID!]!) {
                     progressByChapterIds(chapterIds: $chapterIds){
-                        chapterId
                         progress
                         completedContents
                         totalContents
