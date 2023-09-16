@@ -3,8 +3,11 @@ package de.unistuttgart.iste.gits.content_service.service;
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ProgressLogItemEmbeddable;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.UserProgressDataEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.gits.generated.dto.*;
@@ -25,7 +28,6 @@ import static de.unistuttgart.iste.gits.content_service.TestData.buildDummyUserP
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -404,14 +406,12 @@ class UserProgressDataServiceTest {
     @Test
     void getProgressByChapterIdsForUserTest() {
         UUID chapterId = UUID.randomUUID();
-        UUID chapterId1 = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        List<UUID> chapterIds = List.of(chapterId, chapterId1);
+        List<UUID> chapterIds = List.of(chapterId);
 
         // init content and user progress
         List<MediaContentEntity> mediaContentEntities = List.of(TestData.buildContentEntity(chapterId), TestData.buildContentEntity(chapterId));
-        List<MediaContentEntity> mediaContentEntities1 = List.of(TestData.buildContentEntity(chapterId1));
         for (int i = 0; i < mediaContentEntities.size(); i++) {
             MediaContentEntity mediaContentEntity = mediaContentEntities.get(i);
             UserProgressDataEntity progressDataEntity = buildDummyUserProgressData(i % 2 == 0, userId, mediaContentEntity.getId());
@@ -421,15 +421,12 @@ class UserProgressDataServiceTest {
             doReturn(Optional.of(progressDataEntity)).when(userProgressDataRepository).findByUserIdAndContentId(userId, mediaContentEntity.getId());
 
         }
-        mediaContentEntities1.get(0).setUserProgressData(List.of(buildDummyUserProgressData(true, userId, mediaContentEntities1.get(0).getId())));
 
         // create chapter -> content Mapping
         Map<UUID, List<Content>> map = new HashMap<>();
         map.put(chapterId, mediaContentEntities.stream().map(mediaContentEntity -> contentMapper.entityToDto(mediaContentEntity)).toList());
-        map.put(chapterId1, mediaContentEntities1.stream().map(mediaContentEntity -> contentMapper.entityToDto(mediaContentEntity)).toList());
 
         //mock service with repository calls
-        doReturn(Optional.of(mediaContentEntities1.get(0).getUserProgressData().get(0))).when(userProgressDataRepository).findByUserIdAndContentId(userId, mediaContentEntities1.get(0).getId());
         doReturn(map).when(contentService).getContentEntitiesSortedByChapterId(chapterIds);
 
         // run method under test
@@ -439,21 +436,12 @@ class UserProgressDataServiceTest {
         verify(contentService, times(1)).getContentEntitiesSortedByChapterId(chapterIds);
 
         // assertions
-        assertEquals(2, resultList.size());
+        assertEquals(1, resultList.size());
 
-        for (CompositeProgressInformation resultItem : resultList) {
-            assertTrue(chapterIds.contains(resultItem.getChapterId()));
+        assertEquals(50.0, resultList.get(0).getProgress());
+        assertEquals(1, resultList.get(0).getCompletedContents());
+        assertEquals(2, resultList.get(0).getTotalContents());
 
-            if (resultItem.getChapterId().equals(chapterId)) {
-                assertEquals(50.0, resultItem.getProgress());
-                assertEquals(1, resultItem.getCompletedContents());
-                assertEquals(2, resultItem.getTotalContents());
-            } else if (resultItem.getChapterId().equals(chapterId1)) {
-                assertEquals(100.0, resultItem.getProgress());
-                assertEquals(1, resultItem.getCompletedContents());
-                assertEquals(1, resultItem.getTotalContents());
-            }
-        }
     }
 
     /**

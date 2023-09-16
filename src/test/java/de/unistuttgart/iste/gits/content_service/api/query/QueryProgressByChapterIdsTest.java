@@ -74,7 +74,6 @@ class QueryProgressByChapterIdsTest {
         assertEquals(1, resultList.size());
 
         CompositeProgressInformation resultItem = resultList.get(0);
-        assertEquals(chapterId, resultItem.getChapterId());
         assertEquals(50.0, resultItem.getProgress());
         assertEquals(1, resultItem.getCompletedContents());
         assertEquals(2, resultItem.getTotalContents());
@@ -124,7 +123,6 @@ class QueryProgressByChapterIdsTest {
         assertEquals(1, resultList.size());
 
         CompositeProgressInformation resultItem = resultList.get(0);
-        assertEquals(chapterId, resultItem.getChapterId());
         assertEquals(0.0, resultItem.getProgress());
         assertEquals(0, resultItem.getCompletedContents());
         assertEquals(2, resultItem.getTotalContents());

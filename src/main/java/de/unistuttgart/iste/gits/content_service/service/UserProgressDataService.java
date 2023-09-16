@@ -2,16 +2,24 @@ package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.UserProgressDataEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.gits.generated.dto.CompositeProgressInformation;
+import de.unistuttgart.iste.gits.generated.dto.Content;
+import de.unistuttgart.iste.gits.generated.dto.Stage;
+import de.unistuttgart.iste.gits.generated.dto.UserProgressData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -168,12 +176,10 @@ public class UserProgressDataService {
         List<CompositeProgressInformation> chapterProgressItems = new ArrayList<>();
         Map<UUID, List<Content>> contentEntitiesByChapterIds = contentService.getContentEntitiesSortedByChapterId(chapterIds);
 
-        for (Map.Entry<UUID, List<Content>> entry : contentEntitiesByChapterIds.entrySet()) {
-            List<Content> contentList = entry.getValue();
+        for (List<Content> contentList : contentEntitiesByChapterIds.values()) {
             int numCompletedContent = countNumCompletedContent(userId, contentList);
 
             CompositeProgressInformation compositeProgressInformation = CompositeProgressInformation.builder()
-                    .setChapterId(entry.getKey())
                     .setProgress((double) numCompletedContent / contentList.size() * 100)
                     .setCompletedContents(numCompletedContent)
                     .setTotalContents(contentList.size())
@@ -199,8 +205,7 @@ public class UserProgressDataService {
                 contentProgress = getUserProgressData(userId, content.getId());
             }
 
-            if (contentProgress.getLog()
-                    .stream().anyMatch(ProgressLogItem::getSuccess)) {
+            if (contentProgress.getIsLearned()) {
                 numbCompletedContent += 1;
             }
 

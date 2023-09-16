@@ -67,11 +67,6 @@ type ContentPayload {
 type CompositeProgressInformation {
 
     """
-    ID of chapter
-    """
-    chapterId: UUID!
-
-    """
     percentage of completedContents/totalContents
     """
     progress: Float!
