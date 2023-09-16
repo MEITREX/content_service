@@ -1,6 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.common.event.*;
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
+import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
+import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentMetadataEmbeddable;
@@ -16,7 +19,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -60,7 +65,11 @@ class ContentServiceTest {
         //mock repository
         when(contentRepository.findAllById(dto.getContentIds())).thenReturn(List.of(testEntity));
 
-        contentService.forwardResourceUpdates(dto);
+        try {
+            contentService.forwardResourceUpdates(dto);
+        } catch (IncompleteEventMessageException e) {
+            throw new RuntimeException(e);
+        }
 
 
         verify(mockPublisher, times(1))
@@ -88,9 +97,9 @@ class ContentServiceTest {
                 .build();
 
         //execute method under test
-        assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(noEntityDto));
-        assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(nullListDto));
-        assertThrows(NullPointerException.class, () -> contentService.forwardResourceUpdates(noOperationDto));
+        assertThrows(IncompleteEventMessageException.class, () -> contentService.forwardResourceUpdates(noEntityDto));
+        assertThrows(IncompleteEventMessageException.class, () -> contentService.forwardResourceUpdates(nullListDto));
+        assertThrows(IncompleteEventMessageException.class, () -> contentService.forwardResourceUpdates(noOperationDto));
     }
 
     @Test
@@ -131,7 +140,11 @@ class ContentServiceTest {
         Mockito.doNothing().when(contentRepository).delete(any(ContentEntity.class));
 
         //execute method under test
-        contentService.cascadeContentDeletion(dto);
+        try {
+            contentService.cascadeContentDeletion(dto);
+        } catch (IncompleteEventMessageException e) {
+            throw new RuntimeException(e);
+        }
 
         verify(contentRepository, times(2)).delete(any(ContentEntity.class));
         verify(mockPublisher, times(2)).notifyChange(any(ContentEntity.class), eq(CrudOperation.DELETE));
@@ -165,7 +178,7 @@ class ContentServiceTest {
 
 
         //execute method under test
-        assertThrows(NullPointerException.class, () -> contentService.cascadeContentDeletion(nullListDto));
-        assertThrows(NullPointerException.class, () -> contentService.cascadeContentDeletion(noOperationDto));
+        assertThrows(IncompleteEventMessageException.class, () -> contentService.cascadeContentDeletion(nullListDto));
+        assertThrows(IncompleteEventMessageException.class, () -> contentService.cascadeContentDeletion(noOperationDto));
     }
 }
