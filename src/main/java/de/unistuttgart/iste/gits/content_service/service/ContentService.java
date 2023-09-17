@@ -201,7 +201,7 @@ public class ContentService {
      * @return DTO with created Assessment Entity
      */
     public MediaContent createMediaContent(CreateMediaContentInput input, UUID courseId) {
-        contentValidator.validateCreateMediaContentInput(input, courseId);
+        contentValidator.validateCreateMediaContentInput(input);
         ContentEntity contentEntity = contentMapper.mediaContentDtoToEntity(input);
         return contentMapper.mediaContentEntityToDto(createContent(contentEntity, input.getMetadata().getTagNames()));
     }
@@ -232,7 +232,7 @@ public class ContentService {
      * @return DTO with created Assessment Entity
      */
     public Assessment createAssessment(CreateAssessmentInput input, UUID courseId) {
-        contentValidator.validateCreateAssessmentContentInput(input, courseId);
+        contentValidator.validateCreateAssessmentContentInput(input);
 
         ContentEntity contentEntity = createContent(contentMapper.assessmentDtoToEntity(input),
                 input.getMetadata().getTagNames());
