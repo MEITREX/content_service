@@ -54,9 +54,10 @@ class MutationCreateAssessmentTest {
     @Commit
     void testCreateAssessment(GraphQlTester graphQlTester) {
         UUID chapterId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
         String query = """
-                mutation($chapterId: UUID!) {
-                    createAssessment(input: {
+                mutation($chapterId: UUID!, $courseId: UUID!) {
+                    createAssessment(courseId: $courseId, input: {
                         metadata: {
                             chapterId: $chapterId
                             name: "name"
@@ -91,6 +92,7 @@ class MutationCreateAssessmentTest {
 
         FlashcardSetAssessment createdAssessment = graphQlTester.document(query)
                 .variable("chapterId", chapterId)
+                .variable("courseId", courseId)
                 .execute()
                 .path("createAssessment").entity(FlashcardSetAssessment.class).get();
 
@@ -136,9 +138,10 @@ class MutationCreateAssessmentTest {
      */
     @Test
     void testCreateAssessmentWithMediaContentType(GraphQlTester graphQlTester) {
+        UUID courseId = UUID.randomUUID();
         String query = """
-                mutation {
-                    createAssessment(input: {
+                mutation($courseId: UUID!) {
+                    createAssessment(courseId: $courseId, input: {
                         metadata: {
                             type: MEDIA
                             name: "name"
@@ -157,6 +160,7 @@ class MutationCreateAssessmentTest {
                 """;
 
         graphQlTester.document(query)
+                .variable("courseId", courseId)
                 .execute()
                 .errors()
                 .satisfy(errors -> {

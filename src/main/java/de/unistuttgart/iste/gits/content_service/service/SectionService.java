@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.unistuttgart.iste.gits.content_service.util.BatchQueryUtils.mapToSortedList;
+
 @Service
 @RequiredArgsConstructor
 public class SectionService {
@@ -61,7 +63,7 @@ public class SectionService {
      * @param sectionId ID of Section
      * @return ID of deleted Object
      */
-    public UUID deleteWorkPath(UUID sectionId) {
+    public UUID deleteSection(UUID sectionId) {
         requireSectionExisting(sectionId);
 
         sectionRepository.deleteById(sectionId);
@@ -139,8 +141,6 @@ public class SectionService {
      *         for one chapter.
      */
     public List<List<Section>> getSectionsByChapterIds(List<UUID> chapterIds) {
-        List<List<Section>> result = new ArrayList<>(chapterIds.size());
-
         // get a list containing all sections for the given chapters, but not divided by chapter yet
         List<SectionEntity> entities = sectionRepository.findByChapterIdIn(chapterIds);
 
@@ -149,14 +149,7 @@ public class SectionService {
                 .map(sectionMapper::entityToDto)
                 .collect(Collectors.groupingBy(Section::getChapterId));
 
-        // put the different groups of sections into the result list such that the order matches the order of chapter
-        // ids given in the chapterIds argument
-        for(UUID chapterId : chapterIds) {
-            List<Section> sections = sectionsByChapterId.getOrDefault(chapterId, Collections.emptyList());
-            result.add(sections);
-        }
-
-        return result;
+        return mapToSortedList(sectionsByChapterId, chapterIds, Collections.emptyList());
     }
 
     /**

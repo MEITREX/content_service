@@ -34,6 +34,7 @@ class QuerySuggestionsTest {
     @Test
     void testSuggestions(HttpGraphQlTester graphQlTester) {
         UUID userId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
         UUID chapterId = UUID.randomUUID();
 
         String currentUser = """
@@ -64,6 +65,7 @@ class QuerySuggestionsTest {
                                                 .suggestedDate(OffsetDateTime.now().minusDays(1))
                                                 .name("ContentDue1")
                                                 .chapterId(chapterId)
+                                                .courseId(courseId)
                                                 .build())
                                         .build(),
                                 ContentEntity.builder()
@@ -72,6 +74,7 @@ class QuerySuggestionsTest {
                                                 .suggestedDate(OffsetDateTime.now().minusDays(2))
                                                 .name("ContentDue2")
                                                 .chapterId(chapterId)
+                                                .courseId(courseId)
                                                 .build())
                                         .build(),
                                 ContentEntity.builder()
@@ -80,6 +83,7 @@ class QuerySuggestionsTest {
                                                 .suggestedDate(OffsetDateTime.now().minusDays(3))
                                                 .name("ContentDue3")
                                                 .chapterId(chapterId)
+                                                .courseId(courseId)
                                                 .build())
                                         .build()
                         ))

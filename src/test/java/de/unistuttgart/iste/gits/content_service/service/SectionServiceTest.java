@@ -214,7 +214,7 @@ class SectionServiceTest {
         when(sectionRepository.existsById(input)).thenReturn(true);
         doNothing().when(sectionRepository).deleteById(input);
 
-        UUID result = sectionService.deleteWorkPath(input);
+        UUID result = sectionService.deleteSection(input);
 
         verify(sectionRepository, times(1)).deleteById(input);
         assertEquals(input, result);
@@ -227,7 +227,7 @@ class SectionServiceTest {
         //mock database
         when(sectionRepository.existsById(input)).thenReturn(false);
 
-        assertThrows(EntityNotFoundException.class, () -> sectionService.deleteWorkPath(input));
+        assertThrows(EntityNotFoundException.class, () -> sectionService.deleteSection(input));
     }
 
 

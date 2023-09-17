@@ -7,6 +7,7 @@ import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
 import de.unistuttgart.iste.gits.generated.dto.Section;
+import de.unistuttgart.iste.gits.generated.dto.Stage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -196,16 +197,16 @@ class QuerySectionsByChapterTest {
                         position
                         requiredContents {
                             id
-                            }
+                           }
                         optionalContents {
                             id
-                            }
-                        }
-                    }
+                           }
+                       }
+                   }
                 }
                 """;
 
-        ParameterizedTypeReference<List<Section>> sectionListType = new ParameterizedTypeReference<List<Section>>() {
+        ParameterizedTypeReference<List<Section>> sectionListType = new ParameterizedTypeReference<>() {
         };
 
         List<List<Section>> result = tester.document(query)
@@ -215,9 +216,6 @@ class QuerySectionsByChapterTest {
 
         assertThat(result.get(0)).containsExactlyInAnyOrder(entitiesMapped.get(0), entitiesMapped.get(1));
         assertThat(result.get(1)).containsExactlyInAnyOrder(entitiesMapped.get(2));
-
-        //clean up
-        sectionRepository.deleteAll();
     }
 
     @Test
@@ -227,7 +225,7 @@ class QuerySectionsByChapterTest {
         //init database Data
         List<SectionEntity> entities = fillDatabaseWithSections();
         List<MediaContentEntity> contentEntities = fillDatabaseWithContent();
-        List<UserProgressDataEntity> userProgressDataEntities = fillDatabaseWithUserProgress(userId, contentEntities);
+        fillDatabaseWithUserProgress(userId, contentEntities);
 
         // link some content to stages
         SectionEntity section = entities.get(0);
@@ -237,7 +235,6 @@ class QuerySectionsByChapterTest {
             stageEntity.getOptionalContents().add(contentEntities.get(2));
         });
         sectionRepository.save(section);
-
 
         String currentUser = """
                 {
@@ -252,23 +249,17 @@ class QuerySectionsByChapterTest {
 
         String query = """
                 query($chapterIds: [UUID!]!) {
-                sectionsByChapterIds(chapterIds: $chapterIds){
+                   sectionsByChapterIds(chapterIds: $chapterIds) {
                     id
                     chapterId
                     name
                     stages {
                         id
                         position
-                        requiredContents {
-                            id
-                            }
-                        requiredContentsProgress    
-                        optionalContents {
-                            id
-                            }
+                           requiredContentsProgress
                         optionalContentsProgress    
-                        }
-                    }
+                       }
+                   }
                 }
                 """;
 
@@ -279,25 +270,38 @@ class QuerySectionsByChapterTest {
                 .variable("chapterIds", List.of(chapterId))
                 .execute()
                 .path("sectionsByChapterIds[0]").entityList(Object.class).hasSize(2)
-                .path("sectionsByChapterIds[0][0].id").entity(UUID.class).isEqualTo(entities.get(0).getId())
-                .path("sectionsByChapterIds[0][0].chapterId").entity(UUID.class).isEqualTo(entities.get(0).getChapterId())
-                .path("sectionsByChapterIds[0][0].name").entity(String.class).isEqualTo("Test Section")
-                .path("sectionsByChapterIds[0][0].stages").entityList(Object.class).hasSize(1)
-                .path("sectionsByChapterIds[0][0].stages[0].requiredContents").entityList(Object.class).hasSize(2)
-                .path("sectionsByChapterIds[0][0].stages[0].requiredContentsProgress").entity(Double.class).isEqualTo(50.0)
-                .path("sectionsByChapterIds[0][0].stages[0].optionalContents").entityList(Object.class).hasSize(1)
-                .path("sectionsByChapterIds[0][0].stages[0].optionalContentsProgress").entity(Double.class).isEqualTo(0.0)
-                .path("sectionsByChapterIds[0][1].id").entity(UUID.class).isEqualTo(entities.get(1).getId())
-                .path("sectionsByChapterIds[0][1].chapterId").entity(UUID.class).isEqualTo(entities.get(1).getChapterId())
-                .path("sectionsByChapterIds[0][1].name").entity(String.class).isEqualTo("Test Section2")
-                .path("sectionsByChapterIds[0][1].stages").entityList(Object.class).hasSize(1)
-                .path("sectionsByChapterIds[0][1].stages[0].requiredContents").entityList(Object.class).hasSize(0)
-                .path("sectionsByChapterIds[0][1].stages[0].requiredContentsProgress").entity(Double.class).isEqualTo(100.0)
-                .path("sectionsByChapterIds[0][1].stages[0].optionalContents").entityList(Object.class).hasSize(0)
-                .path("sectionsByChapterIds[0][1].stages[0].optionalContentsProgress").entity(Double.class).isEqualTo(100.0);
 
-
-        //clean up
-        sectionRepository.deleteAll();
+                .path("sectionsByChapterIds[0]").entityList(Section.class).contains(
+                        Section.builder()
+                                .setId(entities.get(0).getId())
+                                .setChapterId(chapterId)
+                                .setName("Test Section")
+                                .setStages(
+                                        List.of(
+                                                Stage.builder()
+                                                        .setId(entities.get(0).getStages().iterator().next().getId())
+                                                        .setPosition(0)
+                                                        .setRequiredContentsProgress(50.0)
+                                                        .setOptionalContentsProgress(0.0)
+                                                        .build()
+                                        )
+                                )
+                                .build(),
+                        Section.builder()
+                                .setId(entities.get(1).getId())
+                                .setChapterId(chapterId)
+                                .setName("Test Section2")
+                                .setStages(
+                                        List.of(
+                                                Stage.builder()
+                                                        .setId(entities.get(1).getStages().iterator().next().getId())
+                                                        .setPosition(0)
+                                                        .setRequiredContentsProgress(100.0)
+                                                        .setOptionalContentsProgress(100.0)
+                                                        .build()
+                                        )
+                                )
+                                .build()
+                );
     }
 }

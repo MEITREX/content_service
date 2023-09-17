@@ -52,9 +52,10 @@ class MutationCreateMediaContentTest {
     @Commit
     void testCreateMediaContent(GraphQlTester graphQlTester) {
         UUID chapterId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
         String query = """
-                mutation($chapterId: UUID!) {
-                    createMediaContent(input: {
+                mutation($chapterId: UUID!, $courseId: UUID!) {
+                    createMediaContent(courseId: $courseId, input: {
                         metadata: {
                             chapterId: $chapterId
                             name: "name"
@@ -79,6 +80,7 @@ class MutationCreateMediaContentTest {
 
         MediaContent createdMediaContent = graphQlTester.document(query)
                 .variable("chapterId", chapterId)
+                .variable("courseId", courseId)
                 .execute()
                 .path("createMediaContent").entity(MediaContent.class).get();
 
@@ -116,9 +118,10 @@ class MutationCreateMediaContentTest {
      */
     @Test
     void testCreateMediaContentWithFlashcardsType(GraphQlTester graphQlTester) {
+        UUID courseId = UUID.randomUUID();
         String query = """
-                mutation {
-                    createMediaContent(input: {
+                mutation($courseId: UUID!) {
+                    createMediaContent(courseId: $courseId, input: {
                         metadata: {
                             type: FLASHCARDS,
                             name: "name"
@@ -132,6 +135,7 @@ class MutationCreateMediaContentTest {
                 """;
 
         graphQlTester.document(query)
+                .variable("courseId", courseId)
                 .execute()
                 .errors()
                 .satisfy(errors -> {

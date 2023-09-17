@@ -1,9 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
 import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.gits.content_service.service.ContentService;
-import de.unistuttgart.iste.gits.content_service.service.SuggestionService;
-import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
+import de.unistuttgart.iste.gits.content_service.service.*;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +28,11 @@ public class ContentController {
     @QueryMapping
     public List<Content> contentsByIds(@Argument List<UUID> ids) {
         return contentService.getContentsById(ids);
+    }
+
+    @QueryMapping
+    public List<List<Content>> contentsByCourseIds(@Argument List<UUID> courseIds) {
+        return contentService.getContentsByCourseIds(courseIds);
     }
 
     @QueryMapping

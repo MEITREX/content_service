@@ -35,4 +35,7 @@ public class ContentMetadataEmbeddable {
 
     @Column(nullable = false, name = "chapter_id")
     private UUID chapterId;
+
+    @Column(nullable = false, name = "course_id")
+    private UUID courseId;
 }

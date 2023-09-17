@@ -1,17 +1,13 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 
-import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
-import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
+import de.unistuttgart.iste.gits.common.event.*;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.TagEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
 import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,7 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static de.unistuttgart.iste.gits.content_service.util.BatchQueryUtils.mapToSortedList;
 
 @Service
 @RequiredArgsConstructor
@@ -95,8 +95,8 @@ public class ContentService {
 
         if (!notFound.isEmpty()) {
             throw new EntityNotFoundException("Contents with ids "
-                    + notFound.stream().map(UUID::toString).collect(Collectors.joining(", "))
-                    + " not found");
+                                              + notFound.stream().map(UUID::toString).collect(Collectors.joining(", "))
+                                              + " not found");
         }
 
         return contents;
@@ -120,28 +120,44 @@ public class ContentService {
                 .toList();
     }
 
-    public List<List<Content>> getContentsByChapterIds(List<UUID> chapterIds) {
-        List<List<Content>> result = new ArrayList<>(chapterIds.size());
+    /**
+     * Returns a list of contents for each given course id. The order of the lists will match the order of the given
+     * course ids.
+     *
+     * @param courseIds the ids of the courses to get the contents for
+     * @return a list of lists of contents. The order of the lists will match the order of the given course ids.
+     */
+    public List<List<Content>> getContentsByCourseIds(List<UUID> courseIds) {
+        List<ContentEntity> matchingContents = contentRepository.findByCourseIdIn(courseIds);
+        Map<UUID, List<Content>> contentsByCourseId = groupContents(matchingContents.stream().map(contentMapper::entityToDto),
+                content -> content.getMetadata().getCourseId());
 
+        return mapToSortedList(contentsByCourseId, courseIds, List.of());
+    }
+
+    /**
+     * Returns a list of lists of contents for each given chapter id. The order of the lists will match the order of the
+     * given chapter ids.
+     *
+     * @param chapterIds the ids of the chapters to get the contents for
+     * @return a list of lists of contents. The order of the lists will match the order of the given chapter ids.
+     */
+    public List<List<Content>> getContentsByChapterIds(List<UUID> chapterIds) {
         // get a list containing all contents with a matching chapter id, then map them by chapter id (multiple
         // contents might have the same chapter id)
-        Map<UUID, List<Content>> contentsByChapterId = contentRepository.findByChapterIdIn(chapterIds).stream()
-                .map(contentMapper::entityToDto)
-                .collect(Collectors.groupingBy(content -> content.getMetadata().getChapterId()));
+        Stream<Content> matchingContents = contentRepository.findByChapterIdIn(chapterIds).stream()
+                .map(contentMapper::entityToDto);
+        Map<UUID, List<Content>> contentsByChapterId = groupContents(matchingContents, content -> content.getMetadata().getChapterId());
 
-        // put the different groups of chapters into the result list such that the order matches the order
-        // of chapter ids given by the chapterIds argument
-        for (UUID chapterId : chapterIds) {
-            List<Content> contents = contentsByChapterId.getOrDefault(chapterId, Collections.emptyList());
+        return mapToSortedList(contentsByChapterId, chapterIds, List.of());
+    }
 
-            result.add(contents);
-        }
-
-        return result;
+    private Map<UUID, List<Content>> groupContents(Stream<Content> contents, Function<Content, UUID> contentGroupingFunction) {
+        return contents.collect(Collectors.groupingBy(contentGroupingFunction));
     }
 
     private ContentPayload createContentPayload(List<Content> contents) {
-        // this is temporary until we have a proper pagination implementation
+        // this is until we have a proper pagination implementation
         return new ContentPayload(contents, PaginationUtil.unpagedPaginationInfo(contents.size()));
     }
 
@@ -197,13 +213,14 @@ public class ContentService {
      * Creates a Media Entity with given input
      *
      * @param input    to be used as basis of creation
-     * @param courseId
+     * @param courseId ID of the course the content belongs to
      * @return DTO with created Assessment Entity
      */
     public MediaContent createMediaContent(CreateMediaContentInput input, UUID courseId) {
         contentValidator.validateCreateMediaContentInput(input);
         ContentEntity contentEntity = contentMapper.mediaContentDtoToEntity(input);
-        return contentMapper.mediaContentEntityToDto(createContent(contentEntity, input.getMetadata().getTagNames()));
+        return contentMapper.mediaContentEntityToDto(createContent(contentEntity,
+                input.getMetadata().getTagNames(), courseId));
     }
 
     /**
@@ -228,14 +245,14 @@ public class ContentService {
      * Creates an Assessment Entity with given input
      *
      * @param input    to be used as basis of creation
-     * @param courseId
+     * @param courseId ID of the course the content belongs to
      * @return DTO with created Assessment Entity
      */
     public Assessment createAssessment(CreateAssessmentInput input, UUID courseId) {
         contentValidator.validateCreateAssessmentContentInput(input);
 
         ContentEntity contentEntity = createContent(contentMapper.assessmentDtoToEntity(input),
-                input.getMetadata().getTagNames());
+                input.getMetadata().getTagNames(), courseId);
         return contentMapper.assessmentEntityToDto(contentEntity);
     }
 
@@ -265,10 +282,11 @@ public class ContentService {
      * @param <T>           all Entities that inherit from content Entity
      * @return entity saved
      */
-    private <T extends ContentEntity> T createContent(T contentEntity, List<String> tags) {
+    private <T extends ContentEntity> T createContent(T contentEntity, List<String> tags, UUID courseId) {
         checkPermissionsForChapter(contentEntity.getMetadata().getChapterId());
 
         tagSynchronization.synchronizeTags(contentEntity, tags);
+        contentEntity.getMetadata().setCourseId(courseId);
         contentEntity = contentRepository.save(contentEntity);
 
         topicPublisher.notifyChange(contentEntity, CrudOperation.CREATE);
@@ -291,9 +309,11 @@ public class ContentService {
         }
 
         tagSynchronization.synchronizeTags(updatedContentEntity, tags);
+        updatedContentEntity.getMetadata().setCourseId(oldContentEntity.getMetadata().getCourseId());
         updatedContentEntity = contentRepository.save(updatedContentEntity);
 
-        // if the content is assigned to a different chapter course Links need to be potentially updated and therefore an Update request is sent to the resource services
+        // if the content is assigned to a different chapter course Links need to be potentially updated and therefore
+        // an Update request is sent to the resource services
         if (!oldContentEntity.getMetadata().getChapterId().equals(updatedContentEntity.getMetadata().getChapterId())) {
             topicPublisher.informContentDependentServices(List.of(updatedContentEntity.getId()), CrudOperation.UPDATE);
         }
@@ -387,4 +407,5 @@ public class ContentService {
         requireContentExisting(contentId);
         return contentRepository.getReferenceById(contentId);
     }
+
 }
