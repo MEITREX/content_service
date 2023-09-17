@@ -1,7 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DiscriminatorFormula;
 
@@ -48,6 +50,10 @@ public class ContentEntity {
     @GeneratedValue
     private UUID id;
 
+    @Column(name = "course_id") // field for courseID
+    private UUID courseId;
+
+
     @Embedded
     @Builder.Default
     private ContentMetadataEmbeddable metadata = new ContentMetadataEmbeddable();
@@ -74,5 +80,4 @@ public class ContentEntity {
         this.metadata.setTags(tags);
         return this;
     }
-
 }

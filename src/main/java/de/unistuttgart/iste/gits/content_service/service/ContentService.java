@@ -1,13 +1,17 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 
-import de.unistuttgart.iste.gits.common.event.*;
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
+import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.TagEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -91,8 +95,8 @@ public class ContentService {
 
         if (!notFound.isEmpty()) {
             throw new EntityNotFoundException("Contents with ids "
-                                              + notFound.stream().map(UUID::toString).collect(Collectors.joining(", "))
-                                              + " not found");
+                    + notFound.stream().map(UUID::toString).collect(Collectors.joining(", "))
+                    + " not found");
         }
 
         return contents;
@@ -192,11 +196,12 @@ public class ContentService {
     /**
      * Creates a Media Entity with given input
      *
-     * @param input to be used as basis of creation
+     * @param input    to be used as basis of creation
+     * @param courseId
      * @return DTO with created Assessment Entity
      */
-    public MediaContent createMediaContent(CreateMediaContentInput input) {
-        contentValidator.validateCreateMediaContentInput(input);
+    public MediaContent createMediaContent(CreateMediaContentInput input, UUID courseId) {
+        contentValidator.validateCreateMediaContentInput(input, courseId);
         ContentEntity contentEntity = contentMapper.mediaContentDtoToEntity(input);
         return contentMapper.mediaContentEntityToDto(createContent(contentEntity, input.getMetadata().getTagNames()));
     }
@@ -222,11 +227,12 @@ public class ContentService {
     /**
      * Creates an Assessment Entity with given input
      *
-     * @param input to be used as basis of creation
+     * @param input    to be used as basis of creation
+     * @param courseId
      * @return DTO with created Assessment Entity
      */
-    public Assessment createAssessment(CreateAssessmentInput input) {
-        contentValidator.validateCreateAssessmentContentInput(input);
+    public Assessment createAssessment(CreateAssessmentInput input, UUID courseId) {
+        contentValidator.validateCreateAssessmentContentInput(input, courseId);
 
         ContentEntity contentEntity = createContent(contentMapper.assessmentDtoToEntity(input),
                 input.getMetadata().getTagNames());

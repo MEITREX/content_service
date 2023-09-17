@@ -57,8 +57,8 @@ public class ContentController {
     }
 
     @MutationMapping
-    public MediaContent createMediaContent(@Argument CreateMediaContentInput input) {
-        return contentService.createMediaContent(input);
+    public MediaContent createMediaContent(@Argument CreateMediaContentInput input, @Argument UUID courseId) {
+        return contentService.createMediaContent(input, courseId);
     }
 
     @SchemaMapping(typeName = "ContentMutation")
@@ -67,8 +67,8 @@ public class ContentController {
     }
 
     @MutationMapping
-    public Assessment createAssessment(@Argument CreateAssessmentInput input) {
-        return contentService.createAssessment(input);
+    public Assessment createAssessment(@Argument CreateAssessmentInput input, @Argument UUID courseId) {
+        return contentService.createAssessment(input, courseId);
     }
 
     @SchemaMapping(typeName = "ContentMutation")

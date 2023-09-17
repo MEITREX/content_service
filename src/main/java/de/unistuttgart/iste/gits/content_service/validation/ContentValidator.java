@@ -1,28 +1,54 @@
 package de.unistuttgart.iste.gits.content_service.validation;
 
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.validation.ValidationException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class ContentValidator {
+    private final ContentRepository contentRepository;
 
-    public void validateCreateMediaContentInput(CreateMediaContentInput input) {
+    public ContentValidator(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public void validateCreateMediaContentInput(CreateMediaContentInput input, UUID courseId) {
         if (input.getMetadata().getType() != ContentType.MEDIA) {
             throw new ValidationException("Media content must have type MEDIA");
         }
+
+        // Check if courseId is valid according to validation rules.
+        if (!isValidCourseId(courseId)) {
+            throw new ValidationException("Invalid courseId");
+        }
         checkNoDuplicateTags(input.getMetadata().getTagNames());
     }
+
+    private boolean isValidCourseId(UUID courseId) {
+        // Use the ContentRepository to find a content entity by courseId.
+        ContentEntity contentEntity = (ContentEntity) contentRepository.findByCourseId(courseId);
+
+        // Check if the contentEntity is not null, indicating that a content with the courseId exists.
+        return contentEntity != null;
+    }
+
 
     public void validateUpdateMediaContentInput(UpdateMediaContentInput input) {
         checkNoDuplicateTags(input.getMetadata().getTagNames());
     }
 
-    public void validateCreateAssessmentContentInput(CreateAssessmentInput input) {
+    public void validateCreateAssessmentContentInput(CreateAssessmentInput input, UUID courseId) {
         if (input.getMetadata().getType() == ContentType.MEDIA) {
             throw new ValidationException("MEDIA is not a valid content type for an assessment");
+        }
+        // Check if courseId is valid according to validation rules.
+        if (!isValidCourseId(courseId)) {
+            throw new ValidationException("Invalid courseId");
         }
         checkNoDuplicateTags(input.getMetadata().getTagNames());
     }
