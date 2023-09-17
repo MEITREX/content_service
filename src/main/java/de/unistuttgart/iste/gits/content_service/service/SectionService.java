@@ -35,6 +35,8 @@ public class SectionService {
                         .name(input.getName())
                         .chapterId(input.getChapterId())
                         .stages(new HashSet<>())
+                        // set position to last
+                        .position(sectionRepository.findHighestPositionByChapterId(input.getChapterId()).orElse(0)) // set position to last
                         .build()
         );
         return sectionMapper.entityToDto(sectionEntity);
@@ -86,7 +88,7 @@ public class SectionService {
         if (chapterIds == null || chapterIds.isEmpty() || dto.getOperation() == null) {
             throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
         }
-        sections = sectionRepository.findByChapterIdIn(chapterIds);
+        sections = sectionRepository.findByChapterIdInOrderByPosition(chapterIds);
         sectionRepository.deleteAllInBatch(sections);
     }
 
@@ -142,7 +144,7 @@ public class SectionService {
      */
     public List<List<Section>> getSectionsByChapterIds(List<UUID> chapterIds) {
         // get a list containing all sections for the given chapters, but not divided by chapter yet
-        List<SectionEntity> entities = sectionRepository.findByChapterIdIn(chapterIds);
+        List<SectionEntity> entities = sectionRepository.findByChapterIdInOrderByPosition(chapterIds);
 
         // map the different sections into groups by chapter
         Map<UUID, List<Section>> sectionsByChapterId = entities.stream()

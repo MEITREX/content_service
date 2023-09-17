@@ -128,14 +128,14 @@ class SectionServiceTest {
                 .build();
 
         // Mock the repository's behavior
-        when(sectionRepository.findByChapterIdIn(dto.getChapterIds())).thenReturn(Collections.singletonList(sectionEntity));
+        when(sectionRepository.findByChapterIdInOrderByPosition(dto.getChapterIds())).thenReturn(Collections.singletonList(sectionEntity));
         doNothing().when(sectionRepository).deleteAllInBatch(any());
 
         // Execute the method under test
         assertDoesNotThrow(() -> sectionService.cascadeSectionDeletion(dto));
 
         // Verify that the repository methods were called as expected
-        verify(sectionRepository, times(1)).findByChapterIdIn(dto.getChapterIds());
+        verify(sectionRepository, times(1)).findByChapterIdInOrderByPosition(dto.getChapterIds());
         verify(sectionRepository, times(1)).deleteAllInBatch(Collections.singletonList(sectionEntity));
     }
 
@@ -151,7 +151,7 @@ class SectionServiceTest {
         assertThrows(NullPointerException.class, () -> sectionService.cascadeSectionDeletion(dto));
 
         // Verify that the repository methods were not called
-        verify(sectionRepository, never()).findByChapterIdIn(any());
+        verify(sectionRepository, never()).findByChapterIdInOrderByPosition(any());
         verify(sectionRepository, never()).deleteAllInBatch(any());
     }
 

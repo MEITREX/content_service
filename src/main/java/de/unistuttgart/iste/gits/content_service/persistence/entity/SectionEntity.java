@@ -24,6 +24,9 @@ public class SectionEntity {
     @Column(nullable = false, name = "chapter_id")
     private UUID chapterId;
 
+    @OrderColumn(nullable = false)
+    private int position;
+
     @Column(nullable = false, length = 255)
     private String name;
 

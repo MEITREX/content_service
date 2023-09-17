@@ -45,16 +45,19 @@ class QuerySectionsByChapterTest {
     private List<SectionEntity> fillDatabaseWithSections() {
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")
+                .position(0)
                 .chapterId(chapterId)
                 .stages(new HashSet<>())
                 .build();
         SectionEntity sectionEntity2 = SectionEntity.builder()
                 .name("Test Section2")
+                .position(1)
                 .chapterId(chapterId)
                 .stages(new HashSet<>())
                 .build();
         SectionEntity sectionEntity3 = SectionEntity.builder()
                 .name("Test Section3")
+                .position(0)
                 .chapterId(chapterId2)
                 .stages(new HashSet<>())
                 .build();
@@ -188,21 +191,21 @@ class QuerySectionsByChapterTest {
 
         String query = """
                 query($chapterIds: [UUID!]!) {
-                sectionsByChapterIds(chapterIds: $chapterIds){
-                    id
-                    chapterId
-                    name
-                    stages {
+                    sectionsByChapterIds(chapterIds: $chapterIds) {
                         id
-                        position
-                        requiredContents {
+                        chapterId
+                        name
+                        stages {
                             id
-                           }
-                        optionalContents {
-                            id
-                           }
-                       }
-                   }
+                            position
+                            requiredContents {
+                                id
+                            }
+                            optionalContents {
+                                id
+                            }
+                        }
+                    }
                 }
                 """;
 
@@ -271,7 +274,7 @@ class QuerySectionsByChapterTest {
                 .execute()
                 .path("sectionsByChapterIds[0]").entityList(Object.class).hasSize(2)
 
-                .path("sectionsByChapterIds[0]").entityList(Section.class).contains(
+                .path("sectionsByChapterIds[0]").entityList(Section.class).containsExactly(
                         Section.builder()
                                 .setId(entities.get(0).getId())
                                 .setChapterId(chapterId)
