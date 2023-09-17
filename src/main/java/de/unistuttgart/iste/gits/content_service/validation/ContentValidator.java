@@ -30,11 +30,11 @@ public class ContentValidator {
     }
 
     private boolean isValidCourseId(UUID courseId) {
-        // Use the ContentRepository to find a content entity by courseId.
-        ContentEntity contentEntity = (ContentEntity) contentRepository.findByCourseId(courseId);
+        // Use the ContentRepository to find content entities by courseId.
+        List<ContentEntity> contentEntities = contentRepository.findByCourseId(courseId);
 
-        // Check if the contentEntity is not null, indicating that a content with the courseId exists.
-        return contentEntity != null;
+        // Check if any contentEntity exists for the given courseId.
+        return !contentEntities.isEmpty();
     }
 
 
