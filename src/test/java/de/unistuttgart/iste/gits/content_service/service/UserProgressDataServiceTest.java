@@ -118,7 +118,7 @@ class UserProgressDataServiceTest {
                 .id(contentId).build();
 
         doReturn(Optional.empty()).when(userProgressDataRepository).findByUserIdAndContentId(any(), any());
-        doReturn(assessmentEntity).when(contentService).getContentById(any());
+        doReturn(assessmentEntity).when(contentService).requireContentExisting(any());
         // save method returns its argument
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 

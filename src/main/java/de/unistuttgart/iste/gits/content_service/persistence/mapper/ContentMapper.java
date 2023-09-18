@@ -7,7 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -28,12 +29,15 @@ public class ContentMapper {
     }
 
     public MediaContentEntity mediaContentDtoToEntity(CreateMediaContentInput input) {
-        return modelMapper.map(input, MediaContentEntity.class);
+        var result = modelMapper.map(input, MediaContentEntity.class);
+        result.getMetadata().setTags(tagsFromNames(input.getMetadata().getTagNames()));
+        return result;
     }
 
     public MediaContentEntity mediaContentDtoToEntity(UUID contentId, UpdateMediaContentInput input, ContentType contentType) {
         var result = modelMapper.map(input, MediaContentEntity.class);
         result.getMetadata().setType(contentType);
+        result.getMetadata().setTags(tagsFromNames(input.getMetadata().getTagNames()));
         result.setId(contentId);
         return result;
     }
@@ -45,14 +49,23 @@ public class ContentMapper {
     }
 
     public AssessmentEntity assessmentDtoToEntity(CreateAssessmentInput input) {
-        return modelMapper.map(input, AssessmentEntity.class);
+        var result = modelMapper.map(input, AssessmentEntity.class);
+        result.getMetadata().setTags(tagsFromNames(input.getMetadata().getTagNames()));
+        return result;
     }
 
-    public AssessmentEntity assessmentDtoToEntity(UUID contentId, UpdateAssessmentInput input, ContentType contentType) {
+    public AssessmentEntity assessmentDtoToEntity(UUID contentId,
+                                                  UpdateAssessmentInput input,
+                                                  ContentType contentType) {
         var result = modelMapper.map(input, AssessmentEntity.class);
         result.getMetadata().setType(contentType);
+        result.getMetadata().setTags(tagsFromNames(input.getMetadata().getTagNames()));
         result.setId(contentId);
         return result;
+    }
+
+    private Set<TagEntity> tagsFromNames(List<String> tagNames) {
+        return tagNames.stream().map(TagEntity::fromName).collect(Collectors.toSet());
     }
 
     public Assessment assessmentEntityToDto(ContentEntity contentEntity) {

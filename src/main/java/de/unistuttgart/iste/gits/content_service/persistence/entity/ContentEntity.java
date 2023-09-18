@@ -6,11 +6,8 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DiscriminatorFormula;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 
 /**
  * Super class for assessment and media content.
@@ -56,23 +53,6 @@ public class ContentEntity {
         return Optional.ofNullable(metadata.getTags())
                 .map(tags -> tags.stream().map(TagEntity::getName).toList())
                 .orElse(emptyList());
-    }
-
-    public ContentEntity addToTags(TagEntity tagEntity) {
-        Set<TagEntity> tags = new HashSet<>(
-                Optional.ofNullable(metadata.getTags()).orElse(emptySet()));
-        tags.add(tagEntity);
-        metadata.setTags(tags);
-        return this;
-    }
-
-    public ContentEntity removeFromTags(TagEntity tagEntity) {
-        Set<TagEntity> tags = Stream.ofNullable(metadata.getTags())
-                .flatMap(Set::stream)
-                .filter(tag -> !tag.getName().equals(tagEntity.getName()))
-                .collect(Collectors.toSet());
-        this.metadata.setTags(tags);
-        return this;
     }
 
 }

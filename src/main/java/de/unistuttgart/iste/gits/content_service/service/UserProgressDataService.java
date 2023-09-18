@@ -41,7 +41,7 @@ public class UserProgressDataService {
 
     public UserProgressDataEntity createInitialUserProgressData(UUID userId, UUID contentId) {
         log.info("Creating initial user progress data for user {} and content {}", userId, contentId);
-        ContentEntity contentEntity = contentService.getContentById(contentId);
+        ContentEntity contentEntity = contentService.requireContentExisting(contentId);
 
         Integer learningInterval = contentEntity instanceof AssessmentEntity assessmentEntity
                 ? assessmentEntity.getAssessmentMetadata().getInitialLearningInterval()

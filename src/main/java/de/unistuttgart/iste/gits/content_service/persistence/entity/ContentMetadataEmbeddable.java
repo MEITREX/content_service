@@ -5,8 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.OffsetDateTime;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Embeddable
 @Data
@@ -31,8 +30,16 @@ public class ContentMetadataEmbeddable {
     @EqualsAndHashCode.Exclude
     @ManyToMany(fetch = FetchType.LAZY, cascade =
             {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-    private Set<TagEntity> tags;
+    @Builder.Default
+    private Set<TagEntity> tags = new HashSet<>();
 
     @Column(nullable = false, name = "chapter_id")
     private UUID chapterId;
+
+    public Set<TagEntity> getTags() {
+        if (tags == null) {
+            tags = new HashSet<>();
+        }
+        return tags;
+    }
 }

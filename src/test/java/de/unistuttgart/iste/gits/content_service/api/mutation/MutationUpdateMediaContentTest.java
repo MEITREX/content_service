@@ -3,8 +3,7 @@ package de.unistuttgart.iste.gits.content_service.api.mutation;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.MediaContent;
@@ -15,7 +14,7 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -96,5 +95,65 @@ class MutationUpdateMediaContentTest {
         assertThat(mediaContentEntity.getTagNames(), containsInAnyOrder("newTag1", "newTag2"));
         assertThat(mediaContentEntity.getMetadata().getType(), is(ContentType.MEDIA));
         assertThat(mediaContentEntity.getMetadata().getChapterId(), is(newChapterId));
+    }
+
+    /**
+     * Given a content with tags and an UpdateMediaContentInput with new tags, one of which is already present
+     * When the updateMediaContent mutation is called
+     * Then the tags are updated correctly
+     */
+    @Test
+    @Transactional
+    @Commit
+    void testUpdateContentWithTagsCorrectly(GraphQlTester graphQlTester) {
+        ContentEntity contentEntity = contentRepository.save(
+                TestData.dummyMediaContentEntityBuilder()
+                        .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
+                                .tags(new HashSet<>(Set.of(TagEntity.fromName("a"), TagEntity.fromName("b")))).build())
+                        .build());
+        UUID newChapterId = UUID.randomUUID();
+
+        String query = """
+                mutation($contentId: UUID!, $chapterId: UUID!) {
+                    mutateContent(contentId: $contentId){
+                        updateMediaContent(input: {
+                            metadata: {
+                                name: "newName",
+                                suggestedDate: "2022-01-01T00:00:00.000Z",
+                                tagNames: ["b", "c"],
+                                chapterId: $chapterId,
+                                rewardPoints: 3
+                            }
+                        }) {
+                            id
+                            metadata {
+                                name
+                                suggestedDate
+                                tagNames
+                                type
+                                chapterId
+                                rewardPoints
+                            }
+                        }
+                    }
+                                
+                }
+                """;
+
+        MediaContent updatedMediaContent = graphQlTester.document(query)
+                .variable("contentId", contentEntity.getId())
+                .variable("chapterId", newChapterId)
+                .execute()
+                .path("mutateContent.updateMediaContent").entity(MediaContent.class).get();
+
+        assertThat(updatedMediaContent.getMetadata().getTagNames(), containsInAnyOrder("b", "c"));
+
+        ContentEntity newContentEntity = contentRepository.findById(updatedMediaContent.getId()).orElseThrow();
+        assertThat(newContentEntity, is(instanceOf(MediaContentEntity.class)));
+
+        MediaContentEntity mediaContentEntity = (MediaContentEntity) newContentEntity;
+
+        // check that tags are updated correctly
+        assertThat(mediaContentEntity.getTagNames(), containsInAnyOrder("b", "c"));
     }
 }
