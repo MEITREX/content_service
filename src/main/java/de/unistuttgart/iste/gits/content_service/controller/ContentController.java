@@ -91,6 +91,11 @@ public class ContentController {
         return contentService.removeTagFromContent(contentMutation.getContentId(), tagName);
     }
 
+    @QueryMapping
+    public List<CompositeProgressInformation> progressByChapterIds(@Argument List<UUID> chapterIds, @ContextValue LoggedInUser currentUser) {
+        return userProgressDataService.getProgressByChapterIdsForUser(chapterIds, currentUser.getId());
+    }
+
     public abstract class ContentResolver<T extends Content> {
         @SchemaMapping(field = "userProgressData")
         public UserProgressData userProgressData(T content, @ContextValue LoggedInUser currentUser) {

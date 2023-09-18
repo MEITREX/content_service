@@ -25,6 +25,11 @@ type Query {
     sectionsByChapterIds(chapterIds: [UUID!]!): [[Section!]!]!
 
     """
+    Retrieve progress for multiple chapters
+    """
+    progressByChapterIds(chapterIds: [UUID!]!): [CompositeProgressInformation!]!
+
+    """
     Generates user specific suggestions for multiple chapters.
 
     Only content that the user can access will be considered.
@@ -59,3 +64,18 @@ type ContentPayload {
     pageInfo: PaginationInfo!
 }
 
+type CompositeProgressInformation {
+
+    """
+    percentage of completedContents/totalContents
+    """
+    progress: Float!
+    """
+    absolut number of completed content
+    """
+    completedContents: Int!
+    """
+    absolut number of total content
+    """
+    totalContents: Int!
+}

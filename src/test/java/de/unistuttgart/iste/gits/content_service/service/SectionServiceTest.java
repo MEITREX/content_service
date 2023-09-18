@@ -2,11 +2,16 @@ package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.gits.common.event.CrudOperation;
+import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.mapper.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.gits.generated.dto.CreateSectionInput;
+import de.unistuttgart.iste.gits.generated.dto.Section;
+import de.unistuttgart.iste.gits.generated.dto.Stage;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -148,7 +153,7 @@ class SectionServiceTest {
                 .build();
 
         // Execute the method under test and expect a NullPointerException
-        assertThrows(NullPointerException.class, () -> sectionService.cascadeSectionDeletion(dto));
+        assertThrows(IncompleteEventMessageException.class, () -> sectionService.cascadeSectionDeletion(dto));
 
         // Verify that the repository methods were not called
         verify(sectionRepository, never()).findByChapterIdIn(any());

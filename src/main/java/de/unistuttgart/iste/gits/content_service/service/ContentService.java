@@ -1,7 +1,10 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 
-import de.unistuttgart.iste.gits.common.event.*;
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
+import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
+import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
@@ -121,9 +124,7 @@ public class ContentService {
 
         // get a list containing all contents with a matching chapter id, then map them by chapter id (multiple
         // contents might have the same chapter id)
-        Map<UUID, List<Content>> contentsByChapterId = contentRepository.findByChapterIdIn(chapterIds).stream()
-                .map(contentMapper::entityToDto)
-                .collect(Collectors.groupingBy(content -> content.getMetadata().getChapterId()));
+        Map<UUID, List<Content>> contentsByChapterId = getContentEntitiesSortedByChapterId(chapterIds);
 
         // put the different groups of chapters into the result list such that the order matches the order
         // of chapter ids given by the chapterIds argument
@@ -260,7 +261,6 @@ public class ContentService {
      * @return entity saved
      */
     private <T extends ContentEntity> T createContent(T contentEntity, List<String> tags) {
-        checkPermissionsForChapter(contentEntity.getMetadata().getChapterId());
 
         tagSynchronization.synchronizeTags(contentEntity, tags);
         contentEntity = contentRepository.save(contentEntity);
@@ -280,9 +280,6 @@ public class ContentService {
      * @return entity saved
      */
     private <T extends ContentEntity> T updateContent(T oldContentEntity, T updatedContentEntity, List<String> tags) {
-        if (!oldContentEntity.getMetadata().getChapterId().equals(updatedContentEntity.getMetadata().getChapterId())) {
-            checkPermissionsForChapter(updatedContentEntity.getMetadata().getChapterId());
-        }
 
         tagSynchronization.synchronizeTags(updatedContentEntity, tags);
         updatedContentEntity = contentRepository.save(updatedContentEntity);
@@ -300,11 +297,11 @@ public class ContentService {
      *
      * @param dto resource update dto
      */
-    public void forwardResourceUpdates(ResourceUpdateEvent dto) {
+    public void forwardResourceUpdates(ResourceUpdateEvent dto) throws IncompleteEventMessageException {
 
         // completeness check of input
         if (dto.getEntityId() == null || dto.getContentIds() == null || dto.getOperation() == null) {
-            throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
+            throw new IncompleteEventMessageException(IncompleteEventMessageException.ERROR_INCOMPLETE_MESSAGE);
         }
 
         // find all chapter IDs
@@ -323,7 +320,7 @@ public class ContentService {
      *
      * @param dto message containing information about to be deleted entities
      */
-    public void cascadeContentDeletion(ChapterChangeEvent dto) {
+    public void cascadeContentDeletion(ChapterChangeEvent dto) throws IncompleteEventMessageException {
         List<UUID> chapterIds;
         List<UUID> contentIds = new ArrayList<>();
 
@@ -331,7 +328,7 @@ public class ContentService {
 
         // make sure message is complete
         if (chapterIds == null || chapterIds.isEmpty() || dto.getOperation() == null) {
-            throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
+            throw new IncompleteEventMessageException(IncompleteEventMessageException.ERROR_INCOMPLETE_MESSAGE);
         }
 
         // ignore any messages that are not deletion messages
@@ -372,10 +369,12 @@ public class ContentService {
         return contentEntity.getId();
     }
 
-    @SuppressWarnings("java:S1172")
-    private void checkPermissionsForChapter(UUID chapterId) {
-        // not implemented yet
+    public Map<UUID, List<Content>> getContentEntitiesSortedByChapterId(List<UUID> chapterIds) {
+        return contentRepository.findByChapterIdIn(chapterIds).stream()
+                .map(contentMapper::entityToDto)
+                .collect(Collectors.groupingBy(content -> content.getMetadata().getChapterId()));
     }
+
 
     public ContentEntity getContentById(UUID contentId) {
         requireContentExisting(contentId);

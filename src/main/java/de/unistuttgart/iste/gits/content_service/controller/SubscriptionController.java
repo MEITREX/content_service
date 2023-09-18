@@ -13,11 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
 
 /**
  * REST Controller Class listening to a dapr Topic.
@@ -35,7 +32,13 @@ public class SubscriptionController {
     @PostMapping(path = "/content-service/resource-update-pubsub")
     public Mono<Void> updateAssociation(@RequestBody CloudEvent<ResourceUpdateEvent> cloudEvent) {
 
-        return Mono.fromRunnable(() -> contentService.forwardResourceUpdates(cloudEvent.getData()));
+        return Mono.fromRunnable(() -> {
+            try {
+                contentService.forwardResourceUpdates(cloudEvent.getData());
+            } catch (Exception e) {
+                log.error("Error while processing resource-update event. {}", e.getMessage());
+            }
+        });
     }
 
     /**
@@ -61,13 +64,13 @@ public class SubscriptionController {
                 // Delete content associated with the chapter
                 sectionService.cascadeSectionDeletion(cloudEvent.getData());
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("Error while processing chapter-changes event. {}", e.getMessage());
             }
             try {
                 // Delete section
                 contentService.cascadeContentDeletion(cloudEvent.getData());
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("Error while processing chapter-changes event. {}", e.getMessage());
             }
 
         });

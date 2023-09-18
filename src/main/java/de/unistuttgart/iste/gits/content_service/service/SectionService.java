@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
@@ -74,7 +75,7 @@ public class SectionService {
      *
      * @param dto of Section to delete
      */
-    public void cascadeSectionDeletion(ChapterChangeEvent dto) {
+    public void cascadeSectionDeletion(ChapterChangeEvent dto) throws IncompleteEventMessageException {
         List<UUID> chapterIds;
         List<SectionEntity> sections;
 
@@ -82,7 +83,7 @@ public class SectionService {
 
         // make sure message is complete
         if (chapterIds == null || chapterIds.isEmpty() || dto.getOperation() == null) {
-            throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
+            throw new IncompleteEventMessageException(IncompleteEventMessageException.ERROR_INCOMPLETE_MESSAGE);
         }
         sections = sectionRepository.findByChapterIdIn(chapterIds);
         sectionRepository.deleteAllInBatch(sections);

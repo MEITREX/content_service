@@ -3,19 +3,28 @@ package de.unistuttgart.iste.gits.content_service.service;
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ProgressLogItemEmbeddable;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.UserProgressDataEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
-import java.time.*;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
+import static de.unistuttgart.iste.gits.content_service.TestData.buildDummyUserProgressData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,6 +41,9 @@ class UserProgressDataServiceTest {
     private ContentService contentService;
     @Spy
     private UserProgressDataMapper userProgressDataMapper = new UserProgressDataMapper(new ModelMapper());
+
+    @Spy
+    private ContentMapper contentMapper = new ContentMapper(new ModelMapper());
     @Mock
     private TopicPublisher topicPublisher;
 
@@ -388,10 +400,56 @@ class UserProgressDataServiceTest {
     }
 
     /**
+     * Testcase for function to calculate progress for a user over an entire chapter.
+     * This Testcase assumes Progress has already been made for all content
+     */
+    @Test
+    void getProgressByChapterIdsForUserTest() {
+        UUID chapterId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        List<UUID> chapterIds = List.of(chapterId);
+
+        // init content and user progress
+        List<MediaContentEntity> mediaContentEntities = List.of(TestData.buildContentEntity(chapterId), TestData.buildContentEntity(chapterId));
+        for (int i = 0; i < mediaContentEntities.size(); i++) {
+            MediaContentEntity mediaContentEntity = mediaContentEntities.get(i);
+            UserProgressDataEntity progressDataEntity = buildDummyUserProgressData(i % 2 == 0, userId, mediaContentEntity.getId());
+            mediaContentEntity.setUserProgressData(List.of(progressDataEntity));
+
+            // mock repository calls
+            doReturn(Optional.of(progressDataEntity)).when(userProgressDataRepository).findByUserIdAndContentId(userId, mediaContentEntity.getId());
+
+        }
+
+        // create chapter -> content Mapping
+        Map<UUID, List<Content>> map = new HashMap<>();
+        map.put(chapterId, mediaContentEntities.stream().map(mediaContentEntity -> contentMapper.entityToDto(mediaContentEntity)).toList());
+
+        //mock service with repository calls
+        doReturn(map).when(contentService).getContentEntitiesSortedByChapterId(chapterIds);
+
+        // run method under test
+        List<CompositeProgressInformation> resultList = userProgressDataService.getProgressByChapterIdsForUser(chapterIds, userId);
+
+        // verify called methods
+        verify(contentService, times(1)).getContentEntitiesSortedByChapterId(chapterIds);
+
+        // assertions
+        assertEquals(1, resultList.size());
+
+        assertEquals(50.0, resultList.get(0).getProgress());
+        assertEquals(1, resultList.get(0).getCompletedContents());
+        assertEquals(2, resultList.get(0).getTotalContents());
+
+    }
+
+    /**
      * helper method to generate some generic media content DTO
+     *
      * @return media content Object
      */
-    private MediaContent buildDummyMediaContent(){
+    private MediaContent buildDummyMediaContent() {
         UUID contentId = UUID.randomUUID();
         ContentMetadata metadata = ContentMetadata.builder()
                 .setChapterId(UUID.randomUUID())
@@ -410,27 +468,5 @@ class UserProgressDataServiceTest {
         return mediaContent;
     }
 
-    /**
-     * helper method to generate some progress data
-     * @param success if evaluation of progress is a success
-     * @param userId ID of the User this Progress data belongs to
-     * @param contentId ID of the Content the Progress is tracked for
-     * @return database representation of a Progress data Item
-     */
-    private UserProgressDataEntity buildDummyUserProgressData(boolean success, UUID userId, UUID contentId){
-        ProgressLogItemEmbeddable logItem = ProgressLogItemEmbeddable.builder()
-                .correctness(70.00)
-                .timestamp(OffsetDateTime.now())
-                .hintsUsed(0)
-                .success(success)
-                .timeToComplete(null)
-                .build();
-        UserProgressDataEntity userProgressData = UserProgressDataEntity.builder()
-                .userId(userId)
-                .contentId(contentId)
-                .progressLog(List.of(logItem))
-                .learningInterval(null)
-                .build();
-        return userProgressData;
-    }
+
 }
