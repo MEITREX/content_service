@@ -32,7 +32,6 @@ public class ContentService {
     private final StageService stageService;
     private final ContentMapper contentMapper;
     private final ContentValidator contentValidator;
-    final TagService tagSynchronization;
     private final TopicPublisher topicPublisher;
 
     public ContentPayload getAllContents() {
@@ -49,15 +48,11 @@ public class ContentService {
      * @return ID of removed Content Entity
      */
     public UUID deleteContent(UUID uuid) {
-        requireContentExisting(uuid);
+        ContentEntity deletedEntity = requireContentExisting(uuid);
 
-        ContentEntity deletedEntity = contentRepository.getReferenceById(uuid);
-
-        UUID removedId = removeContentDependencies(deletedEntity);
+        UUID removedId = deleteContentAndRemoveDependencies(deletedEntity);
 
         topicPublisher.informContentDependentServices(List.of(removedId), CrudOperation.DELETE);
-
-        tagSynchronization.deleteUnusedTags();
         return uuid;
     }
 
@@ -66,11 +61,11 @@ public class ContentService {
      *
      * @param id The id of the Content to check.
      * @throws EntityNotFoundException If a Content with the given id does not exist.
+     * @return The Content with the given id.
      */
-    public void requireContentExisting(UUID id) {
-        if (!contentRepository.existsById(id)) {
-            throw new EntityNotFoundException("Content with id " + id + " not found");
-        }
+    public ContentEntity requireContentExisting(UUID id) {
+        return contentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Content with id " + id + " not found"));
     }
 
     /**
@@ -150,23 +145,12 @@ public class ContentService {
      * @return DTO with updated Content Entity
      */
     public Content addTagToContent(UUID id, String tagName) {
-        requireContentExisting(id);
-        ContentEntity content = contentRepository.getReferenceById(id);
-        // The repository should return at most one tag as one content should not have multiple tags with the same name
-        List<TagEntity> currentTagsWithThisName = tagRepository.findByContentIdAndTagName(content.getId(), tagName);
-        if (currentTagsWithThisName.isEmpty()) {
-            List<TagEntity> existingTags = tagRepository.findByName(tagName);
-            TagEntity tagEntity;
-            if (existingTags.isEmpty()) {
-                // There is no tag with this name
-                tagEntity = TagEntity.fromName(tagName);
-                tagRepository.save(tagEntity);
-            } else {
-                tagEntity = existingTags.get(0);
-            }
-            content.addToTags(tagEntity);
-            tagEntity.addToContents(content);
-        }
+        ContentEntity content = requireContentExisting(id);
+
+        Set<TagEntity> newTags = new HashSet<>(content.getMetadata().getTags());
+        newTags.add(TagEntity.fromName(tagName));
+        content.getMetadata().setTags(newTags);
+        content = contentRepository.save(content);
         return contentMapper.entityToDto(content);
     }
 
@@ -178,15 +162,14 @@ public class ContentService {
      * @return DTO with updated Content Entity
      */
     public Content removeTagFromContent(UUID id, String tagName) {
-        requireContentExisting(id);
-        ContentEntity content = contentRepository.getReferenceById(id);
-        // The repository should return at most one tag as one content should not have multiple tags with the same name
-        List<TagEntity> currentTagsWithThisName = tagRepository.findByContentIdAndTagName(content.getId(), tagName);
-        for (TagEntity tagEntity : currentTagsWithThisName) {
-            content.removeFromTags(tagEntity);
-            tagEntity.removeFromContents(content);
-        }
-        tagSynchronization.deleteUnusedTags();
+        ContentEntity content = requireContentExisting(id);
+
+        Set<TagEntity> newTags = new HashSet<>(content.getMetadata().getTags());
+        newTags.remove(TagEntity.fromName(tagName));
+        content.getMetadata().setTags(newTags);
+        content = contentRepository.save(content);
+
+        tagRepository.deleteUnusedTags();
         return contentMapper.entityToDto(content);
     }
 
@@ -199,7 +182,7 @@ public class ContentService {
     public MediaContent createMediaContent(CreateMediaContentInput input) {
         contentValidator.validateCreateMediaContentInput(input);
         ContentEntity contentEntity = contentMapper.mediaContentDtoToEntity(input);
-        return contentMapper.mediaContentEntityToDto(createContent(contentEntity, input.getMetadata().getTagNames()));
+        return contentMapper.mediaContentEntityToDto(createContent(contentEntity));
     }
 
     /**
@@ -210,13 +193,12 @@ public class ContentService {
      */
     public MediaContent updateMediaContent(UUID contentId, UpdateMediaContentInput input) {
         contentValidator.validateUpdateMediaContentInput(input);
-        requireContentExisting(contentId);
 
-        ContentEntity oldContentEntity = contentRepository.getReferenceById(contentId);
+        ContentEntity oldContentEntity = requireContentExisting(contentId);
         ContentEntity updatedContentEntity = contentMapper.mediaContentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
 
-        updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity, input.getMetadata().getTagNames());
+        updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity);
         return contentMapper.mediaContentEntityToDto(updatedContentEntity);
     }
 
@@ -229,8 +211,7 @@ public class ContentService {
     public Assessment createAssessment(CreateAssessmentInput input) {
         contentValidator.validateCreateAssessmentContentInput(input);
 
-        ContentEntity contentEntity = createContent(contentMapper.assessmentDtoToEntity(input),
-                input.getMetadata().getTagNames());
+        ContentEntity contentEntity = createContent(contentMapper.assessmentDtoToEntity(input));
         return contentMapper.assessmentEntityToDto(contentEntity);
     }
 
@@ -242,13 +223,12 @@ public class ContentService {
      */
     public Assessment updateAssessment(UUID contentId, UpdateAssessmentInput input) {
         contentValidator.validateUpdateAssessmentContentInput(input);
-        requireContentExisting(contentId);
 
-        ContentEntity oldContentEntity = contentRepository.getReferenceById(contentId);
+        ContentEntity oldContentEntity = requireContentExisting(contentId);
         ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
 
-        updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity, input.getMetadata().getTagNames());
+        updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity);
         return contentMapper.assessmentEntityToDto(updatedContentEntity);
     }
 
@@ -256,13 +236,11 @@ public class ContentService {
      * Generified Content Entity create method.
      *
      * @param contentEntity entity to be saved to database
-     * @param tags          associated to the entity
      * @param <T>           all Entities that inherit from content Entity
      * @return entity saved
      */
-    private <T extends ContentEntity> T createContent(T contentEntity, List<String> tags) {
+    private <T extends ContentEntity> T createContent(T contentEntity) {
 
-        tagSynchronization.synchronizeTags(contentEntity, tags);
         contentEntity = contentRepository.save(contentEntity);
 
         topicPublisher.notifyChange(contentEntity, CrudOperation.CREATE);
@@ -275,13 +253,11 @@ public class ContentService {
      *
      * @param oldContentEntity     entity to be replaced
      * @param updatedContentEntity updated version of above entity
-     * @param tags                 associated to the entity
      * @param <T>                  all Entities that inherit from content Entity
      * @return entity saved
      */
-    private <T extends ContentEntity> T updateContent(T oldContentEntity, T updatedContentEntity, List<String> tags) {
+    private <T extends ContentEntity> T updateContent(T oldContentEntity, T updatedContentEntity) {
 
-        tagSynchronization.synchronizeTags(updatedContentEntity, tags);
         updatedContentEntity = contentRepository.save(updatedContentEntity);
 
         // if the content is assigned to a different chapter course Links need to be potentially updated and therefore an Update request is sent to the resource services
@@ -341,7 +317,7 @@ public class ContentService {
         for (ContentEntity entity : contentEntities) {
             // remove all links from stages to content
             // and collect IDs of deleted content entities
-            contentIds.add(removeContentDependencies(entity));
+            contentIds.add(deleteContentAndRemoveDependencies(entity));
         }
 
         if (!contentIds.isEmpty()) {
@@ -351,17 +327,21 @@ public class ContentService {
     }
 
     /**
-     * Removes a stage links to the content entity and then deleted the content entity afterwards
+     * Removes a stage links to the content entity and then deleted the content entity afterward.
+     * This also deletes the user progress data and unused tags
+     * and publishes the changes applied to the content entity.
      *
      * @param contentEntity content entity to be deleted
      * @return the ID of the deleted content entity
      */
-    private UUID removeContentDependencies(ContentEntity contentEntity) {
+    private UUID deleteContentAndRemoveDependencies(ContentEntity contentEntity) {
         userProgressDataRepository.deleteByContentId(contentEntity.getId());
         // remove content from sections
         stageService.deleteContentLinksFromStages(contentEntity);
 
         contentRepository.delete(contentEntity);
+
+        tagRepository.deleteUnusedTags();
 
         // publish changes applied to content entity
         topicPublisher.notifyChange(contentEntity, CrudOperation.DELETE);
@@ -376,8 +356,4 @@ public class ContentService {
     }
 
 
-    public ContentEntity getContentById(UUID contentId) {
-        requireContentExisting(contentId);
-        return contentRepository.getReferenceById(contentId);
-    }
 }

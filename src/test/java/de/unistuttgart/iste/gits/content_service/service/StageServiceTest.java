@@ -34,15 +34,27 @@ class StageServiceTest {
 
     @Test
     void createNewStageTest() {
-        CreateStageInput stageInput = CreateStageInput.builder().setOptionalContents(new ArrayList<>()).setRequiredContents(new ArrayList<>()).build();
+        CreateStageInput stageInput = CreateStageInput.builder()
+                .setOptionalContents(new ArrayList<>())
+                .setRequiredContents(new ArrayList<>()).build();
 
-        SectionEntity sectionEntity = SectionEntity.builder().id(UUID.randomUUID()).name("Test Section").stages(new HashSet<>()).chapterId(UUID.randomUUID()).build();
+        SectionEntity sectionEntity = SectionEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Test Section")
+                .stages(new HashSet<>())
+                .chapterId(UUID.randomUUID())
+                .build();
 
-        StageEntity stageEntity = StageEntity.builder().sectionId(sectionEntity.getId()).position(0).optionalContents(new HashSet<>()).requiredContents(new HashSet<>()).build();
+        StageEntity stageEntity = StageEntity.builder()
+                .sectionId(sectionEntity.getId())
+                .position(0)
+                .optionalContents(new HashSet<>())
+                .requiredContents(new HashSet<>())
+                .build();
 
         //mock repository
         when(sectionRepository.existsById(sectionEntity.getId())).thenReturn(true);
-        when(sectionRepository.getReferenceById(sectionEntity.getId())).thenReturn(sectionEntity);
+        when(sectionRepository.findById(sectionEntity.getId())).thenReturn(Optional.of(sectionEntity));
         when(stageRepository.save(any())).thenReturn(stageEntity);
 
 
@@ -69,11 +81,11 @@ class StageServiceTest {
         CreateStageInput stageInput = CreateStageInput.builder()
                 .setRequiredContents(
                         expectedReqContents.stream()
-                                .map(content -> content.getId())
+                                .map(ContentEntity::getId)
                                 .toList()
                 ).setOptionalContents(
                         expectedOptContents.stream()
-                                .map(content -> content.getId())
+                                .map(ContentEntity::getId)
                                 .toList()
                 ).build();
 
@@ -92,8 +104,7 @@ class StageServiceTest {
                 .build();
 
         //mock repository
-        when(sectionRepository.existsById(sectionEntity.getId())).thenReturn(true);
-        when(sectionRepository.getReferenceById(sectionEntity.getId())).thenReturn(sectionEntity);
+        when(sectionRepository.findById(sectionEntity.getId())).thenReturn(Optional.of(sectionEntity));
         when(sectionRepository.existsById(any())).thenReturn(true);
         when(contentRepository.findContentEntitiesByIdIn(stageInput.getRequiredContents())).thenReturn(expectedReqContents);
         when(contentRepository.findContentEntitiesByIdIn(stageInput.getOptionalContents())).thenReturn(expectedOptContents);
@@ -117,10 +128,9 @@ class StageServiceTest {
 
         SectionEntity sectionEntity = SectionEntity.builder().id(id).name("Test Section").stages(new HashSet<>()).chapterId(UUID.randomUUID()).build();
 
-        when(sectionRepository.existsById(sectionEntity.getId())).thenReturn(false);
+        when(sectionRepository.findById(sectionEntity.getId())).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> stageService.createNewStage(id, stageInput));
-        assertThrows(NullPointerException.class, () -> stageService.createNewStage(null, stageInput));
     }
 
     @Test
@@ -167,19 +177,17 @@ class StageServiceTest {
                 .setId(stageId)
                 .setRequiredContents(
                         expectedReqContents.stream()
-                                .map( content -> content.getId())
+                                .map(ContentEntity::getId)
                                 .toList()
                 ).setOptionalContents(
                         expectedOptContents.stream()
-                                .map( content -> content.getId())
+                                .map(ContentEntity::getId)
                                 .toList()
                 ).build();
 
         //mock database
-        when(stageRepository.existsById(any())).thenReturn(true);
-        when(stageRepository.getReferenceById(input.getId())).thenReturn(oldStageEntity);
-        when(sectionRepository.existsById(any())).thenReturn(true);
-        when(sectionRepository.getReferenceById(oldStageEntity.getSectionId())).thenReturn(sectionEntity);
+        when(stageRepository.findById(input.getId())).thenReturn(Optional.of(oldStageEntity));
+        when(sectionRepository.findById(oldStageEntity.getSectionId())).thenReturn(Optional.of(sectionEntity));
         when(contentRepository.findContentEntitiesByIdIn(input.getRequiredContents())).thenReturn(expectedReqContents);
         when(contentRepository.findContentEntitiesByIdIn(input.getOptionalContents())).thenReturn(expectedOptContents);
         when(stageRepository.save(any())).thenReturn(oldStageEntity);
@@ -194,8 +202,6 @@ class StageServiceTest {
         assertEquals(2, result.getRequiredContents().size());
         assertEquals(2, result.getOptionalContents().size());
 
-        //assertEquals(expectedResult, result);
-
     }
 
     @Test
@@ -208,7 +214,7 @@ class StageServiceTest {
                 .build();
 
         //mock database
-        when(stageRepository.existsById(any())).thenReturn(false);
+        when(stageRepository.findById(any())).thenReturn(Optional.empty());
 
         //execute method under test
         assertThrows(EntityNotFoundException.class, () -> stageService.updateStage(input));
@@ -232,9 +238,8 @@ class StageServiceTest {
                 .build();
 
         //mock database
-        when(stageRepository.existsById(any())).thenReturn(true);
-        when(stageRepository.getReferenceById(input.getId())).thenReturn(oldStageEntity);
-        when(sectionRepository.existsById(any())).thenReturn(false);
+        when(stageRepository.findById(input.getId())).thenReturn(Optional.of(oldStageEntity));
+        when(sectionRepository.findById(any())).thenReturn(Optional.empty());
 
         //execute method under test
         assertThrows(EntityNotFoundException.class, () -> stageService.updateStage(input));
@@ -285,19 +290,17 @@ class StageServiceTest {
                 .setId(stageId)
                 .setRequiredContents(
                         expectedReqContents.stream()
-                                .map( content -> content.getId())
+                                .map(ContentEntity::getId)
                                 .toList()
                 ).setOptionalContents(
                         expectedOptContents.stream()
-                                .map( content -> content.getId())
+                                .map(ContentEntity::getId)
                                 .toList()
                 ).build();
 
         //mock database
-        when(stageRepository.existsById(any())).thenReturn(true);
-        when(stageRepository.getReferenceById(input.getId())).thenReturn(oldStageEntity);
-        when(sectionRepository.existsById(any())).thenReturn(true);
-        when(sectionRepository.getReferenceById(oldStageEntity.getSectionId())).thenReturn(sectionEntity);
+        when(stageRepository.findById(input.getId())).thenReturn(Optional.of(oldStageEntity));
+        when(sectionRepository.findById(oldStageEntity.getSectionId())).thenReturn(Optional.of(sectionEntity));
         when(contentRepository.findContentEntitiesByIdIn(input.getRequiredContents())).thenReturn(expectedReqContents);
         when(contentRepository.findContentEntitiesByIdIn(input.getOptionalContents())).thenReturn(expectedOptContents);
         when(stageRepository.save(any())).thenReturn(oldStageEntity);
@@ -311,20 +314,17 @@ class StageServiceTest {
 
         assertEquals(2, result.getRequiredContents().size());
         assertEquals(1, result.getOptionalContents().size());
-
-        //assertEquals(expectedResult, result);
     }
 
     @Test
     void deleteStageTest() {
         //init
         UUID sectionId = UUID.randomUUID();
-        Set<StageEntity> stageEntities = new HashSet<>();
 
 
         StageEntity deletedEntity = buildStageEntity(sectionId, 1);
 
-        stageEntities.addAll(Set.of(
+        Set<StageEntity> stageEntities = new HashSet<>(Set.of(
                 buildStageEntity(sectionId, 0),
                 deletedEntity,
                 buildStageEntity(sectionId, 2),
@@ -340,8 +340,7 @@ class StageServiceTest {
                 .build();
 
         //mock database
-        when(stageRepository.existsById(any())).thenReturn(true);
-        when(stageRepository.getReferenceById(deletedEntity.getId())).thenReturn(deletedEntity);
+        when(stageRepository.findById(deletedEntity.getId())).thenReturn(Optional.of(deletedEntity));
         when(sectionRepository.getReferenceById(sectionId)).thenReturn(sectionEntity);
         doNothing().when(stageRepository).delete(deletedEntity);
 

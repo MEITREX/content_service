@@ -26,21 +26,16 @@ public class StageService {
      * @return created Stage
      */
     public Stage createNewStage(UUID sectionId, CreateStageInput input) {
-
-        requireSectionExisting(sectionId);
-
-        SectionEntity sectionEntity = sectionRepository.getReferenceById(sectionId);
+        SectionEntity sectionEntity = requireSectionExisting(sectionId);
         StageEntity stageEntity = StageEntity.builder()
                 .sectionId(sectionId)
                 .position(sectionEntity.getStages().size())
                 .requiredContents(validateStageContent(
                         sectionEntity.getChapterId(),
-                        input.getRequiredContents()
-                ))
+                        input.getRequiredContents()))
                 .optionalContents(validateStageContent(
                         sectionEntity.getChapterId(),
-                        input.getOptionalContents()
-                ))
+                        input.getOptionalContents()))
                 .build();
 
         return stageMapper.entityToDto(stageRepository.save(stageEntity));
@@ -53,16 +48,8 @@ public class StageService {
      * @return updated Stage
      */
     public Stage updateStage(UpdateStageInput input) {
-
-        requireStageExisting(input.getId());
-
-        // fetch old Stage Object
-        StageEntity stageEntity = stageRepository.getReferenceById(input.getId());
-
-        requireSectionExisting(stageEntity.getSectionId());
-
-        // fetch Section, Stage belongs to
-        SectionEntity sectionEntity = sectionRepository.getReferenceById(stageEntity.getSectionId());
+        StageEntity stageEntity = requireStageExisting(input.getId());
+        SectionEntity sectionEntity = requireSectionExisting(stageEntity.getSectionId());
 
         // set updated Content
         stageEntity.setRequiredContents(
@@ -89,7 +76,6 @@ public class StageService {
      * @return Set of validated Content Entities
      */
     private Set<ContentEntity> validateStageContent(UUID chapterId, List<UUID> contentIds) {
-
         Set<ContentEntity> resultSet = new HashSet<>();
 
         List<ContentEntity> contentEntities = contentRepository.findContentEntitiesByIdIn(contentIds);
@@ -111,10 +97,7 @@ public class StageService {
      * @return ID of deleted Stage
      */
     public UUID deleteStage(UUID stageId) {
-
-        requireStageExisting(stageId);
-
-        StageEntity deletedStageEntity = stageRepository.getReferenceById(stageId);
+        StageEntity deletedStageEntity = requireStageExisting(stageId);
 
         SectionEntity sectionEntity = sectionRepository.getReferenceById(deletedStageEntity.getSectionId());
 
@@ -155,28 +138,24 @@ public class StageService {
      * Checks if a Stage exists.
      *
      * @param uuid The id of the Stage to check.
+     * @return The StageEntity with the given id.
      * @throws EntityNotFoundException If the chapter does not exist.
      */
-    private void requireStageExisting(UUID uuid) {
-        if (!stageRepository.existsById(uuid)) {
-            throw new EntityNotFoundException("Stage with id " + uuid + " not found");
-        }
+    private StageEntity requireStageExisting(UUID uuid) {
+        return stageRepository.findById(uuid)
+                .orElseThrow(() -> new EntityNotFoundException("Stage with id " + uuid + " not found"));
     }
 
     /**
      * Checks if a Section exists.
      *
      * @param uuid The id of the Section to check.
+     * @return The SectionEntity with the given id.
      * @throws EntityNotFoundException If the chapter does not exist.
      */
-    private void requireSectionExisting(UUID uuid) {
-        if (uuid == null) {
-            throw new NullPointerException("Section must be not null!");
-        }
-        if (!sectionRepository.existsById(uuid)) {
-            throw new EntityNotFoundException("Section with id " + uuid + " not found");
-        }
+    private SectionEntity requireSectionExisting(UUID uuid) {
+        return sectionRepository.findById(uuid)
+                .orElseThrow(() -> new EntityNotFoundException("Section with id " + uuid + " not found"));
     }
-
 
 }

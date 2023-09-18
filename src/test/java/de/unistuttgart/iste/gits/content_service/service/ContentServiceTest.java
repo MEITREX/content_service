@@ -8,9 +8,7 @@ import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentMetadataEmbeddable;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
 import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
@@ -36,12 +34,11 @@ class ContentServiceTest {
     private final StageService stageService = Mockito.mock(StageService.class);
     private final ContentMapper contentMapper = new ContentMapper(new ModelMapper());
     private final ContentValidator contentValidator = Mockito.spy(ContentValidator.class);
-    private final TagService tagService = Mockito.mock(TagService.class);
     private final TopicPublisher mockPublisher = Mockito.mock(TopicPublisher.class);
     private final UserProgressDataRepository userProgressDataRepository = Mockito.mock(UserProgressDataRepository.class);
 
     private final ContentService contentService = new ContentService(contentRepository, userProgressDataRepository,
-            tagRepository, stageService, contentMapper, contentValidator, tagService, mockPublisher);
+            tagRepository, stageService, contentMapper, contentValidator, mockPublisher);
 
     @Test
     void forwardResourceUpdates() {
