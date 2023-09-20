@@ -22,8 +22,8 @@ The service is structured similar to the microservice template.
 | spring.jpa.hibernate.ddl-auto             | Hibernate DDL auto strategy               | create                                           | update                                                               |
 | hibernate.create_empty_composites.enabled | Enable empty composite types in Hibernate | true                                             | true                                                                 |
 | DAPR_GRPC_PORT                            | Dapr gRPC Port                            | -                                                | 50001                                                                |
-| DAPR_HTTP_PORT                            | Dapr HTTP Port                            | -                                                | 3500                                                                 |
-
+| DAPR_HTTP_PORT                            | Dapr HTTP Port                            | 4000                                             | 3500                                                                 |
+| server.port                               | Port on which the application runs        | 4001                                             | 4001                                                                 |
 ## Integration tests
 
 For integration tests, a H2 database is used instead of a separate Postgresql database server because of the following
