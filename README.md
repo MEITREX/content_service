@@ -12,7 +12,7 @@ The service is structured similar to the microservice template.
 |----------------------------|------------------------------------|--------------------------------------------------|----------------------------------------------------------------------|
 | spring.datasource.url      | PostgreSQL database URL            | jdbc:postgresql://localhost:4032/content-service | jdbc:postgresql://content-service-db-postgresql:5432/content-service |
 | spring.datasource.username | Database username                  | root                                             | gits                                                                 |
-| spring.datasource.password | Database password                  | root                                             | secret                                                               |
+| spring.datasource.password | Database password                  | root                                             | *secret*                                                             |
 | DAPR_HTTP_PORT             | Dapr HTTP Port                     | 4000                                             | 3500                                                                 |
 | server.port                | Port on which the application runs | 4001                                             | 4001                                                                 |
 
