@@ -16,6 +16,7 @@ The service is structured similar to the microservice template.
 | DAPR_HTTP_PORT             | Dapr HTTP Port                     | 4000                                             | 3500                                                                 |
 | server.port                | Port on which the application runs | 4001                                             | 4001                                                                 |
 
+### Other properties
 | Name                                      | Description                               | Value in Dev Environment                  | Value in Prod Environment               |
 |-------------------------------------------|-------------------------------------------|-------------------------------------------|-----------------------------------------|
 | spring.graphql.graphiql.enabled           | Enable GraphiQL web interface for GraphQL | true                                      | true                                    |
