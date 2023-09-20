@@ -6,7 +6,7 @@ The service is structured similar to the microservice template.
 
 ## Environment variables
 
-## Relevant for deployment
+### Relevant for deployment
 
 | Name                       | Description                        | Value in Dev Environment                         | Value in Prod Environment                                            |
 |----------------------------|------------------------------------|--------------------------------------------------|----------------------------------------------------------------------|
