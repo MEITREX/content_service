@@ -46,7 +46,7 @@ class MutationCreateSectionTest {
                             }
                             requiredContents {
                                 id
-                            }                    
+                            }
                         }
                     }
                 }

@@ -60,7 +60,7 @@ public class ContentController {
     }
 
     @MutationMapping
-    public MediaContent createMediaContent(@Argument CreateMediaContentInput input, @Argument UUID courseId) {
+    public MediaContent _internal_createMediaContent(@Argument CreateMediaContentInput input, @Argument UUID courseId) {
         return contentService.createMediaContent(input, courseId);
     }
 
@@ -70,7 +70,7 @@ public class ContentController {
     }
 
     @MutationMapping
-    public Assessment createAssessment(@Argument CreateAssessmentInput input, @Argument UUID courseId) {
+    public Assessment _internal_createAssessment(@Argument CreateAssessmentInput input, @Argument UUID courseId) {
         return contentService.createAssessment(input, courseId);
     }
 

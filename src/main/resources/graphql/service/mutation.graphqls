@@ -2,12 +2,12 @@ type Mutation {
     """
     Create new media content
     """
-    createMediaContent(courseId: UUID!, input: CreateMediaContentInput!): MediaContent!
+    _internal_createMediaContent(courseId: UUID!, input: CreateMediaContentInput!): MediaContent!
 
     """
     Create a new Assessment
     """
-    createAssessment(courseId: UUID!, input: CreateAssessmentInput!): Assessment!
+    _internal_createAssessment(courseId: UUID!, input: CreateAssessmentInput!): Assessment!
 
     """
     Modify Content

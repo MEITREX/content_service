@@ -57,7 +57,7 @@ class MutationCreateAssessmentTest {
         UUID courseId = UUID.randomUUID();
         String query = """
                 mutation($chapterId: UUID!, $courseId: UUID!) {
-                    createAssessment(courseId: $courseId, input: {
+                    createAssessment: _internal_createAssessment(courseId: $courseId, input: {
                         metadata: {
                             chapterId: $chapterId
                             name: "name"
@@ -141,7 +141,7 @@ class MutationCreateAssessmentTest {
         UUID courseId = UUID.randomUUID();
         String query = """
                 mutation($courseId: UUID!) {
-                    createAssessment(courseId: $courseId, input: {
+                    createAssessment: _internal_createAssessment(courseId: $courseId, input: {
                         metadata: {
                             type: MEDIA
                             name: "name"

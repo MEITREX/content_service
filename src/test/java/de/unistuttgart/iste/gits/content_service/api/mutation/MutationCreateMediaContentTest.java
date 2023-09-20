@@ -55,7 +55,7 @@ class MutationCreateMediaContentTest {
         UUID courseId = UUID.randomUUID();
         String query = """
                 mutation($chapterId: UUID!, $courseId: UUID!) {
-                    createMediaContent(courseId: $courseId, input: {
+                    createMediaContent: _internal_createMediaContent(courseId: $courseId, input: {
                         metadata: {
                             chapterId: $chapterId
                             name: "name"
@@ -121,7 +121,7 @@ class MutationCreateMediaContentTest {
         UUID courseId = UUID.randomUUID();
         String query = """
                 mutation($courseId: UUID!) {
-                    createMediaContent(courseId: $courseId, input: {
+                    createMediaContent: _internal_createMediaContent(courseId: $courseId, input: {
                         metadata: {
                             type: FLASHCARDS,
                             name: "name"
