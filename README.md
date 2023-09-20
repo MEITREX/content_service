@@ -21,8 +21,8 @@ The service is structured similar to the microservice template.
 | spring.sql.init.continue-on-error         | Continue on SQL init error                | true                                             | true                                                                 |
 | spring.jpa.hibernate.ddl-auto             | Hibernate DDL auto strategy               | create                                           | update                                                               |
 | hibernate.create_empty_composites.enabled | Enable empty composite types in Hibernate | true                                             | true                                                                 |
-| DAPR_GRPC_PORT                            | Dapr gRPC Port                            | 50001                                            | 50001                                                                |
-| DAPR_HTTP_PORT                            | Dapr HTTP Port                            | 3500                                             | 3500                                                                 |
+| DAPR_GRPC_PORT                            | Dapr gRPC Port                            | -                                                | 50001                                                                |
+| DAPR_HTTP_PORT                            | Dapr HTTP Port                            | -                                                | 3500                                                                 |
 
 ## Integration tests
 
