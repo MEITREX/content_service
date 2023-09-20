@@ -14,7 +14,7 @@ The service is structured similar to the microservice template.
 | spring.jpa.properties.hibernate.dialect   | Hibernate dialect for PostgreSQL          | org.hibernate.dialect.PostgreSQLDialect          | org.hibernate.dialect.PostgreSQLDialect                              |
 | spring.datasource.url                     | PostgreSQL database URL                   | jdbc:postgresql://localhost:4032/content-service | jdbc:postgresql://content-service-db-postgresql:5432/content-service |
 | spring.datasource.username                | Database username                         | root                                             | gits                                                                 |
-| spring.datasource.password                | Database password                         | root                                             | ${db_password}                                                       |
+| spring.datasource.password                | Database password                         | root                                             | *secret*                                                       |
 | spring.datasource.driver-class-name       | JDBC driver class                         | org.postgresql.Driver                            | org.postgresql.Driver                                                |
 | spring.sql.init.mode                      | SQL initialization mode                   | always                                           | always                                                               |
 | spring.jpa.show-sql                       | Show SQL queries in logs                  | true                                             | true                                                                 |
