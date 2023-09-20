@@ -6,26 +6,24 @@ The service is structured similar to the microservice template.
 
 ## Environment variables
 
-| Name                                      | Description                               | Value in Dev Environment                                             | Value in Prod Environment                                            |
-|-------------------------------------------|-------------------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|
-| spring.graphql.graphiql.enabled           | Enable GraphiQL web interface for GraphQL | true                                                                 | true                                                                 |
-| spring.graphql.graphiql.path              | Path for GraphiQL when enabled            | /graphiql                                                            | /graphiql                                                            |
-| spring.profiles.active                    | Active Spring profile                     | dev                                                                  | prod                                                                 |
-| spring.jpa.properties.hibernate.dialect   | Hibernate dialect for PostgreSQL          | org.hibernate.dialect.PostgreSQLDialect                              | org.hibernate.dialect.PostgreSQLDialect                              |
-| spring.datasource.url                     | PostgreSQL database URL                   | jdbc:postgresql://localhost:4032/content-service                     | jdbc:postgresql://localhost:4032/${database_name}                    |
-| spring.datasource.username                | Database username                         | root                                                                 | ${db_username}                                                       |
-| spring.datasource.password                | Database password                         | root                                                                 | ${db_password}                                                       |
-| spring.datasource.driver-class-name       | JDBC driver class                         | org.postgresql.Driver                                                | org.postgresql.Driver                                                |
-| spring.sql.init.mode                      | SQL initialization mode                   | always                                                               | always                                                               |
-| spring.jpa.show-sql                       | Show SQL queries in logs                  | true                                                                 | true                                                                 |
-| spring.sql.init.continue-on-error         | Continue on SQL init error                | true                                                                 | true                                                                 |
-| spring.jpa.hibernate.ddl-auto             | Hibernate DDL auto strategy               | create                                                               | update                                                               |
-| hibernate.create_empty_composites.enabled | Enable empty composite types in Hibernate | true                                                                 | true                                                                 |
-| DAPR_GRPC_PORT                            | Dapr gRPC Port                            | 50001                                                                | 50001                                                                |
-| DAPR_HTTP_PORT                            | Dapr HTTP Port                            | 3500                                                                 | 3500                                                                 |
-| SPRING_DATASOURCE_PASSWORD                | DataSource Password                       | '<your_password_here>'                                               | '<your_password_here>'                                               |
-| SPRING_DATASOURCE_URL                     | DataSource URL                            | jdbc:postgresql://content-service-db-postgresql:5432/content-service | jdbc:postgresql://content-service-db-postgresql:5432/content-service |
-| SPRING_DATASOURCE_USERNAME                | DataSource Username                       | gits                                                                 | gits                                                                 |
+| Name                                      | Description                               | Value in Dev Environment                         | Value in Prod Environment                                            |
+|-------------------------------------------|-------------------------------------------|--------------------------------------------------|----------------------------------------------------------------------|
+| spring.graphql.graphiql.enabled           | Enable GraphiQL web interface for GraphQL | true                                             | true                                                                 |
+| spring.graphql.graphiql.path              | Path for GraphiQL when enabled            | /graphiql                                        | /graphiql                                                            |
+| spring.profiles.active                    | Active Spring profile                     | dev                                              | prod                                                                 |
+| spring.jpa.properties.hibernate.dialect   | Hibernate dialect for PostgreSQL          | org.hibernate.dialect.PostgreSQLDialect          | org.hibernate.dialect.PostgreSQLDialect                              |
+| spring.datasource.url                     | PostgreSQL database URL                   | jdbc:postgresql://localhost:4032/content-service | jdbc:postgresql://content-service-db-postgresql:5432/content-service |
+| spring.datasource.username                | Database username                         | root                                             | gits                                                                 |
+| spring.datasource.password                | Database password                         | root                                             | ${db_password}                                                       |
+| spring.datasource.driver-class-name       | JDBC driver class                         | org.postgresql.Driver                            | org.postgresql.Driver                                                |
+| spring.sql.init.mode                      | SQL initialization mode                   | always                                           | always                                                               |
+| spring.jpa.show-sql                       | Show SQL queries in logs                  | true                                             | true                                                                 |
+| spring.sql.init.continue-on-error         | Continue on SQL init error                | true                                             | true                                                                 |
+| spring.jpa.hibernate.ddl-auto             | Hibernate DDL auto strategy               | create                                           | update                                                               |
+| hibernate.create_empty_composites.enabled | Enable empty composite types in Hibernate | true                                             | true                                                                 |
+| DAPR_GRPC_PORT                            | Dapr gRPC Port                            | 50001                                            | 50001                                                                |
+| DAPR_HTTP_PORT                            | Dapr HTTP Port                            | 3500                                             | 3500                                                                 |
+
 ## Integration tests
 
 For integration tests, a H2 database is used instead of a separate Postgresql database server because of the following
