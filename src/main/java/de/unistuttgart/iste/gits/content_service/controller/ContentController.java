@@ -1,7 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
 import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.gits.content_service.service.*;
+import de.unistuttgart.iste.gits.content_service.service.ContentService;
+import de.unistuttgart.iste.gits.content_service.service.SuggestionService;
+import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +62,7 @@ public class ContentController {
     }
 
     @MutationMapping
-    public MediaContent _internal_createMediaContent(@Argument CreateMediaContentInput input, @Argument UUID courseId) {
+    public MediaContent createAssessment(@Argument CreateMediaContentInput input, @Argument UUID courseId) {
         return contentService.createMediaContent(input, courseId);
     }
 
@@ -70,7 +72,7 @@ public class ContentController {
     }
 
     @MutationMapping
-    public Assessment _internal_createAssessment(@Argument CreateAssessmentInput input, @Argument UUID courseId) {
+    public Assessment createAssessment(@Argument CreateAssessmentInput input, @Argument UUID courseId) {
         return contentService.createAssessment(input, courseId);
     }
 

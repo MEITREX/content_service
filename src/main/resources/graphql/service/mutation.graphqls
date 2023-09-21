@@ -7,7 +7,7 @@ type Mutation {
     """
     Create a new Assessment
     """
-    _internal_createAssessment(courseId: UUID!, input: CreateAssessmentInput!): Assessment!
+    createAssessment(courseId: UUID!, input: CreateAssessmentInput!): Assessment!
 
     """
     Modify Content
