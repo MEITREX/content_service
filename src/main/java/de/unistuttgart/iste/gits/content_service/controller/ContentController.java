@@ -61,8 +61,8 @@ public class ContentController {
         return new ContentMutation(contentId, contentId);
     }
 
-    @MutationMapping
-    public MediaContent _internal_createMediaContent(@Argument CreateMediaContentInput input, @Argument UUID courseId) {
+    @MutationMapping(name = "_internal_createMediaContent")
+    public MediaContent createMediaContent(@Argument CreateMediaContentInput input, @Argument UUID courseId) {
         return contentService.createMediaContent(input, courseId);
     }
 
