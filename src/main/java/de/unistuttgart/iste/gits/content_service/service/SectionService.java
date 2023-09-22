@@ -12,9 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static de.unistuttgart.iste.gits.content_service.util.BatchQueryUtils.mapToSortedList;
+import static de.unistuttgart.iste.gits.common.util.GitsCollectionUtils.groupIntoSubLists;
 
 @Service
 @RequiredArgsConstructor
@@ -145,13 +144,9 @@ public class SectionService {
     public List<List<Section>> getSectionsByChapterIds(List<UUID> chapterIds) {
         // get a list containing all sections for the given chapters, but not divided by chapter yet
         List<SectionEntity> entities = sectionRepository.findByChapterIdInOrderByPosition(chapterIds);
+        List<Section> sections = entities.stream().map(sectionMapper::entityToDto).toList();
 
-        // map the different sections into groups by chapter
-        Map<UUID, List<Section>> sectionsByChapterId = entities.stream()
-                .map(sectionMapper::entityToDto)
-                .collect(Collectors.groupingBy(Section::getChapterId));
-
-        return mapToSortedList(sectionsByChapterId, chapterIds, Collections.emptyList());
+        return groupIntoSubLists(sections, chapterIds, Section::getChapterId);
     }
 
     /**

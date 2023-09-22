@@ -16,11 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static de.unistuttgart.iste.gits.content_service.util.BatchQueryUtils.mapToSortedList;
+import static de.unistuttgart.iste.gits.common.util.GitsCollectionUtils.groupIntoSubLists;
 
 @Service
 @RequiredArgsConstructor
@@ -129,10 +127,9 @@ public class ContentService {
      */
     public List<List<Content>> getContentsByCourseIds(List<UUID> courseIds) {
         List<ContentEntity> matchingContents = contentRepository.findByCourseIdIn(courseIds);
-        Map<UUID, List<Content>> contentsByCourseId = groupContents(matchingContents.stream().map(contentMapper::entityToDto),
-                content -> content.getMetadata().getCourseId());
+        List<Content> contentDtos = matchingContents.stream().map(contentMapper::entityToDto).toList();
 
-        return mapToSortedList(contentsByCourseId, courseIds, List.of());
+        return groupIntoSubLists(contentDtos, courseIds, content -> content.getMetadata().getCourseId());
     }
 
     /**
@@ -143,17 +140,11 @@ public class ContentService {
      * @return a list of lists of contents. The order of the lists will match the order of the given chapter ids.
      */
     public List<List<Content>> getContentsByChapterIds(List<UUID> chapterIds) {
-        // get a list containing all contents with a matching chapter id, then map them by chapter id (multiple
-        // contents might have the same chapter id)
-        Stream<Content> matchingContents = contentRepository.findByChapterIdIn(chapterIds).stream()
-                .map(contentMapper::entityToDto);
-        Map<UUID, List<Content>> contentsByChapterId = groupContents(matchingContents, content -> content.getMetadata().getChapterId());
+        List<Content> matchingContents = contentRepository.findByChapterIdIn(chapterIds).stream()
+                .map(contentMapper::entityToDto)
+                .toList();
 
-        return mapToSortedList(contentsByChapterId, chapterIds, List.of());
-    }
-
-    private Map<UUID, List<Content>> groupContents(Stream<Content> contents, Function<Content, UUID> contentGroupingFunction) {
-        return contents.collect(Collectors.groupingBy(contentGroupingFunction));
+        return groupIntoSubLists(matchingContents, chapterIds, content -> content.getMetadata().getChapterId());
     }
 
     private ContentPayload createContentPayload(List<Content> contents) {
