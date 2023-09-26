@@ -49,12 +49,12 @@ class QueryGetContentWithNoSectionTest {
     @Test
     @Transactional
     @Commit
-    void getContentWithNoSectionTest(final GraphQlTester tester) {
+    void getContentWithNoSectionTest(GraphQlTester tester) {
 
-        final List<MediaContentEntity> contentEntities = fillDatabaseWithContent();
-        final List<Content> contentList = contentEntities.subList(2, 4).stream().map(contentMapper::entityToDto).toList();
-        final List<Content> contentList2 = contentEntities.subList(4, 5).stream().map(contentMapper::entityToDto).toList();
-        final List<SectionEntity> sectionEntities = fillDatabaseWithSections(contentEntities.subList(0, 2));
+        List<MediaContentEntity> contentEntities = fillDatabaseWithContent();
+        List<Content> contentList = contentEntities.subList(2, 4).stream().map(contentMapper::entityToDto).toList();
+        List<Content> contentList2 = contentEntities.subList(4, 5).stream().map(contentMapper::entityToDto).toList();
+        List<SectionEntity> sectionEntities = fillDatabaseWithSections(contentEntities.subList(0, 2));
 
         final String query = """
                 query($chapterIds: [UUID!]!) {
@@ -72,10 +72,10 @@ class QueryGetContentWithNoSectionTest {
                 }
                 """;
 
-        final ParameterizedTypeReference<List<MediaContent>> contentListType = new ParameterizedTypeReference<List<MediaContent>>() {
+        ParameterizedTypeReference<List<MediaContent>> contentListType = new ParameterizedTypeReference<List<MediaContent>>() {
         };
 
-        final List<List<MediaContent>> resultList = tester.document(query)
+        List<List<MediaContent>> resultList = tester.document(query)
                 .variable("chapterIds", List.of(chapterId, chapterId2))
                 .execute()
                 .path("_internal_noauth_contentWithNoSectionByChapterIds")
@@ -92,7 +92,7 @@ class QueryGetContentWithNoSectionTest {
     }
 
     private List<MediaContentEntity> fillDatabaseWithContent() {
-        final List<MediaContentEntity> contentEntities = new ArrayList<>();
+        List<MediaContentEntity> contentEntities = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             MediaContentEntity contentEntity = TestData.dummyMediaContentEntityBuilder()
                     .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
@@ -116,7 +116,7 @@ class QueryGetContentWithNoSectionTest {
     }
 
 
-    private List<SectionEntity> fillDatabaseWithSections(final List<MediaContentEntity> contentEntities) {
+    private List<SectionEntity> fillDatabaseWithSections(List<MediaContentEntity> contentEntities) {
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")
                 .chapterId(chapterId)
