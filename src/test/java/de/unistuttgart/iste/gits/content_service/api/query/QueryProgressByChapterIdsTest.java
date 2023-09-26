@@ -34,16 +34,16 @@ class QueryProgressByChapterIdsTest {
      * @param graphQlTester GraphQL HTTP Tester, which allows for manipulation of the HTTP header we require for User-Information
      */
     @Test
-    void testProgressByChapterId(HttpGraphQlTester graphQlTester) {
-        UUID userId = UUID.randomUUID();
-        UUID chapterId = UUID.randomUUID();
-        MediaContentEntity mediaContentEntity = contentRepository.save(TestData.buildContentEntity(chapterId));
-        MediaContentEntity mediaContentEntity1 = contentRepository.save(TestData.buildContentEntity(chapterId));
+    void testProgressByChapterId(final HttpGraphQlTester graphQlTester) {
+        final UUID userId = UUID.randomUUID();
+        final UUID chapterId = UUID.randomUUID();
+        final MediaContentEntity mediaContentEntity = contentRepository.save(TestData.buildContentEntity(chapterId));
+        final MediaContentEntity mediaContentEntity1 = contentRepository.save(TestData.buildContentEntity(chapterId));
 
         userProgressDataRepository.save(TestData.buildDummyUserProgressData(true, userId, mediaContentEntity.getId()));
         userProgressDataRepository.save(TestData.buildDummyUserProgressData(false, userId, mediaContentEntity1.getId()));
 
-        String currentUser = """
+        final String currentUser = """
                 {
                     "id": "%s",
                     "userName": "MyUserName",
@@ -53,7 +53,7 @@ class QueryProgressByChapterIdsTest {
                 }
                 """.formatted(userId.toString());
 
-        String query = """ 
+        final String query = """ 
                 query($chapterIds: [UUID!]!) {
                     progressByChapterIds(chapterIds: $chapterIds){
                         progress
@@ -62,7 +62,7 @@ class QueryProgressByChapterIdsTest {
                     }
                 }
                 """;
-        List<CompositeProgressInformation> resultList = graphQlTester.mutate()
+        final List<CompositeProgressInformation> resultList = graphQlTester.mutate()
                 .header("CurrentUser", currentUser)
                 .build()
                 .document(query)
@@ -72,7 +72,7 @@ class QueryProgressByChapterIdsTest {
 
         assertEquals(1, resultList.size());
 
-        CompositeProgressInformation resultItem = resultList.get(0);
+        final CompositeProgressInformation resultItem = resultList.get(0);
         assertEquals(50.0, resultItem.getProgress());
         assertEquals(1, resultItem.getCompletedContents());
         assertEquals(2, resultItem.getTotalContents());
@@ -84,14 +84,14 @@ class QueryProgressByChapterIdsTest {
      * @param graphQlTester GraphQL HTTP Tester, which allows for manipulation of the HTTP header we require for User-Information
      */
     @Test
-    void testProgressByChapterIdWithNoProgress(HttpGraphQlTester graphQlTester) {
-        UUID userId = UUID.randomUUID();
-        UUID chapterId = UUID.randomUUID();
-        MediaContentEntity mediaContentEntity = contentRepository.save(TestData.buildContentEntity(chapterId));
-        MediaContentEntity mediaContentEntity1 = contentRepository.save(TestData.buildContentEntity(chapterId));
+    void testProgressByChapterIdWithNoProgress(final HttpGraphQlTester graphQlTester) {
+        final UUID userId = UUID.randomUUID();
+        final UUID chapterId = UUID.randomUUID();
+        final MediaContentEntity mediaContentEntity = contentRepository.save(TestData.buildContentEntity(chapterId));
+        final MediaContentEntity mediaContentEntity1 = contentRepository.save(TestData.buildContentEntity(chapterId));
 
 
-        String currentUser = """
+        final String currentUser = """
                 {
                     "id": "%s",
                     "userName": "MyUserName",
@@ -101,7 +101,7 @@ class QueryProgressByChapterIdsTest {
                 }
                 """.formatted(userId.toString());
 
-        String query = """ 
+        final String query = """ 
                 query($chapterIds: [UUID!]!) {
                     progressByChapterIds(chapterIds: $chapterIds){
                         progress
@@ -110,7 +110,7 @@ class QueryProgressByChapterIdsTest {
                     }
                 }
                 """;
-        List<CompositeProgressInformation> resultList = graphQlTester.mutate()
+        final List<CompositeProgressInformation> resultList = graphQlTester.mutate()
                 .header("CurrentUser", currentUser)
                 .build()
                 .document(query)
@@ -120,7 +120,7 @@ class QueryProgressByChapterIdsTest {
 
         assertEquals(1, resultList.size());
 
-        CompositeProgressInformation resultItem = resultList.get(0);
+        final CompositeProgressInformation resultItem = resultList.get(0);
         assertEquals(0.0, resultItem.getProgress());
         assertEquals(0, resultItem.getCompletedContents());
         assertEquals(2, resultItem.getTotalContents());
@@ -132,11 +132,11 @@ class QueryProgressByChapterIdsTest {
      * @param graphQlTester GraphQL HTTP Tester, which allows for manipulation of the HTTP header we require for User-Information
      */
     @Test
-    void testProgressByChapterIdWithNoContent(HttpGraphQlTester graphQlTester) {
-        UUID userId = UUID.randomUUID();
-        UUID chapterId = UUID.randomUUID();
+    void testProgressByChapterIdWithNoContent(final HttpGraphQlTester graphQlTester) {
+        final UUID userId = UUID.randomUUID();
+        final UUID chapterId = UUID.randomUUID();
 
-        String currentUser = """
+        final String currentUser = """
                 {
                     "id": "%s",
                     "userName": "MyUserName",
@@ -146,7 +146,7 @@ class QueryProgressByChapterIdsTest {
                 }
                 """.formatted(userId.toString());
 
-        String query = """ 
+        final String query = """ 
                 query($chapterIds: [UUID!]!) {
                     progressByChapterIds(chapterIds: $chapterIds){
                         progress
@@ -155,7 +155,7 @@ class QueryProgressByChapterIdsTest {
                     }
                 }
                 """;
-        List<CompositeProgressInformation> resultList = graphQlTester.mutate()
+        final List<CompositeProgressInformation> resultList = graphQlTester.mutate()
                 .header("CurrentUser", currentUser)
                 .build()
                 .document(query)

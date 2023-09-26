@@ -2,8 +2,12 @@ package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -11,7 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 import static de.unistuttgart.iste.gits.content_service.TestData.buildContentEntity;
 
@@ -31,8 +38,8 @@ class MutationUpdateStageTest {
     @Test
     @Transactional
     @Commit
-    void testUpdateStage(GraphQlTester tester){
-        List<UUID> contentIds = new ArrayList<>();
+    void testUpdateStage(final GraphQlTester tester) {
+        final List<UUID> contentIds = new ArrayList<>();
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")
                 .chapterId(UUID.randomUUID())
@@ -55,13 +62,13 @@ class MutationUpdateStageTest {
             contentIds.add(entity.getId());
         }
 
-        UpdateStageInput input = UpdateStageInput.builder()
+        final UpdateStageInput input = UpdateStageInput.builder()
                 .setId(stageEntity.getId())
                 .setRequiredContents(List.of(contentIds.get(0)))
                 .setOptionalContents(List.of(contentIds.get(1)))
                 .build();
 
-        String query = """
+        final String query = """
                 mutation ($id: UUID!, $input: UpdateStageInput!){
                     mutateSection(sectionId: $id){
                         updateStage(input: $input){
@@ -79,7 +86,7 @@ class MutationUpdateStageTest {
                 }
                 """;
 
-        String expectedJson = """
+        final String expectedJson = """
                       {
                       "id": "%s",
                       "position": 0,

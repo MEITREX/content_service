@@ -19,8 +19,7 @@ class MutationDeleteSectionTest {
     private SectionRepository sectionRepository;
 
     @Test
-
-    void testSectionDeletion(GraphQlTester tester){
+    void testSectionDeletion(final GraphQlTester tester) {
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")
                 .chapterId(UUID.randomUUID())
@@ -28,7 +27,7 @@ class MutationDeleteSectionTest {
                 .build();
         sectionEntity = sectionRepository.save(sectionEntity);
 
-        String query = """
+        final String query = """
                 mutation ($id: UUID!){
                     mutateSection(sectionId: $id){
                         deleteSection

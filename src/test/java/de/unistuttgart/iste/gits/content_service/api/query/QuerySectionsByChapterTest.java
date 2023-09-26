@@ -5,7 +5,10 @@ import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.gits.generated.dto.Section;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +18,10 @@ import org.springframework.graphql.test.tester.HttpGraphQlTester;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -87,7 +93,7 @@ class QuerySectionsByChapterTest {
     }
 
     private List<MediaContentEntity> fillDatabaseWithContent() {
-        List<MediaContentEntity> contentEntities = new ArrayList<>();
+        final List<MediaContentEntity> contentEntities = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             MediaContentEntity contentEntity = TestData.dummyMediaContentEntityBuilder()
                     .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
@@ -100,8 +106,8 @@ class QuerySectionsByChapterTest {
         return contentEntities;
     }
 
-    private List<UserProgressDataEntity> fillDatabaseWithUserProgress(UUID userId, List<MediaContentEntity> contentEntities) {
-        UserProgressDataEntity userProgressDataEntity1 = UserProgressDataEntity.builder()
+    private List<UserProgressDataEntity> fillDatabaseWithUserProgress(final UUID userId, final List<MediaContentEntity> contentEntities) {
+        final UserProgressDataEntity userProgressDataEntity1 = UserProgressDataEntity.builder()
                 .userId(userId)
                 .contentId(contentEntities.get(0).getId())
                 .learningInterval(1)
@@ -125,7 +131,7 @@ class QuerySectionsByChapterTest {
                 ))
                 .build();
 
-        UserProgressDataEntity userProgressDataEntity2 = UserProgressDataEntity.builder()
+        final UserProgressDataEntity userProgressDataEntity2 = UserProgressDataEntity.builder()
                 .userId(userId)
                 .contentId(contentEntities.get(1).getId())
                 .learningInterval(1)
@@ -149,7 +155,7 @@ class QuerySectionsByChapterTest {
                 ))
                 .build();
 
-        UserProgressDataEntity userProgressDataEntity3 = UserProgressDataEntity.builder()
+        final UserProgressDataEntity userProgressDataEntity3 = UserProgressDataEntity.builder()
                 .userId(userId)
                 .contentId(contentEntities.get(2).getId())
                 .learningInterval(1)
@@ -173,7 +179,7 @@ class QuerySectionsByChapterTest {
                 ))
                 .build();
 
-        List<UserProgressDataEntity> progressDataEntities = List.of(userProgressDataEntity1, userProgressDataEntity2, userProgressDataEntity3);
+        final List<UserProgressDataEntity> progressDataEntities = List.of(userProgressDataEntity1, userProgressDataEntity2, userProgressDataEntity3);
 
         userProgressDataRepository.saveAll(progressDataEntities);
 
@@ -181,11 +187,11 @@ class QuerySectionsByChapterTest {
     }
 
     @Test
-    void testQuerySectionsByChapter(GraphQlTester tester) {
-        List<SectionEntity> entities = fillDatabaseWithSections();
-        List<Section> entitiesMapped = entities.stream().map(sectionMapper::entityToDto).toList();
+    void testQuerySectionsByChapter(final GraphQlTester tester) {
+        final List<SectionEntity> entities = fillDatabaseWithSections();
+        final List<Section> entitiesMapped = entities.stream().map(sectionMapper::entityToDto).toList();
 
-        String query = """
+        final String query = """
                 query($chapterIds: [UUID!]!) {
                 sectionsByChapterIds(chapterIds: $chapterIds){
                     id
@@ -205,10 +211,10 @@ class QuerySectionsByChapterTest {
                 }
                 """;
 
-        ParameterizedTypeReference<List<Section>> sectionListType = new ParameterizedTypeReference<List<Section>>() {
+        final ParameterizedTypeReference<List<Section>> sectionListType = new ParameterizedTypeReference<List<Section>>() {
         };
 
-        List<List<Section>> result = tester.document(query)
+        final List<List<Section>> result = tester.document(query)
                 .variable("chapterIds", List.of(chapterId, chapterId2))
                 .execute()
                 .path("sectionsByChapterIds").entityList(sectionListType).get();
@@ -221,16 +227,16 @@ class QuerySectionsByChapterTest {
     }
 
     @Test
-    void testQuerySectionsByChapterWithUserData(HttpGraphQlTester graphQlTester) {
-        UUID userId = UUID.randomUUID();
+    void testQuerySectionsByChapterWithUserData(final HttpGraphQlTester graphQlTester) {
+        final UUID userId = UUID.randomUUID();
 
         //init database Data
-        List<SectionEntity> entities = fillDatabaseWithSections();
-        List<MediaContentEntity> contentEntities = fillDatabaseWithContent();
-        List<UserProgressDataEntity> userProgressDataEntities = fillDatabaseWithUserProgress(userId, contentEntities);
+        final List<SectionEntity> entities = fillDatabaseWithSections();
+        final List<MediaContentEntity> contentEntities = fillDatabaseWithContent();
+        final List<UserProgressDataEntity> userProgressDataEntities = fillDatabaseWithUserProgress(userId, contentEntities);
 
         // link some content to stages
-        SectionEntity section = entities.get(0);
+        final SectionEntity section = entities.get(0);
         section.getStages().forEach(stageEntity -> {
             stageEntity.getRequiredContents().add(contentEntities.get(0));
             stageEntity.getRequiredContents().add(contentEntities.get(1));
@@ -239,7 +245,7 @@ class QuerySectionsByChapterTest {
         sectionRepository.save(section);
 
 
-        String currentUser = """
+        final String currentUser = """
                 {
                     "id": "%s",
                     "userName": "MyUserName",
@@ -250,7 +256,7 @@ class QuerySectionsByChapterTest {
                 """.formatted(userId.toString());
 
 
-        String query = """
+        final String query = """
                 query($chapterIds: [UUID!]!) {
                 sectionsByChapterIds(chapterIds: $chapterIds){
                     id

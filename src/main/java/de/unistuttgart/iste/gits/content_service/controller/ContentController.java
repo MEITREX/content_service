@@ -28,93 +28,93 @@ public class ContentController {
     }
 
     @QueryMapping
-    public List<Content> contentsByIds(@Argument List<UUID> ids) {
+    public List<Content> contentsByIds(@Argument final List<UUID> ids) {
         return contentService.getContentsById(ids);
     }
 
     @QueryMapping
-    public List<Content> findContentsByIds(@Argument List<UUID> ids) {
+    public List<Content> findContentsByIds(@Argument final List<UUID> ids) {
         return contentService.findContentsById(ids);
     }
 
     @QueryMapping
-    public List<Suggestion> suggestionsByChapterIds(@Argument List<UUID> chapterIds,
-                                                    @Argument int amount,
-                                                    @Argument List<SkillType> skillTypes,
-                                                    @ContextValue LoggedInUser currentUser) {
+    public List<Suggestion> suggestionsByChapterIds(@Argument final List<UUID> chapterIds,
+                                                    @Argument final int amount,
+                                                    @Argument final List<SkillType> skillTypes,
+                                                    @ContextValue final LoggedInUser currentUser) {
         return suggestionService.createSuggestions(chapterIds, currentUser.getId(), amount, skillTypes);
     }
 
     @QueryMapping
-    public List<List<Content>> contentsByChapterIds(@Argument List<UUID> chapterIds) {
+    public List<List<Content>> contentsByChapterIds(@Argument final List<UUID> chapterIds) {
         return contentService.getContentsByChapterIds(chapterIds);
     }
 
     @QueryMapping(name = "_internal_noauth_achievableSkillTypesByChapterIds")
-    public List<List<SkillType>> internalAchievableSkillTypesByChapterIds(@Argument List<UUID> chapterIds) {
+    public List<List<SkillType>> internalAchievableSkillTypesByChapterIds(@Argument final List<UUID> chapterIds) {
         return contentService.getAchievableSkillTypesByChapterIds(chapterIds);
     }
 
     @MutationMapping
-    public ContentMutation mutateContent(@Argument UUID contentId) {
+    public ContentMutation mutateContent(@Argument final UUID contentId) {
         //parent object for nested mutations
         return new ContentMutation(contentId, contentId);
     }
 
     @MutationMapping
-    public MediaContent createMediaContent(@Argument CreateMediaContentInput input) {
+    public MediaContent createMediaContent(@Argument final CreateMediaContentInput input) {
         return contentService.createMediaContent(input);
     }
 
     @SchemaMapping(typeName = "ContentMutation")
-    public MediaContent updateMediaContent(@Argument UpdateMediaContentInput input, ContentMutation contentMutation) {
+    public MediaContent updateMediaContent(@Argument final UpdateMediaContentInput input, final ContentMutation contentMutation) {
         return contentService.updateMediaContent(contentMutation.getContentId(), input);
     }
 
     @MutationMapping
-    public Assessment createAssessment(@Argument CreateAssessmentInput input) {
+    public Assessment createAssessment(@Argument final CreateAssessmentInput input) {
         return contentService.createAssessment(input);
     }
 
     @SchemaMapping(typeName = "ContentMutation")
-    public Assessment updateAssessment(@Argument UpdateAssessmentInput input, ContentMutation contentMutation) {
+    public Assessment updateAssessment(@Argument final UpdateAssessmentInput input, final ContentMutation contentMutation) {
         return contentService.updateAssessment(contentMutation.getContentId(), input);
     }
 
     @SchemaMapping(typeName = "ContentMutation")
-    public UUID deleteContent(ContentMutation contentMutation) {
+    public UUID deleteContent(final ContentMutation contentMutation) {
         return contentService.deleteContent(contentMutation.getContentId());
     }
 
     @SchemaMapping(typeName = "ContentMutation")
-    public Content addTagToContent(@Argument String tagName, ContentMutation contentMutation) {
+    public Content addTagToContent(@Argument final String tagName, final ContentMutation contentMutation) {
         return contentService.addTagToContent(contentMutation.getContentId(), tagName);
     }
 
     @SchemaMapping(typeName = "ContentMutation")
-    public Content removeTagFromContent(@Argument String tagName, ContentMutation contentMutation) {
+    public Content removeTagFromContent(@Argument final String tagName, final ContentMutation contentMutation) {
         return contentService.removeTagFromContent(contentMutation.getContentId(), tagName);
     }
 
     @QueryMapping
-    public List<CompositeProgressInformation> progressByChapterIds(@Argument List<UUID> chapterIds, @ContextValue LoggedInUser currentUser) {
+    public List<CompositeProgressInformation> progressByChapterIds(@Argument final List<UUID> chapterIds, @ContextValue final LoggedInUser currentUser) {
         return userProgressDataService.getProgressByChapterIdsForUser(chapterIds, currentUser.getId());
     }
 
 
     @QueryMapping(name = "_internal_noauth_contentWithNoSectionByChapterIds")
-    public List<List<Content>> contentWithNoSectionByChapterIds(@Argument List<UUID> chapterIds) {
+    public List<List<Content>> contentWithNoSectionByChapterIds(@Argument final List<UUID> chapterIds) {
         return contentService.getContentWithNoSection(chapterIds);
     }
 
     public abstract class ContentResolver<T extends Content> {
         @SchemaMapping(field = "userProgressData")
-        public UserProgressData userProgressData(T content, @ContextValue LoggedInUser currentUser) {
+        public UserProgressData userProgressData(final T content, @ContextValue final LoggedInUser currentUser) {
             return userProgressDataService.getUserProgressData(currentUser.getId(), content.getId());
         }
 
         @SchemaMapping(field = "progressDataForUser")
-        public UserProgressData progressDataForUser(T content, @Argument UUID userId) {
+        public UserProgressData progressDataForUser(final T content, @Argument final UUID userId) {
             return userProgressDataService.getUserProgressData(userId, content.getId());
         }
     }

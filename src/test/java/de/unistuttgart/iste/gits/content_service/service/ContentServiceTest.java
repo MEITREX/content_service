@@ -51,16 +51,16 @@ class ContentServiceTest {
     @Test
     void forwardResourceUpdates() {
 
-        final ResourceUpdateEvent dto = ResourceUpdateEvent.builder()
+        ResourceUpdateEvent dto = ResourceUpdateEvent.builder()
                 .entityId(UUID.randomUUID())
                 .contentIds(List.of(UUID.randomUUID()))
                 .operation(CrudOperation.CREATE)
                 .build();
 
-        final ContentEntity testEntity = ContentEntity.builder()
+        ContentEntity testEntity = ContentEntity.builder()
                 .id(dto.getContentIds()
                         .get(0))
-                .metadata( ContentMetadataEmbeddable.builder()
+                .metadata(ContentMetadataEmbeddable.builder()
                         .chapterId(UUID.randomUUID())
                         .name("Test")
                         .rewardPoints(10)
@@ -83,20 +83,20 @@ class ContentServiceTest {
 
     @Test
     void forwardFaultyResourceUpdates() {
-        final ResourceUpdateEvent noEntityDto = ResourceUpdateEvent.builder()
+        ResourceUpdateEvent noEntityDto = ResourceUpdateEvent.builder()
                 .contentIds(List.of(UUID.randomUUID()))
                 .operation(CrudOperation.CREATE)
                 .build();
-        final ResourceUpdateEvent nullListDto = ResourceUpdateEvent.builder()
+        ResourceUpdateEvent nullListDto = ResourceUpdateEvent.builder()
                 .entityId(UUID.randomUUID())
                 .operation(CrudOperation.CREATE)
                 .build();
-        final ResourceUpdateEvent emptyListDto = ResourceUpdateEvent.builder()
+        ResourceUpdateEvent emptyListDto = ResourceUpdateEvent.builder()
                 .entityId(UUID.randomUUID())
                 .contentIds(new ArrayList<UUID>())
                 .operation(CrudOperation.CREATE)
                 .build();
-        final ResourceUpdateEvent noOperationDto = ResourceUpdateEvent.builder()
+        ResourceUpdateEvent noOperationDto = ResourceUpdateEvent.builder()
                 .entityId(UUID.randomUUID())
                 .contentIds(List.of(UUID.randomUUID()))
                 .build();
@@ -110,14 +110,14 @@ class ContentServiceTest {
     @Test
     void cascadeContentDeletion() {
 
-        final ChapterChangeEvent dto = ChapterChangeEvent.builder()
+        ChapterChangeEvent dto = ChapterChangeEvent.builder()
                 .chapterIds(List.of(UUID.randomUUID(), UUID.randomUUID()))
                 .operation(CrudOperation.DELETE)
                 .build();
 
-        final ContentEntity testEntity = ContentEntity.builder()
+        ContentEntity testEntity = ContentEntity.builder()
                 .id(UUID.randomUUID())
-                .metadata( ContentMetadataEmbeddable.builder()
+                .metadata(ContentMetadataEmbeddable.builder()
                         .chapterId(dto.getChapterIds()
                                 .get(0))
                         .name("Test")
@@ -127,9 +127,9 @@ class ContentServiceTest {
                         .build()
                 )
                 .build();
-        final ContentEntity testEntity2 = ContentEntity.builder()
+        ContentEntity testEntity2 = ContentEntity.builder()
                 .id(UUID.randomUUID())
-                .metadata( ContentMetadataEmbeddable.builder()
+                .metadata(ContentMetadataEmbeddable.builder()
                         .chapterId(dto.getChapterIds()
                                 .get(1))
                         .name("Test2")
@@ -157,18 +157,18 @@ class ContentServiceTest {
 
     @Test
     void testFaultyCascadeContentDeletion(){
-        final ChapterChangeEvent wrongOperatorDto = ChapterChangeEvent.builder()
+        ChapterChangeEvent wrongOperatorDto = ChapterChangeEvent.builder()
                 .chapterIds(List.of(UUID.randomUUID()))
                 .operation(CrudOperation.CREATE)
                 .build();
-        final ChapterChangeEvent emptyListDto = ChapterChangeEvent.builder()
+        ChapterChangeEvent emptyListDto = ChapterChangeEvent.builder()
                 .chapterIds(new ArrayList<UUID>())
                 .operation(CrudOperation.DELETE)
                 .build();
-        final ChapterChangeEvent nullListDto = ChapterChangeEvent.builder()
+        ChapterChangeEvent nullListDto = ChapterChangeEvent.builder()
                 .operation(CrudOperation.DELETE)
                 .build();
-        final ChapterChangeEvent noOperationDto = ChapterChangeEvent.builder()
+        ChapterChangeEvent noOperationDto = ChapterChangeEvent.builder()
                 .chapterIds(new ArrayList<UUID>())
                 .build();
 
@@ -188,8 +188,8 @@ class ContentServiceTest {
 
     @Test
     void testSkillTypesByChapterId() {
-        final UUID chapterId1 = UUID.randomUUID();
-        final UUID chapterId2 = UUID.randomUUID();
+        UUID chapterId1 = UUID.randomUUID();
+        UUID chapterId2 = UUID.randomUUID();
 
         when(contentRepository.findSkillTypesByChapterId(chapterId1)).thenReturn(
                 List.of(List.of(SkillType.REMEMBER), List.of(SkillType.UNDERSTAND, SkillType.REMEMBER))
@@ -198,7 +198,7 @@ class ContentServiceTest {
                 List.of(List.of(SkillType.APPLY, SkillType.REMEMBER))
         );
 
-        final var actualSkillTypes = contentService.getAchievableSkillTypesByChapterIds(List.of(chapterId1, chapterId2));
+        var actualSkillTypes = contentService.getAchievableSkillTypesByChapterIds(List.of(chapterId1, chapterId2));
 
         assertThat(actualSkillTypes, contains(
                 containsInAnyOrder(SkillType.REMEMBER, SkillType.UNDERSTAND),
@@ -208,29 +208,29 @@ class ContentServiceTest {
 
     @Test
     void testSkillTypesByChapterIdNoSkillTypes() {
-        final UUID chapterId = UUID.randomUUID();
+        UUID chapterId = UUID.randomUUID();
 
         when(contentRepository.findSkillTypesByChapterId(chapterId)).thenReturn(
                 List.of(List.of())
         );
 
-        final var actualSkillTypes = contentService.getAchievableSkillTypesByChapterIds(List.of(chapterId));
+        var actualSkillTypes = contentService.getAchievableSkillTypesByChapterIds(List.of(chapterId));
 
         assertThat(actualSkillTypes, contains(is(empty())));
     }
 
     @Test
     void getContentWithNoSection() {
-        final UUID chapterId = UUID.randomUUID();
-        final UUID chapterId2 = UUID.randomUUID();
-        final UUID chapterId3 = UUID.randomUUID();
-        final List<UUID> chapterIds = List.of(chapterId, chapterId2, chapterId3);
+        UUID chapterId = UUID.randomUUID();
+        UUID chapterId2 = UUID.randomUUID();
+        UUID chapterId3 = UUID.randomUUID();
+        List<UUID> chapterIds = List.of(chapterId, chapterId2, chapterId3);
 
-        final UUID sectionId = UUID.randomUUID();
-        final UUID sectionId2 = UUID.randomUUID();
-        final UUID sectionId3 = UUID.randomUUID();
+        UUID sectionId = UUID.randomUUID();
+        UUID sectionId2 = UUID.randomUUID();
+        UUID sectionId3 = UUID.randomUUID();
 
-        final List<ContentEntity> mediaContentEntities = List.of(
+        List<ContentEntity> mediaContentEntities = List.of(
                 TestData.buildContentEntity(chapterId),
                 TestData.buildContentEntity(chapterId),
                 TestData.buildContentEntity(chapterId),
@@ -240,7 +240,7 @@ class ContentServiceTest {
         );
 
         //case: chapter has both linked and unlinked content
-        final SectionEntity sectionEntity = SectionEntity.builder()
+        SectionEntity sectionEntity = SectionEntity.builder()
                 .chapterId(chapterId)
                 .name("Test Section")
                 .id(sectionId)
@@ -248,7 +248,7 @@ class ContentServiceTest {
                 .build();
 
         //case: chapter has only unlinked content
-        final SectionEntity sectionEntity2 = SectionEntity.builder()
+        SectionEntity sectionEntity2 = SectionEntity.builder()
                 .chapterId(chapterId2)
                 .name("Test Section 2")
                 .id(sectionId2)
@@ -256,7 +256,7 @@ class ContentServiceTest {
                 .build();
 
         //case: chapter has only linked content
-        final SectionEntity sectionEntity3 = SectionEntity.builder()
+        SectionEntity sectionEntity3 = SectionEntity.builder()
                 .chapterId(chapterId2)
                 .name("Test Section 3")
                 .id(sectionId3)
@@ -264,15 +264,15 @@ class ContentServiceTest {
                 .build();
 
         // expected outcome
-        final List<Content> unlinkedContentForChapter1 = mediaContentEntities.subList(2, 4).stream().map(contentMapper::entityToDto).toList();
-        final List<Content> unlinkedContentForChapter2 = mediaContentEntities.subList(4, 5).stream().map(contentMapper::entityToDto).toList();
+        List<Content> unlinkedContentForChapter1 = mediaContentEntities.subList(2, 4).stream().map(contentMapper::entityToDto).toList();
+        List<Content> unlinkedContentForChapter2 = mediaContentEntities.subList(4, 5).stream().map(contentMapper::entityToDto).toList();
 
         //mock database queries
         when(sectionRepository.findByChapterIdIn(chapterIds)).thenReturn(List.of(sectionEntity, sectionEntity2, sectionEntity3));
         when(contentRepository.findByChapterIdIn(chapterIds)).thenReturn(mediaContentEntities);
 
         // execute method under test
-        final List<List<Content>> result = contentService.getContentWithNoSection(chapterIds);
+        List<List<Content>> result = contentService.getContentWithNoSection(chapterIds);
 
         System.out.println(mediaContentEntities);
         System.out.println(mediaContentEntities);

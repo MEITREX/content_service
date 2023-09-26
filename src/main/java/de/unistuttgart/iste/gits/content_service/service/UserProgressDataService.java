@@ -35,8 +35,8 @@ public class UserProgressDataService {
      * Returns the user progress data for the given user and content.
      * If no progress data exists for the given user and content, it will be created.
      */
-    public UserProgressData getUserProgressData(UUID userId, UUID contentId) {
-        UserProgressDataEntity dbProgressData = getUserProgressDataEntity(userId, contentId);
+    public UserProgressData getUserProgressData(final UUID userId, final UUID contentId) {
+        final UserProgressDataEntity dbProgressData = getUserProgressDataEntity(userId, contentId);
 
         return userProgressDataMapper.entityToDto(dbProgressData);
     }
@@ -48,7 +48,7 @@ public class UserProgressDataService {
      * @param contentId ID of content
      * @return User Progress Entity from the database
      */
-    private UserProgressDataEntity getUserProgressDataEntity(UUID userId, UUID contentId) {
+    private UserProgressDataEntity getUserProgressDataEntity(final UUID userId, final UUID contentId) {
         return userProgressDataRepository
                 .findByUserIdAndContentId(userId, contentId)
                 .orElseGet(() -> createInitialUserProgressData(userId, contentId));
@@ -61,15 +61,15 @@ public class UserProgressDataService {
      * @param contentId ID of Content
      * @return a newly initialized User Progress Entity
      */
-    public UserProgressDataEntity createInitialUserProgressData(UUID userId, UUID contentId) {
+    public UserProgressDataEntity createInitialUserProgressData(final UUID userId, final UUID contentId) {
         log.info("Creating initial user progress data for user {} and content {}", userId, contentId);
-        ContentEntity contentEntity = contentService.requireContentExisting(contentId);
+        final ContentEntity contentEntity = contentService.requireContentExisting(contentId);
 
-        Integer learningInterval = contentEntity instanceof AssessmentEntity assessmentEntity
+        final Integer learningInterval = contentEntity instanceof final AssessmentEntity assessmentEntity
                 ? assessmentEntity.getAssessmentMetadata().getInitialLearningInterval()
                 : null;
 
-        UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
+        final UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .userId(userId)
                 .contentId(contentId)
                 .progressLog(new ArrayList<>(0))
@@ -87,13 +87,13 @@ public class UserProgressDataService {
      *
      * @param userProgressLogEvent the event to log
      */
-    public void logUserProgress(UserProgressLogEvent userProgressLogEvent) {
-        UserProgressDataEntity userProgressDataEntity = getUserProgressDataEntity(
+    public void logUserProgress(final UserProgressLogEvent userProgressLogEvent) {
+        final UserProgressDataEntity userProgressDataEntity = getUserProgressDataEntity(
                 userProgressLogEvent.getUserId(), userProgressLogEvent.getContentId());
 
         userProgressDataEntity.setLearningInterval(
                 calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity));
-        var logItem = userProgressDataMapper.eventToEmbeddable(userProgressLogEvent);
+        final var logItem = userProgressDataMapper.eventToEmbeddable(userProgressLogEvent);
         logItem.setTimestamp(OffsetDateTime.now());
         userProgressDataEntity.getProgressLog().add(logItem);
 
@@ -119,13 +119,13 @@ public class UserProgressDataService {
      * The learning interval can never be smaller than 1, except when it was never scheduled for
      * repetition to begin with.
      */
-    protected Integer calculateNewLearningInterval(UserProgressLogEvent userProgressLogEvent, UserProgressDataEntity userProgressDataEntity) {
+    protected Integer calculateNewLearningInterval(final UserProgressLogEvent userProgressLogEvent, final UserProgressDataEntity userProgressDataEntity) {
         if (userProgressDataEntity.getLearningInterval() == null) {
             return null;
         }
-        double newLearningInterval;
+        final double newLearningInterval;
         if (userProgressLogEvent.isSuccess()) {
-            int hintsUsedCapped = Math.min(userProgressLogEvent.getHintsUsed(), 10);
+            final int hintsUsedCapped = Math.min(userProgressLogEvent.getHintsUsed(), 10);
             newLearningInterval = userProgressDataEntity.getLearningInterval() *
                                   (1 + userProgressLogEvent.getCorrectness() - hintsUsedCapped * 0.1);
         } else {
@@ -144,10 +144,10 @@ public class UserProgressDataService {
      * @param requiredContent true - consider required content, false - consider optional content
      * @return progress percentage
      */
-    public double getStageProgressForUser(Stage stage, UUID userId, boolean requiredContent) {
+    public double getStageProgressForUser(final Stage stage, final UUID userId, final boolean requiredContent) {
         int numbOfCompletedContent = 0;
 
-        List<Content> contentList;
+        final List<Content> contentList;
 
         if (requiredContent) {
             contentList = stage.getRequiredContents();
@@ -172,14 +172,14 @@ public class UserProgressDataService {
      * @param userId     the ID of the user for whom progress is evaluated
      * @return Progress for each chapter, containing a percentage of progress, absolut number of content and completed content
      */
-    public List<CompositeProgressInformation> getProgressByChapterIdsForUser(List<UUID> chapterIds, UUID userId) {
-        List<CompositeProgressInformation> chapterProgressItems = new ArrayList<>();
-        Map<UUID, List<Content>> contentEntitiesByChapterIds = contentService.getContentSortedByChapterId(chapterIds);
+    public List<CompositeProgressInformation> getProgressByChapterIdsForUser(final List<UUID> chapterIds, final UUID userId) {
+        final List<CompositeProgressInformation> chapterProgressItems = new ArrayList<>();
+        final Map<UUID, List<Content>> contentEntitiesByChapterIds = contentService.getContentSortedByChapterId(chapterIds);
 
-        for (List<Content> contentList : contentEntitiesByChapterIds.values()) {
-            int numCompletedContent = countNumCompletedContent(userId, contentList);
+        for (final List<Content> contentList : contentEntitiesByChapterIds.values()) {
+            final int numCompletedContent = countNumCompletedContent(userId, contentList);
 
-            CompositeProgressInformation compositeProgressInformation = CompositeProgressInformation.builder()
+            final CompositeProgressInformation compositeProgressInformation = CompositeProgressInformation.builder()
                     .setProgress((double) numCompletedContent / contentList.size() * 100)
                     .setCompletedContents(numCompletedContent)
                     .setTotalContents(contentList.size())
@@ -196,10 +196,10 @@ public class UserProgressDataService {
      * @param contentList all content objects for which the progress has to be evaluated
      * @return number of successfully completed contents
      */
-    private int countNumCompletedContent(UUID userId, List<Content> contentList) {
+    private int countNumCompletedContent(final UUID userId, final List<Content> contentList) {
         int numbCompletedContent = 0;
 
-        for (Content content : contentList) {
+        for (final Content content : contentList) {
             UserProgressData contentProgress = content.getUserProgressData();
             if (contentProgress == null) {
                 contentProgress = getUserProgressData(userId, content.getId());

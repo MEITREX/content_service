@@ -6,7 +6,9 @@ import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.gits.generated.dto.ContentType;
+import de.unistuttgart.iste.gits.generated.dto.FlashcardSetAssessment;
+import de.unistuttgart.iste.gits.generated.dto.SkillType;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +37,12 @@ class MutationUpdateAssessmentTest {
     @Test
     @Transactional
     @Commit
-    void testUpdateAssessment(GraphQlTester graphQlTester) {
-        ContentEntity contentEntity = contentRepository.save(
+    void testUpdateAssessment(final GraphQlTester graphQlTester) {
+        final ContentEntity contentEntity = contentRepository.save(
                 TestData.dummyAssessmentEntityBuilder().build());
-        UUID newChapterId = UUID.randomUUID();
+        final UUID newChapterId = UUID.randomUUID();
 
-        String query = """
+        final String query = """
                 mutation($assessmentId: UUID!, $chapterId: UUID!) {
                     mutateContent(contentId: $assessmentId){
                         updateAssessment(input: {
@@ -77,7 +79,7 @@ class MutationUpdateAssessmentTest {
                 }
                 """;
 
-        FlashcardSetAssessment updatedAssessment = graphQlTester.document(query)
+        final FlashcardSetAssessment updatedAssessment = graphQlTester.document(query)
                 .variable("assessmentId", contentEntity.getId())
                 .variable("chapterId", newChapterId)
                 .execute()
@@ -96,10 +98,10 @@ class MutationUpdateAssessmentTest {
         assertThat(updatedAssessment.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.UNDERSTAND, SkillType.REMEMBER)));
         assertThat(updatedAssessment.getAssessmentMetadata().getInitialLearningInterval(), is(7));
 
-        ContentEntity newContentEntity = contentRepository.findById(updatedAssessment.getId()).orElseThrow();
+        final ContentEntity newContentEntity = contentRepository.findById(updatedAssessment.getId()).orElseThrow();
         assertThat(newContentEntity, is(instanceOf(AssessmentEntity.class)));
 
-        AssessmentEntity assessmentEntity = (AssessmentEntity) newContentEntity;
+        final AssessmentEntity assessmentEntity = (AssessmentEntity) newContentEntity;
 
         // check that assessment entity is correct
         assertThat(assessmentEntity.getMetadata().getName(), is("newName"));
