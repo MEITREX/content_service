@@ -329,18 +329,17 @@ class UserProgressDataServiceTest {
      * but rather directly work with data made available by the provided contents in the Stage.
      */
     @Test
-    void getStageProgressWithContentUserdataTests(){
+    void getStageProgressWithContentUserdataTests() {
 
         // init test data
         final UUID userId = UUID.randomUUID();
         final MediaContent mediaContent = buildDummyMediaContent();
         final MediaContent mediaContent2 = buildDummyMediaContent();
 
-        final UserProgressData userProgressData  = userProgressDataMapper.entityToDto(buildDummyUserProgressData(true, userId, mediaContent.getId()));
-        final UserProgressData userProgressData2  = userProgressDataMapper.entityToDto(buildDummyUserProgressData(false, userId, mediaContent2.getId()));
-
-        mediaContent.setUserProgressData(userProgressData);
-        mediaContent2.setUserProgressData(userProgressData2);
+        final UserProgressDataEntity userProgressData =
+                buildDummyUserProgressData(true, userId, mediaContent.getId());
+        final UserProgressDataEntity userProgressData2 =
+                buildDummyUserProgressData(false, userId, mediaContent2.getId());
 
         final Stage stage = Stage.builder()
                 .setId(UUID.randomUUID())
@@ -349,11 +348,16 @@ class UserProgressDataServiceTest {
                 .setOptionalContents(List.of(mediaContent, mediaContent2))
                 .build();
 
+        when(userProgressDataRepository.findByUserIdAndContentId(userId, mediaContent.getId()))
+                .thenReturn(Optional.of(userProgressData));
+        when(userProgressDataRepository.findByUserIdAndContentId(userId, mediaContent2.getId()))
+                .thenReturn(Optional.of(userProgressData2));
+
         // run method under test
         final double result = userProgressDataService.getStageProgressForUser(stage, userId, false);
 
         // verify methods called
-        verify(userProgressDataRepository, never()).findByUserIdAndContentId(any(), any());
+        verify(userProgressDataRepository, times(2)).findByUserIdAndContentId(any(), any());
 
         // assertions
         assertEquals(50.0, result);
@@ -365,7 +369,7 @@ class UserProgressDataServiceTest {
      * Expected behaviour therefor contains the retrieval of all progress data for contents within the Stage.
      */
     @Test
-    void getStageProgressWithDbQueryTests(){
+    void getStageProgressWithDbQueryTests() {
 
         // init test data
         final UUID userId = UUID.randomUUID();
@@ -403,43 +407,48 @@ class UserProgressDataServiceTest {
      */
     @Test
     void getProgressByChapterIdsForUserTest() {
-        final UUID chapterId = UUID.randomUUID();
+        final UUID chapterId1 = UUID.randomUUID();
+        final UUID chapterId2 = UUID.randomUUID();
         final UUID userId = UUID.randomUUID();
 
-        final List<UUID> chapterIds = List.of(chapterId);
+        final List<UUID> chapterIds = List.of(chapterId1, chapterId2);
 
         // init content and user progress
-        final List<MediaContentEntity> mediaContentEntities = List.of(TestData.buildContentEntity(chapterId),
-                TestData.buildContentEntity(chapterId));
+        final List<MediaContentEntity> mediaContentEntities = List.of(TestData.buildContentEntity(chapterId1),
+                TestData.buildContentEntity(chapterId1));
+
         for (int i = 0; i < mediaContentEntities.size(); i++) {
             final MediaContentEntity mediaContentEntity = mediaContentEntities.get(i);
-            final UserProgressDataEntity progressDataEntity = buildDummyUserProgressData(i % 2 == 0, userId, mediaContentEntity.getId());
+            final boolean success = i % 2 == 0;
+            final UserProgressDataEntity progressDataEntity = buildDummyUserProgressData(success, userId, mediaContentEntity.getId());
             // mock repository calls
             doReturn(Optional.of(progressDataEntity)).when(userProgressDataRepository)
                     .findByUserIdAndContentId(userId, mediaContentEntity.getId());
 
         }
 
-        // create chapter -> content Mapping
-        final Map<UUID, List<Content>> map = new HashMap<>();
-        map.put(chapterId, mediaContentEntities.stream().map(mediaContentEntity -> contentMapper.entityToDto(mediaContentEntity)).toList());
+        final List<Content> contentsForChapter1 = mediaContentEntities.stream().map(contentMapper::entityToDto).toList();
+        final List<Content> contentsForChapter2 = List.of();
 
-        //mock service with repository calls
-        doReturn(map).when(contentService).getContentSortedByChapterId(chapterIds);
+        // mock service with repository calls
+        when(contentService.getContentsByChapterIds(chapterIds)).thenReturn(List.of(contentsForChapter1, contentsForChapter2));
 
         // run method under test
         final List<CompositeProgressInformation> resultList = userProgressDataService.getProgressByChapterIdsForUser(chapterIds, userId);
-
-        // verify called methods
-        verify(contentService, times(1)).getContentSortedByChapterId(chapterIds);
-
         // assertions
-        assertEquals(1, resultList.size());
+        assertEquals(2, resultList.size());
 
         assertEquals(50.0, resultList.get(0).getProgress());
         assertEquals(1, resultList.get(0).getCompletedContents());
         assertEquals(2, resultList.get(0).getTotalContents());
 
+        assertEquals(100.0, resultList.get(1).getProgress());
+        assertEquals(0, resultList.get(1).getCompletedContents());
+        assertEquals(0, resultList.get(1).getTotalContents());
+
+        // verify called methods
+        verify(userProgressDataRepository, times(2)).findByUserIdAndContentId(any(), any());
+        verify(contentService, times(1)).getContentsByChapterIds(chapterIds);
     }
 
     /**
@@ -458,12 +467,10 @@ class UserProgressDataServiceTest {
                 .setSuggestedDate(OffsetDateTime.now())
                 .build();
 
-        final MediaContent mediaContent = MediaContent.builder()
+        return MediaContent.builder()
                 .setId(contentId)
                 .setMetadata(metadata)
                 .build();
-
-        return mediaContent;
     }
 
 
