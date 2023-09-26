@@ -1,13 +1,18 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 
-import de.unistuttgart.iste.gits.common.event.*;
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
+import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
 import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.gits.generated.dto.*;
@@ -17,7 +22,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +32,7 @@ import java.util.stream.Collectors;
 public class ContentService {
 
     private final ContentRepository contentRepository;
+    private final SectionRepository sectionRepository;
     private final UserProgressDataRepository userProgressDataRepository;
     private final StageService stageService;
     private final ContentMapper contentMapper;
@@ -116,7 +124,7 @@ public class ContentService {
 
         // get a list containing all contents with a matching chapter id, then map them by chapter id (multiple
         // contents might have the same chapter id)
-        Map<UUID, List<Content>> contentsByChapterId = getContentEntitiesSortedByChapterId(chapterIds);
+        Map<UUID, List<Content>> contentsByChapterId = getContentSortedByChapterId(chapterIds);
 
         // put the different groups of chapters into the result list such that the order matches the order
         // of chapter ids given by the chapterIds argument
@@ -341,7 +349,7 @@ public class ContentService {
         return contentEntity.getId();
     }
 
-    public Map<UUID, List<Content>> getContentEntitiesSortedByChapterId(List<UUID> chapterIds) {
+    public Map<UUID, List<Content>> getContentSortedByChapterId(List<UUID> chapterIds) {
         return contentRepository.findByChapterIdIn(chapterIds).stream()
                 .map(contentMapper::entityToDto)
                 .collect(Collectors.groupingBy(content -> content.getMetadata().getChapterId()));
@@ -363,5 +371,52 @@ public class ContentService {
                         .distinct()
                         .toList())
                 .toList();
+    }
+
+
+    /**
+     * returns an ordered list of content with no links to any section for a list of chapter ID.
+     *
+     * @param chapterIds list of chapter IDs in which content is to be searched for
+     * @return ordered list of content that matches the order of the chapterID argument
+     */
+    public List<List<Content>> getContentWithNoSection(List<UUID> chapterIds) {
+        List<List<Content>> result = new ArrayList<>(chapterIds.size());
+
+        // get a list containing all sections for the given chapters, but not divided by chapter yet
+        List<SectionEntity> sectionEntities = sectionRepository.findByChapterIdIn(chapterIds);
+        List<ContentEntity> contentEntities = contentRepository.findByChapterIdIn(chapterIds);
+
+        // collect optional and required content in form of a stream for further processing
+        Stream<Set<ContentEntity>> requiredContentStream = sectionEntities.stream()
+                .map(SectionEntity::getStages)
+                .flatMap(Collection::stream)
+                .map(StageEntity::getRequiredContents);
+
+        Stream<Set<ContentEntity>> optionalContentStream = sectionEntities.stream()
+                .map(SectionEntity::getStages)
+                .flatMap(Collection::stream)
+                .map(StageEntity::getOptionalContents);
+
+        // collect content from both required and optional sets in stages
+        Set<ContentEntity> contentEntitiesInSections = Stream.concat(requiredContentStream, optionalContentStream)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+
+
+        Map<UUID, List<Content>> contentsWithNoSectionByChapterId = contentEntities.stream()
+                .filter(Predicate.not(contentEntitiesInSections::contains))
+                .map(contentMapper::entityToDto)
+                .collect(Collectors.groupingBy(content -> content.getMetadata().getChapterId()));
+
+
+        // put the different groups of content into the result list to matches the order of chapter ids given in the chapterIds argument
+        for (UUID chapterId : chapterIds) {
+            List<Content> contents = contentsWithNoSectionByChapterId.getOrDefault(chapterId, Collections.emptyList());
+            result.add(contents);
+        }
+
+
+        return result;
     }
 }

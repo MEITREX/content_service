@@ -174,7 +174,7 @@ public class UserProgressDataService {
      */
     public List<CompositeProgressInformation> getProgressByChapterIdsForUser(List<UUID> chapterIds, UUID userId) {
         List<CompositeProgressInformation> chapterProgressItems = new ArrayList<>();
-        Map<UUID, List<Content>> contentEntitiesByChapterIds = contentService.getContentEntitiesSortedByChapterId(chapterIds);
+        Map<UUID, List<Content>> contentEntitiesByChapterIds = contentService.getContentSortedByChapterId(chapterIds);
 
         for (List<Content> contentList : contentEntitiesByChapterIds.values()) {
             int numCompletedContent = countNumCompletedContent(userId, contentList);

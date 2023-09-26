@@ -1,7 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
 import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.gits.content_service.service.*;
+import de.unistuttgart.iste.gits.content_service.service.ContentService;
+import de.unistuttgart.iste.gits.content_service.service.SuggestionService;
+import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,6 +99,12 @@ public class ContentController {
     @QueryMapping
     public List<CompositeProgressInformation> progressByChapterIds(@Argument List<UUID> chapterIds, @ContextValue LoggedInUser currentUser) {
         return userProgressDataService.getProgressByChapterIdsForUser(chapterIds, currentUser.getId());
+    }
+
+
+    @QueryMapping(name = "_internal_noauth_contentWithNoSectionByChapterIds")
+    public List<List<Content>> contentWithNoSectionByChapterIds(@Argument List<UUID> chapterIds) {
+        return contentService.getContentWithNoSection(chapterIds);
     }
 
     public abstract class ContentResolver<T extends Content> {
