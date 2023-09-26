@@ -5,7 +5,10 @@ import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.gits.generated.dto.Section;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +18,10 @@ import org.springframework.graphql.test.tester.HttpGraphQlTester;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

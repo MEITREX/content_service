@@ -1,13 +1,19 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
 
-import de.unistuttgart.iste.gits.common.event.*;
-import de.unistuttgart.iste.gits.content_service.service.*;
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
+import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
+import de.unistuttgart.iste.gits.content_service.service.ContentService;
+import de.unistuttgart.iste.gits.content_service.service.SectionService;
+import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
 import io.dapr.Topic;
 import io.dapr.client.domain.CloudEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**

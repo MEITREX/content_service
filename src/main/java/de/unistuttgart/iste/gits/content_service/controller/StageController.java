@@ -3,10 +3,15 @@ package de.unistuttgart.iste.gits.content_service.controller;
 import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.gits.content_service.service.StageService;
 import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.gits.generated.dto.CreateStageInput;
+import de.unistuttgart.iste.gits.generated.dto.SectionMutation;
+import de.unistuttgart.iste.gits.generated.dto.Stage;
+import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.graphql.data.method.annotation.*;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.ContextValue;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
 import java.util.UUID;

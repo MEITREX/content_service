@@ -3,14 +3,18 @@ package de.unistuttgart.iste.gits.content_service.api.query;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ProgressLogItemEmbeddable;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.UserProgressDataEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 
-import java.time.*;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 

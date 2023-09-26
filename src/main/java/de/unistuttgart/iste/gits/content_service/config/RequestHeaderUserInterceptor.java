@@ -4,7 +4,9 @@ import de.unistuttgart.iste.gits.common.user_handling.RequestHeaderUserProcessor
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.graphql.server.*;
+import org.springframework.graphql.server.WebGraphQlInterceptor;
+import org.springframework.graphql.server.WebGraphQlRequest;
+import org.springframework.graphql.server.WebGraphQlResponse;
 import reactor.core.publisher.Mono;
 
 /**
