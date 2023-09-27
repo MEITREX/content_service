@@ -15,7 +15,9 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;

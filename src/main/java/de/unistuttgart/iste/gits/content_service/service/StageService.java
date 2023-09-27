@@ -1,14 +1,23 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
+import de.unistuttgart.iste.gits.generated.dto.CreateStageInput;
+import de.unistuttgart.iste.gits.generated.dto.Stage;
+import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

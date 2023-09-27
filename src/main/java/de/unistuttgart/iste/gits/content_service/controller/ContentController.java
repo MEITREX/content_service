@@ -103,6 +103,12 @@ public class ContentController {
         return userProgressDataService.getProgressByChapterIdsForUser(chapterIds, currentUser.getId());
     }
 
+
+    @QueryMapping(name = "_internal_noauth_contentWithNoSectionByChapterIds")
+    public List<List<Content>> contentWithNoSectionByChapterIds(@Argument List<UUID> chapterIds) {
+        return contentService.getContentWithNoSection(chapterIds);
+    }
+
     /**
      * Abstract Resolver for all Content Types to avoid code duplication
      */

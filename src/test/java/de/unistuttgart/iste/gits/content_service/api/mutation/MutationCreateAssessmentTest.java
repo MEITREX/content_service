@@ -9,7 +9,9 @@ import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEn
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.gits.generated.dto.ContentType;
+import de.unistuttgart.iste.gits.generated.dto.FlashcardSetAssessment;
+import de.unistuttgart.iste.gits.generated.dto.SkillType;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

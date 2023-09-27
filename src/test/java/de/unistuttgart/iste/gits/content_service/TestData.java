@@ -6,7 +6,9 @@ import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.SkillType;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 
 public class TestData {

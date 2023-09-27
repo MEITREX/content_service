@@ -1,7 +1,10 @@
 package de.unistuttgart.iste.gits.content_service.dapr;
 
 
-import de.unistuttgart.iste.gits.common.event.*;
+import de.unistuttgart.iste.gits.common.event.ContentChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CourseAssociationEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
+import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import io.dapr.client.DaprClient;
 import lombok.RequiredArgsConstructor;
