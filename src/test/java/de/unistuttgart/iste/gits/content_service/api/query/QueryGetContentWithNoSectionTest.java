@@ -49,12 +49,12 @@ class QueryGetContentWithNoSectionTest {
     @Test
     @Transactional
     @Commit
-    void getContentWithNoSectionTest(GraphQlTester tester) {
+    void getContentWithNoSectionTest(final GraphQlTester tester) {
 
-        List<MediaContentEntity> contentEntities = fillDatabaseWithContent();
-        List<Content> contentList = contentEntities.subList(2, 4).stream().map(contentMapper::entityToDto).toList();
-        List<Content> contentList2 = contentEntities.subList(4, 5).stream().map(contentMapper::entityToDto).toList();
-        List<SectionEntity> sectionEntities = fillDatabaseWithSections(contentEntities.subList(0, 2));
+        final List<MediaContentEntity> contentEntities = fillDatabaseWithContent();
+        final List<Content> contentList = contentEntities.subList(2, 4).stream().map(contentMapper::entityToDto).toList();
+        final List<Content> contentList2 = contentEntities.subList(4, 5).stream().map(contentMapper::entityToDto).toList();
+        final List<SectionEntity> sectionEntities = fillDatabaseWithSections(contentEntities.subList(0, 2));
 
         final String query = """
                 query($chapterIds: [UUID!]!) {
@@ -72,19 +72,15 @@ class QueryGetContentWithNoSectionTest {
                 }
                 """;
 
-        ParameterizedTypeReference<List<MediaContent>> contentListType = new ParameterizedTypeReference<List<MediaContent>>() {
+        final ParameterizedTypeReference<List<MediaContent>> contentListType = new ParameterizedTypeReference<List<MediaContent>>() {
         };
 
-        List<List<MediaContent>> resultList = tester.document(query)
+        final List<List<MediaContent>> resultList = tester.document(query)
                 .variable("chapterIds", List.of(chapterId, chapterId2))
                 .execute()
                 .path("_internal_noauth_contentWithNoSectionByChapterIds")
                 .entityList(contentListType)
                 .get();
-
-        System.out.println(resultList);
-        System.out.println("DB list");
-        System.out.println(contentEntities);
 
         assertEquals(chapterId.toString(), contentList, resultList.get(0));
         assertEquals(chapterId2.toString(), contentList2, resultList.get(1));
@@ -92,7 +88,7 @@ class QueryGetContentWithNoSectionTest {
     }
 
     private List<MediaContentEntity> fillDatabaseWithContent() {
-        List<MediaContentEntity> contentEntities = new ArrayList<>();
+        final List<MediaContentEntity> contentEntities = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             MediaContentEntity contentEntity = TestData.dummyMediaContentEntityBuilder()
                     .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
@@ -116,7 +112,7 @@ class QueryGetContentWithNoSectionTest {
     }
 
 
-    private List<SectionEntity> fillDatabaseWithSections(List<MediaContentEntity> contentEntities) {
+    private List<SectionEntity> fillDatabaseWithSections(final List<MediaContentEntity> contentEntities) {
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")
                 .chapterId(chapterId)
