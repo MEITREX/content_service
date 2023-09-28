@@ -9,6 +9,11 @@ type Section {
     id: UUID!
 
     """
+    Id of the Course the Section is located in.
+    """
+    courseId: UUID!
+
+    """
     Name of the Section
     """
     name: String!

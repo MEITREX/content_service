@@ -29,16 +29,19 @@ public class SectionService {
      * @param input input object containing a chapter ID and name
      * @return new Section Object
      */
-    public Section createSection(final CreateSectionInput input) {
-        final SectionEntity sectionEntity = sectionRepository.save(
-                SectionEntity.builder()
-                        .name(input.getName())
-                        .chapterId(input.getChapterId())
-                        .stages(new HashSet<>())
-                        // set position to last
-                        .position(sectionRepository.findHighestPositionByChapterId(input.getChapterId()).orElse(0)) // set position to last
-                        .build()
-        );
+    public Section createSection(final UUID courseId,
+                                 final CreateSectionInput input) {
+        SectionEntity sectionEntity = SectionEntity.builder()
+                .name(input.getName())
+                .chapterId(input.getChapterId())
+                .courseId(courseId)
+                .stages(new HashSet<>())
+                // set position to last
+                .position(sectionRepository.findHighestPositionByChapterId(input.getChapterId()).orElse(0)) // set position to last
+                .build();
+
+        sectionEntity = sectionRepository.save(sectionEntity);
+
         return sectionMapper.entityToDto(sectionEntity);
     }
 
@@ -148,6 +151,15 @@ public class SectionService {
         List<Section> sections = entities.stream().map(sectionMapper::entityToDto).toList();
 
         return groupIntoSubLists(sections, chapterIds, Section::getChapterId);
+    }
+
+    /**
+     * Gets a Section by its id.
+     * @param sectionId The id of the Section to get.
+     * @return The Section with the given id.
+     */
+    public Section getSectionById(final UUID sectionId) {
+        return sectionMapper.entityToDto(sectionRepository.getReferenceById(sectionId));
     }
 
     /**

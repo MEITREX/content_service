@@ -24,13 +24,16 @@ class SuggestionServiceTest {
         // Arrange
         final List<UUID> chapterIds = List.of(UUID.randomUUID(), UUID.randomUUID());
         doReturn(List.of()).when(sectionService).getSectionsByChapterIds(chapterIds);
+        final UUID userId = UUID.randomUUID();
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, UUID.randomUUID(), 5, List.of());
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 5, List.of());
         // Assert
         assertThat(actual, is(empty()));
         // Verify
         verifyNoInteractions(userProgressDataService);
-        verify(sectionService).getSectionsByChapterIds(chapterIds);
+        verify(sectionService, times(2)).getSectionsByChapterIds(chapterIds);
     }
 
     @Test
@@ -46,13 +49,15 @@ class SuggestionServiceTest {
 
         doReturn(List.of(List.of(section))).when(sectionService).getSectionsByChapterIds(chapterIds);
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, userId, 5, List.of());
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 5, List.of());
 
         // Assert
         assertThat(actual, is(empty()));
         // Verify
         verifyNoInteractions(userProgressDataService);
-        verify(sectionService).getSectionsByChapterIds(chapterIds);
+        verify(sectionService, times(2)).getSectionsByChapterIds(chapterIds);
     }
 
     @Test
@@ -83,7 +88,9 @@ class SuggestionServiceTest {
         doReturn(userProgressData).when(userProgressDataService).getUserProgressData(any(), any());
 
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, userId, 3, List.of());
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 3, List.of());
 
         // Assert
         assertThat(actual.get(0).getContent().getMetadata().getName(), is("minus5"));
@@ -96,7 +103,7 @@ class SuggestionServiceTest {
 
         // Verify
         verify(userProgressDataService, atLeastOnce()).getUserProgressData(any(), any());
-        verify(sectionService).getSectionsByChapterIds(chapterIds);
+        verify(sectionService, times(2)).getSectionsByChapterIds(chapterIds);
     }
 
     /**
@@ -158,7 +165,9 @@ class SuggestionServiceTest {
         doReturn(progressDataPlus2).when(userProgressDataService).getUserProgressData(userId, contentIdPlus2);
 
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, userId, 2, List.of());
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 2, List.of());
 
         // Assert
         assertThat(actual, hasSize(2));
@@ -208,7 +217,9 @@ class SuggestionServiceTest {
         doReturn(progressNotDueForRepetition).when(userProgressDataService).getUserProgressData(any(), any());
 
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, userId, 2, List.of());
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 2, List.of());
 
         // Assert
         assertThat(actual, is(empty()));
@@ -249,7 +260,9 @@ class SuggestionServiceTest {
         doReturn(userProgressData).when(userProgressDataService).getUserProgressData(any(), any());
 
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, userId, 3, List.of());
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 3, List.of());
 
         // Assert
         assertThat(actual.get(0).getContent().getMetadata().getName(), is("plus1"));
@@ -259,7 +272,7 @@ class SuggestionServiceTest {
 
         // Verify
         verify(userProgressDataService, atLeastOnce()).getUserProgressData(any(), any());
-        verify(sectionService).getSectionsByChapterIds(chapterIds);
+        verify(sectionService, times(2)).getSectionsByChapterIds(chapterIds);
     }
 
     /**
@@ -297,7 +310,9 @@ class SuggestionServiceTest {
         doReturn(progressDataRepetition).when(userProgressDataService).getUserProgressData(userId, contentIdRepetition);
 
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, userId, 1, List.of());
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 1, List.of());
 
         // Assert
         assertThat(actual.get(0).getContent().getMetadata().getName(), is("new"));
@@ -307,7 +322,7 @@ class SuggestionServiceTest {
         // Verify
         verify(userProgressDataService).getUserProgressData(userId, contentIdNew);
         verify(userProgressDataService).getUserProgressData(userId, contentIdRepetition);
-        verify(sectionService).getSectionsByChapterIds(chapterIds);
+        verify(sectionService, times(2)).getSectionsByChapterIds(chapterIds);
     }
 
     /**
@@ -345,7 +360,9 @@ class SuggestionServiceTest {
         doReturn(progressDataLessPoints).when(userProgressDataService).getUserProgressData(userId, contentIdLessPoints);
 
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, userId, 1, List.of());
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 1, List.of());
 
         // Assert
         assertThat(actual.get(0).getContent().getMetadata().getName(), is("morePoints"));
@@ -355,7 +372,7 @@ class SuggestionServiceTest {
         // Verify
         verify(userProgressDataService).getUserProgressData(userId, contentIdMorePoints);
         verify(userProgressDataService).getUserProgressData(userId, contentIdLessPoints);
-        verify(sectionService).getSectionsByChapterIds(chapterIds);
+        verify(sectionService, times(2)).getSectionsByChapterIds(chapterIds);
     }
 
     /**
@@ -389,7 +406,9 @@ class SuggestionServiceTest {
         doReturn(progressDataAll).when(userProgressDataService).getUserProgressData(eq(userId), any());
 
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, userId, 3, List.of(SkillType.APPLY));
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 3, List.of(SkillType.APPLY));
 
         // Assert
         assertThat(actual.get(0).getContent().getMetadata().getName(), is("skill2"));
@@ -397,7 +416,7 @@ class SuggestionServiceTest {
 
         // Verify
         verify(userProgressDataService, atLeastOnce()).getUserProgressData(eq(userId), any());
-        verify(sectionService).getSectionsByChapterIds(chapterIds);
+        verify(sectionService, times(2)).getSectionsByChapterIds(chapterIds);
     }
 
     /**
@@ -453,7 +472,9 @@ class SuggestionServiceTest {
         doReturn(progressDataNotLearned).when(userProgressDataService).getUserProgressData(userId, contentIdUnlocked4);
 
         // Act
-        final List<Suggestion> actual = suggestionService.createSuggestions(chapterIds, userId, 2, List.of());
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(chapterIds, userId);
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(chapterIds, userId);
+        final List<Suggestion> actual = suggestionService.createSuggestions(requiredContents, optionalContents, userId, 2, List.of());
 
         // Assert
         assertThat(actual.get(0).getContent().getMetadata().getName(), is("unlocked4"));
@@ -465,7 +486,7 @@ class SuggestionServiceTest {
         verify(userProgressDataService).getUserProgressData(userId, contentIdUnlocked2);
         verify(userProgressDataService).getUserProgressData(userId, contentIdUnlocked3);
         verify(userProgressDataService).getUserProgressData(userId, contentIdUnlocked4);
-        verify(sectionService).getSectionsByChapterIds(chapterIds);
+        verify(sectionService, times(2)).getSectionsByChapterIds(chapterIds);
     }
 
     private Content contentWithSuggestedDate(final OffsetDateTime suggestedDate, final String name) {

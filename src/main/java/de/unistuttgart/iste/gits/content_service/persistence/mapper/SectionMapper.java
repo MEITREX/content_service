@@ -19,6 +19,7 @@ public class SectionMapper {
         return Section.builder()
                 .setId(entity.getId())
                 .setChapterId(entity.getChapterId())
+                .setCourseId(entity.getCourseId())
                 .setName(entity.getName())
                 .setStages(
                         entity.getStages()

@@ -9,7 +9,8 @@ import java.util.UUID;
 
 @Entity(name = "Section")
 @Table(indexes = {
-        @Index(name = "idx_section_chapter_id", columnList = "chapter_id")
+        @Index(name = "idx_section_chapter_id", columnList = "chapter_id"),
+        @Index(name = "idx_section_course_id", columnList = "course_id")
 })
 @Data
 @Builder
@@ -32,4 +33,7 @@ public class SectionEntity {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "sectionId")
     Set<StageEntity> stages;
+
+    @Column(name = "course_id", nullable = false)
+    private UUID courseId;
 }

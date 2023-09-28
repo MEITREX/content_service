@@ -43,7 +43,8 @@ public class SuggestionService {
      *     <li>Contents with more reward points are suggested before contents with less reward points.</li>
      * </ol>
      *
-     * @param chapterIds the IDs of the chapters for which suggestions should be created.
+     * @param requiredContents required contents which should be taken into account for the suggestion
+     * @param optionalContents optional contents which should be taken into account for the suggestion
      * @param userId     the ID of the user for which suggestions should be created.
      * @param amount     the amount of suggestions to create.
      * @param skillTypes the skill types of the suggestions to create. If the list is empty, all skill types are
@@ -51,29 +52,59 @@ public class SuggestionService {
      *                   media contents are ignored.
      * @return the created suggestions.
      */
-    public List<Suggestion> createSuggestions(final List<UUID> chapterIds, final UUID userId, final int amount, final List<SkillType> skillTypes) {
+    public List<Suggestion> createSuggestions(final List<Content> requiredContents,
+                                              final List<Content> optionalContents,
+                                              final UUID userId,
+                                              final int amount,
+                                              final List<SkillType> skillTypes) {
         userProgressDataCache.clear();
 
-        final List<Stage> availableStages = sectionService.getSectionsByChapterIds(chapterIds)
-                .stream()
-                .flatMap(Collection::stream)
-                .flatMap(section -> getAvailableStagesOfSection(section, userId).stream())
-                .toList();
-
-        final Stream<Content> requiredContents = availableStages.stream().flatMap(stage -> stage.getRequiredContents().stream());
-        final Stream<Content> optionalContents = availableStages.stream().flatMap(stage -> stage.getOptionalContents().stream());
-
         return Stream.concat(
-                        filterAndSort(requiredContents, userId, skillTypes),
-                        filterAndSort(optionalContents, userId, skillTypes))
+                        filterAndSort(requiredContents.stream(), userId, skillTypes),
+                        filterAndSort(optionalContents.stream(), userId, skillTypes))
                 .limit(amount)
                 .map(content -> createSuggestion(content, getUserProgressData(userId, content.getId())))
                 .toList();
     }
 
     /**
+     * Method which for a given user fetches the required contents which are currently available to the user to work
+     * on in the given chapters.
+     * @param chapterIds the chapters to get the available required contents for
+     * @param userId the user to get the available required contents for
+     * @return a list of the available required contents
+     */
+    public List<Content> getAvailableRequiredContentsOfChaptersForUser(final List<UUID> chapterIds,
+                                                                         final UUID userId) {
+        final List<Stage> availableStages = sectionService.getSectionsByChapterIds(chapterIds)
+                .stream()
+                .flatMap(Collection::stream)
+                .flatMap(section -> getAvailableStagesOfSection(section, userId).stream())
+                .toList();
+
+        return availableStages.stream().flatMap(stage -> stage.getRequiredContents().stream()).toList();
+    }
+
+    /**
+     * Method which for a given user fetches the optional contents which are currently available to the user to work
+     * @param chapterIds the chapters to get the available optional contents for
+     * @param userId the user to get the available optional contents for
+     * @return a list of the available optional contents
+     */
+    public List<Content> getAvailableOptionalContentsOfChaptersForUser(final List<UUID> chapterIds,
+                                                                         final UUID userId) {
+        final List<Stage> availableStages = sectionService.getSectionsByChapterIds(chapterIds)
+                .stream()
+                .flatMap(Collection::stream)
+                .flatMap(section -> getAvailableStagesOfSection(section, userId).stream())
+                .toList();
+
+        return availableStages.stream().flatMap(stage -> stage.getOptionalContents().stream()).toList();
+    }
+
+    /**
      * Filters the given contents by the given skill types and sorts them according to the prioritization described
-     * in {@link SuggestionService#createSuggestions(List, UUID, int, List)}.
+     * in {@link SuggestionService#createSuggestions(Stream, Stream, UUID, int, List)}.
      */
     private Stream<Content> filterAndSort(final Stream<Content> contents, final UUID userId, final List<SkillType> skillTypes) {
         return contents
