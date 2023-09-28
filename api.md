@@ -3,10 +3,11 @@
 <details>
   <summary><strong>Table of Contents</strong></summary>
 
-* [Query](#query)
-* [Mutation](#mutation)
-* [Objects](#objects)
+  * [Query](#query)
+  * [Mutation](#mutation)
+  * [Objects](#objects)
     * [AssessmentMetadata](#assessmentmetadata)
+    * [CompositeProgressInformation](#compositeprogressinformation)
     * [ContentMetadata](#contentmetadata)
     * [ContentMutation](#contentmutation)
     * [ContentPayload](#contentpayload)
@@ -20,7 +21,7 @@
     * [Stage](#stage)
     * [Suggestion](#suggestion)
     * [UserProgressData](#userprogressdata)
-* [Inputs](#inputs)
+  * [Inputs](#inputs)
     * [AssessmentMetadataInput](#assessmentmetadatainput)
     * [CreateAssessmentInput](#createassessmentinput)
     * [CreateContentMetadataInput](#createcontentmetadatainput)
@@ -35,12 +36,12 @@
     * [UpdateContentMetadataInput](#updatecontentmetadatainput)
     * [UpdateMediaContentInput](#updatemediacontentinput)
     * [UpdateStageInput](#updatestageinput)
-* [Enums](#enums)
+  * [Enums](#enums)
     * [ContentType](#contenttype)
     * [SkillType](#skilltype)
     * [SortDirection](#sortdirection)
     * [SuggestionType](#suggestiontype)
-* [Scalars](#scalars)
+  * [Scalars](#scalars)
     * [Boolean](#boolean)
     * [Date](#date)
     * [DateTime](#datetime)
@@ -51,14 +52,13 @@
     * [Time](#time)
     * [UUID](#uuid)
     * [Url](#url)
-* [Interfaces](#interfaces)
+  * [Interfaces](#interfaces)
     * [Assessment](#assessment)
     * [Content](#content)
 
 </details>
 
 ## Query
-
 <table>
 <thead>
 <tr>
@@ -141,9 +141,25 @@ Retrieves all existing sections for multiple chapters.
 <td></td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>progressByChapterIds</strong></td>
+<td valign="top">[<a href="#compositeprogressinformation">CompositeProgressInformation</a>!]!</td>
+<td>
+
+
+Retrieve progress for multiple chapters
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">chapterIds</td>
+<td valign="top">[<a href="#uuid">UUID</a>!]!</td>
+<td></td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>suggestionsByChapterIds</strong></td>
 <td valign="top">[<a href="#suggestion">Suggestion</a>!]!</td>
 <td>
+
 
     Generates user specific suggestions for multiple chapters.
 
@@ -184,11 +200,26 @@ also containing suggestions for media content (which do not have a skill type).
 
 </td>
 </tr>
+<tr>
+<td colspan="2" valign="top"><strong>_internal_achievableSkillTypesByChapterIds</strong></td>
+<td valign="top">[[<a href="#skilltype">SkillType</a>!]!]!</td>
+<td>
+
+
+Retrieves all skill types that are achievable for the given chapters.
+Each chapter will have its own list of skill types (batching query).
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">chapterIds</td>
+<td valign="top">[<a href="#uuid">UUID</a>!]!</td>
+<td></td>
+</tr>
 </tbody>
 </table>
 
 ## Mutation
-
 <table>
 <thead>
 <tr>
@@ -322,6 +353,51 @@ This is the interval that is applied after the assessment is completed the first
 Following intervals are calculated based on the previous interval and the user's performance.
 If this is null, the assessment will never be scheduled for review, which
 is useful for assessments that are not meant to be repeated.
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### CompositeProgressInformation
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>progress</strong></td>
+<td valign="top"><a href="#float">Float</a>!</td>
+<td>
+
+
+percentage of completedContents/totalContents
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>completedContents</strong></td>
+<td valign="top"><a href="#int">Int</a>!</td>
+<td>
+
+
+absolut number of completed content
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>totalContents</strong></td>
+<td valign="top"><a href="#int">Int</a>!</td>
+<td>
+
+
+absolut number of total content
 
 </td>
 </tr>
@@ -535,6 +611,7 @@ pagination info
 
 ### FlashcardSetAssessment
 
+
 A set of flashcards, flashcard related fields are stored in the flashcard service.
 
 <table>
@@ -666,6 +743,7 @@ Progress data of the specified user.
 </table>
 
 ### PaginationInfo
+
 
 Return type for information about paginated results.
 
@@ -801,6 +879,7 @@ Can be null for contents that do not measure completion time.
 
 ### QuizAssessment
 
+
 A quiz, quiz related fields are stored in the quiz service.
 
 <table>
@@ -872,6 +951,7 @@ Progress data of the specified user.
 </table>
 
 ### Section
+
 
 Representation of a Section
 
@@ -1040,6 +1120,7 @@ update Order of Stages within a Section
 
 ### Stage
 
+
 Representation of a Stage
 
 <table>
@@ -1117,6 +1198,7 @@ Percentage of Progress made to optional Content
 
 ### Suggestion
 
+
 Represents a suggestion for a user to learn new content or review old content.
 
 <table>
@@ -1153,6 +1235,7 @@ The type of suggestion.
 </table>
 
 ### UserProgressData
+
 
 Represents a user's progress on a content item.
 See https://gits-enpro.readthedocs.io/en/latest/dev-manuals/gamification/userProgress.html
@@ -1415,6 +1498,7 @@ TagNames this content is tagged with
 
 ### CreateMediaContentInput
 
+
 Input for creating new media content. Media specific fields are stored in the Media Service.
 
 <table>
@@ -1509,6 +1593,7 @@ updated List of UUIDs for content labeled as optional in this Stage
 
 ### DateTimeFilter
 
+
 Filter for date values.
 If multiple filters are specified, they are combined with AND.
 
@@ -1545,6 +1630,7 @@ If specified, filters for dates before the specified value.
 </table>
 
 ### IntFilter
+
 
 Filter for integer values.
 If multiple filters are specified, they are combined with AND.
@@ -1593,6 +1679,7 @@ If specified, filters for values less than to the specified value.
 
 ### Pagination
 
+
 Specifies the page size and page number for paginated results.
 
 <table>
@@ -1631,6 +1718,7 @@ The number of elements per page.
 </table>
 
 ### StringFilter
+
 
 Filter for string values.
 If multiple filters are specified, they are combined with AND.
@@ -1847,6 +1935,7 @@ updated List of UUIDs for content labeled as optional in this Stage
 
 ### ContentType
 
+
 Type of the content
 
 <table>
@@ -1871,6 +1960,7 @@ Type of the content
 </table>
 
 ### SkillType
+
 
 Type of the assessment
 
@@ -1900,6 +1990,7 @@ Type of the assessment
 </table>
 
 ### SortDirection
+
 
 Specifies the sort direction, either ascending or descending.
 
@@ -1981,7 +2072,9 @@ A universally unique identifier compliant UUID Scalar
 
 A Url scalar
 
+
 ## Interfaces
+
 
 ### Assessment
 

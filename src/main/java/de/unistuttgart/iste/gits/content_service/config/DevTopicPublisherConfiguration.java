@@ -2,7 +2,9 @@ package de.unistuttgart.iste.gits.content_service.config;
 
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
 @Profile("!prod")
@@ -23,7 +25,7 @@ public class DevTopicPublisherConfiguration {
         }
 
         @Override
-        protected void publishEvent(Object dto, String topic) {
+        protected void publishEvent(final Object dto, final String topic) {
             log.info("Would have published message to topic {}: {}", topic, dto);
         }
     }

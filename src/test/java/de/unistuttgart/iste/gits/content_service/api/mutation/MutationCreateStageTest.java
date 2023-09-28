@@ -10,12 +10,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content"})
 class MutationCreateStageTest {
 
     @Autowired
@@ -23,8 +26,8 @@ class MutationCreateStageTest {
 
 
     @Test
-    void testStageCreation(GraphQlTester tester) {
-        List<UUID> contentIds = new ArrayList<>();
+    void testStageCreation(final GraphQlTester tester) {
+        final List<UUID> contentIds = new ArrayList<>();
 
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")
@@ -33,12 +36,12 @@ class MutationCreateStageTest {
                 .build();
         sectionEntity = sectionRepository.save(sectionEntity);
 
-        CreateStageInput stageInput = CreateStageInput.builder()
+        final CreateStageInput stageInput = CreateStageInput.builder()
                 .setRequiredContents(contentIds)
                 .setOptionalContents(contentIds)
                 .build();
 
-        String query = """
+        final String query = """
                 mutation($id: UUID!, $input: CreateStageInput){
                     mutateSection(sectionId: $id){
                         createStage(input: $input) {

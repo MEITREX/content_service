@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
@@ -28,8 +29,8 @@ public class SectionService {
      * @param input input object containing a chapter ID and name
      * @return new Section Object
      */
-    public Section createSection(CreateSectionInput input) {
-        SectionEntity sectionEntity = sectionRepository.save(
+    public Section createSection(final CreateSectionInput input) {
+        final SectionEntity sectionEntity = sectionRepository.save(
                 SectionEntity.builder()
                         .name(input.getName())
                         .chapterId(input.getChapterId())
@@ -48,7 +49,7 @@ public class SectionService {
      * @param name      new name for the section
      * @return updated Section object
      */
-    public Section updateSectionName(UUID sectionId, String name) {
+    public Section updateSectionName(final UUID sectionId, final String name) {
 
         requireSectionExisting(sectionId);
         //updates name only!
@@ -64,7 +65,7 @@ public class SectionService {
      * @param sectionId ID of Section
      * @return ID of deleted Object
      */
-    public UUID deleteSection(UUID sectionId) {
+    public UUID deleteSection(final UUID sectionId) {
         requireSectionExisting(sectionId);
 
         sectionRepository.deleteById(sectionId);
@@ -77,15 +78,15 @@ public class SectionService {
      *
      * @param dto of Section to delete
      */
-    public void cascadeSectionDeletion(ChapterChangeEvent dto) {
-        List<UUID> chapterIds;
-        List<SectionEntity> sections;
+    public void cascadeSectionDeletion(final ChapterChangeEvent dto) throws IncompleteEventMessageException {
+        final List<UUID> chapterIds;
+        final List<SectionEntity> sections;
 
         chapterIds = dto.getChapterIds();
 
         // make sure message is complete
         if (chapterIds == null || chapterIds.isEmpty() || dto.getOperation() == null) {
-            throw new NullPointerException("incomplete message received: all fields of a message must be non-null");
+            throw new IncompleteEventMessageException(IncompleteEventMessageException.ERROR_INCOMPLETE_MESSAGE);
         }
         sections = sectionRepository.findByChapterIdInOrderByPosition(chapterIds);
         sectionRepository.deleteAllInBatch(sections);
@@ -97,16 +98,16 @@ public class SectionService {
      * @param input order list of stage IDs describing new Stage Order
      * @return updated Section with new Stage Order
      */
-    public Section reorderStages(UUID sectionId, List<UUID> input) {
+    public Section reorderStages(final UUID sectionId, final List<UUID> input) {
 
-        SectionEntity sectionEntity = sectionRepository.getReferenceById(sectionId);
+        final SectionEntity sectionEntity = sectionRepository.getReferenceById(sectionId);
 
         //ensure received list is complete
         validateStageIds(input, sectionEntity.getStages());
 
-        for (StageEntity stageEntity : sectionEntity.getStages()) {
+        for (final StageEntity stageEntity : sectionEntity.getStages()) {
 
-            int newPos = input.indexOf(stageEntity.getId());
+            final int newPos = input.indexOf(stageEntity.getId());
 
             stageEntity.setPosition(newPos);
         }
@@ -123,12 +124,12 @@ public class SectionService {
      * @param receivedStageIds received ID list
      * @param stageEntities    found entities in database
      */
-    private void validateStageIds(List<UUID> receivedStageIds, Set<StageEntity> stageEntities) {
+    private void validateStageIds(final List<UUID> receivedStageIds, final Set<StageEntity> stageEntities) {
         if (receivedStageIds.size() > stageEntities.size()) {
             throw new EntityNotFoundException("Stage ID list contains more elements than expected");
         }
-        List<UUID> stageIds = stageEntities.stream().map(StageEntity::getId).toList();
-        for (UUID stageId : stageIds) {
+        final List<UUID> stageIds = stageEntities.stream().map(StageEntity::getId).toList();
+        for (final UUID stageId : stageIds) {
             if (!receivedStageIds.contains(stageId)) {
                 throw new EntityNotFoundException("Incomplete Stage ID list received");
             }
@@ -155,7 +156,7 @@ public class SectionService {
      * @param uuid The id of the Section to check.
      * @throws EntityNotFoundException If the chapter does not exist.
      */
-    private void requireSectionExisting(UUID uuid) {
+    private void requireSectionExisting(final UUID uuid) {
         if (!sectionRepository.existsById(uuid)) {
             throw new EntityNotFoundException("Section with id " + uuid + " not found");
         }

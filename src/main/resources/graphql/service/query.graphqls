@@ -31,6 +31,11 @@ type Query {
     sectionsByChapterIds(chapterIds: [UUID!]!): [[Section!]!]!
 
     """
+    Retrieve progress for multiple chapters
+    """
+    _internal_noauth_progressByChapterIds(chapterIds: [UUID!]!): [CompositeProgressInformation!]!
+
+    """
     Generates user specific suggestions for multiple chapters.
 
     Only content that the user can access will be considered.
@@ -52,6 +57,17 @@ type Query {
         """
         skillTypes: [SkillType!]! = []): [Suggestion!]!
 
+    """
+    Retrieves all skill types that are achievable for the given chapters.
+    Each chapter will have its own list of skill types (batching query).
+    """
+    _internal_noauth_achievableSkillTypesByChapterIds(chapterIds: [UUID!]!): [[SkillType!]!]!
+
+    """
+    Retrieves all Content that is currently not part of any section within chapters.
+    """
+    _internal_noauth_contentWithNoSectionByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!
+
 }
 
 type ContentPayload {
@@ -65,3 +81,18 @@ type ContentPayload {
     pageInfo: PaginationInfo!
 }
 
+type CompositeProgressInformation {
+
+    """
+    percentage of completedContents/totalContents
+    """
+    progress: Float!
+    """
+    absolut number of completed content
+    """
+    completedContents: Int!
+    """
+    absolut number of total content
+    """
+    totalContents: Int!
+}

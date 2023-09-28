@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content"})
 class MutationDeleteStageTest {
 
     @Autowired
@@ -24,7 +24,7 @@ class MutationDeleteStageTest {
     private StageRepository stageRepository;
 
     @Test
-    void testStageDeletion(GraphQlTester tester){
+    void testStageDeletion(final GraphQlTester tester){
         // fill database
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")
@@ -41,7 +41,7 @@ class MutationDeleteStageTest {
                 .build();
         stageEntity = stageRepository.save(stageEntity);
 
-        String query = """
+        final String query = """
                 mutation ($sectionId: UUID!, $id: UUID!){
                     mutateSection(sectionId: $sectionId){
                         deleteStage(id: $id)

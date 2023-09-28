@@ -7,8 +7,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
-import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 
@@ -18,10 +16,8 @@ public class MockTopicPublisherConfiguration {
     @Primary
     @Bean
     public TopicPublisher getTestTopicPublisher() {
-        TopicPublisher mockPublisher = Mockito.mock(TopicPublisher.class);
+        final TopicPublisher mockPublisher = Mockito.mock(TopicPublisher.class);
         doNothing().when(mockPublisher).notifyChange(any(ContentEntity.class), any());
-        doNothing().when(mockPublisher).forwardChange(any(UUID.class), any(), any());
-        doNothing().when(mockPublisher).informContentDependentServices(any(), any());
         return mockPublisher;
     }
 }

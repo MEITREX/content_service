@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content", "tag"})
+@TablesToDelete({"content_tags", "content"})
 class MutationCreateMediaContentTest {
 
     @Autowired
@@ -78,7 +78,7 @@ class MutationCreateMediaContentTest {
                 }
                 """;
 
-        MediaContent createdMediaContent = graphQlTester.document(query)
+        final MediaContent createdMediaContent = graphQlTester.document(query)
                 .variable("chapterId", chapterId)
                 .variable("courseId", courseId)
                 .execute()
@@ -94,16 +94,16 @@ class MutationCreateMediaContentTest {
         assertThat(createdMediaContent.getMetadata().getChapterId(), is(chapterId));
         assertThat(createdMediaContent.getMetadata().getRewardPoints(), is(1));
 
-        ContentEntity contentEntity = contentRepository.findById(createdMediaContent.getId()).orElseThrow();
+        final ContentEntity contentEntity = contentRepository.findById(createdMediaContent.getId()).orElseThrow();
         assertThat(contentEntity, is(instanceOf(MediaContentEntity.class)));
 
-        MediaContentEntity mediaContentEntity = (MediaContentEntity) contentEntity;
+        final MediaContentEntity mediaContentEntity = (MediaContentEntity) contentEntity;
 
         // check that mediaContent entity is correct
         assertThat(mediaContentEntity.getMetadata().getName(), is("name"));
         assertThat(mediaContentEntity.getMetadata().getSuggestedDate(),
                 is(OffsetDateTime.parse("2021-01-01T00:00:00.000Z")));
-        assertThat(mediaContentEntity.getTagNames(), containsInAnyOrder("tag1", "tag2"));
+        assertThat(mediaContentEntity.getMetadata().getTags(), containsInAnyOrder("tag1", "tag2"));
         assertThat(mediaContentEntity.getMetadata().getType(), is(ContentType.MEDIA));
         assertThat(mediaContentEntity.getMetadata().getChapterId(), is(chapterId));
         assertThat(mediaContentEntity.getMetadata().getRewardPoints(), is(1));

@@ -18,7 +18,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content"})
 class MutationCreateSectionTest {
 
     @Autowired
@@ -27,12 +27,12 @@ class MutationCreateSectionTest {
     @Test
     @Transactional
     @Commit
-    void testSectionCreation(GraphQlTester tester){
-        CreateSectionInput input = CreateSectionInput.builder()
+    void testSectionCreation(final GraphQlTester tester){
+        final CreateSectionInput input = CreateSectionInput.builder()
                 .setChapterId(UUID.randomUUID())
                 .setName("Test Section")
                 .build();
-        String query = """
+        final String query = """
                 mutation ($input: CreateSectionInput!) {
                     createSection(input: $input) {
                         id

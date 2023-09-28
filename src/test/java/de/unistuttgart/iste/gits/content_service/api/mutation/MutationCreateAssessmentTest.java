@@ -9,7 +9,9 @@ import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEn
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.gits.generated.dto.ContentType;
+import de.unistuttgart.iste.gits.generated.dto.FlashcardSetAssessment;
+import de.unistuttgart.iste.gits.generated.dto.SkillType;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +32,7 @@ import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content", "tag"})
+@TablesToDelete({"content_tags", "content"})
 class MutationCreateAssessmentTest {
 
     @Autowired
@@ -90,7 +92,7 @@ class MutationCreateAssessmentTest {
                 }
                 """;
 
-        FlashcardSetAssessment createdAssessment = graphQlTester.document(query)
+        final FlashcardSetAssessment createdAssessment = graphQlTester.document(query)
                 .variable("chapterId", chapterId)
                 .variable("courseId", courseId)
                 .execute()
@@ -109,16 +111,16 @@ class MutationCreateAssessmentTest {
         assertThat(createdAssessment.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.REMEMBER)));
         assertThat(createdAssessment.getAssessmentMetadata().getInitialLearningInterval(), is(2));
 
-        ContentEntity contentEntity = contentRepository.findById(createdAssessment.getId()).orElseThrow();
+        final ContentEntity contentEntity = contentRepository.findById(createdAssessment.getId()).orElseThrow();
         assertThat(contentEntity, is(instanceOf(AssessmentEntity.class)));
 
-        AssessmentEntity assessmentEntity = (AssessmentEntity) contentEntity;
+        final AssessmentEntity assessmentEntity = (AssessmentEntity) contentEntity;
 
         // check that assessment entity is correct
         assertThat(assessmentEntity.getMetadata().getName(), is("name"));
         assertThat(assessmentEntity.getMetadata().getSuggestedDate(),
                 is(LocalDate.of(2021, 1, 1).atStartOfDay().atOffset(ZoneOffset.UTC)));
-        assertThat(assessmentEntity.getTagNames(), containsInAnyOrder("tag1", "tag2"));
+        assertThat(assessmentEntity.getMetadata().getTags(), containsInAnyOrder("tag1", "tag2"));
         assertThat(assessmentEntity.getMetadata().getType(), is(ContentType.FLASHCARDS));
         assertThat(assessmentEntity.getMetadata().getChapterId(), is(chapterId));
         assertThat(assessmentEntity.getMetadata().getRewardPoints(), is(1));

@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.is;
 
 @ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "user_progress_data", "content", "tag", "section", "stage"})
+@TablesToDelete({"content_tags", "user_progress_data", "section", "stage", "content" })
 class MutationDeleteContentTest {
 
     @Autowired
@@ -35,8 +35,6 @@ class MutationDeleteContentTest {
     private StageRepository stageRepository;
     @Autowired
     private SectionRepository sectionRepository;
-    @Autowired
-    private TagRepository tagRepository;
     @Autowired
     private TopicPublisher topicPublisher;
 
@@ -49,12 +47,10 @@ class MutationDeleteContentTest {
     @Test
     @Transactional
     @Commit
-    void testDeleteExistingContent(GraphQlTester graphQlTester) {
+    void testDeleteExistingContent(final GraphQlTester graphQlTester) {
         ContentEntity contentEntity = contentRepository.save(TestData.dummyAssessmentEntityBuilder()
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
-                        .tags(new HashSet<>(Set.of(
-                                TagEntity.fromName("Tag"),
-                                TagEntity.fromName("Tag2"))))
+                        .tags(new HashSet<>(Set.of("Tag", "Tag2")))
                         .build())
                 .build());
         contentEntity = contentRepository.save(contentEntity);
@@ -75,7 +71,7 @@ class MutationDeleteContentTest {
 
 
 
-        String query = """
+        final String query = """
                 mutation($id: UUID!) {
                     mutateContent(contentId: $id){
                         deleteContent
@@ -94,9 +90,6 @@ class MutationDeleteContentTest {
         // test that user progress is deleted
         assertThat(userProgressRepository.count(), is(0L));
 
-        //Test that tag is deleted
-        assertThat(tagRepository.count(), is(0L));
-
     }
 
 
@@ -108,35 +101,33 @@ class MutationDeleteContentTest {
     @Test
     @Transactional
     @Commit
-    void testDeleteExistingContentLinkedToStage(GraphQlTester graphQlTester) {
+    void testDeleteExistingContentLinkedToStage(final GraphQlTester graphQlTester) {
 
-        ContentEntity contentEntity = contentRepository.save(TestData.dummyAssessmentEntityBuilder()
+        final ContentEntity contentEntity = contentRepository.save(TestData.dummyAssessmentEntityBuilder()
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
-                        .tags(Set.of(
-                                TagEntity.fromName("Tag3"),
-                                TagEntity.fromName("Tag4")))
+                        .tags(Set.of("Tag3", "Tag4"))
                         .build())
                 .build());
 
-        UserProgressDataEntity progress1 = userProgressRepository.save(UserProgressDataEntity.builder()
+        final UserProgressDataEntity progress1 = userProgressRepository.save(UserProgressDataEntity.builder()
                 .contentId(contentEntity.getId())
                 .userId(UUID.randomUUID())
                 .learningInterval(1)
                 .build());
 
-        UserProgressDataEntity progress2 = userProgressRepository.save(UserProgressDataEntity.builder()
+        final UserProgressDataEntity progress2 = userProgressRepository.save(UserProgressDataEntity.builder()
                 .contentId(contentEntity.getId())
                 .userId(UUID.randomUUID())
                 .learningInterval(2)
                 .build());
 
         // add Section and Stage to db and link content to a stage
-        SectionEntity sectionEntity = sectionRepository.save(SectionEntity.builder().stages(new HashSet<>()).name("TestSection").chapterId(UUID.randomUUID()).build());
+        final SectionEntity sectionEntity = sectionRepository.save(SectionEntity.builder().stages(new HashSet<>()).name("TestSection").chapterId(UUID.randomUUID()).build());
         StageEntity stageEntity = StageEntity.builder().sectionId(sectionEntity.getId()).position(0).requiredContents(new HashSet<>()).optionalContents(new HashSet<>()).build();
         stageEntity.getRequiredContents().add(contentEntity);
         stageEntity = stageRepository.save(stageEntity);
 
-        String query = """
+        final String query = """
                 mutation($id: UUID!) {
                     mutateContent(contentId: $id){
                         deleteContent
@@ -152,7 +143,6 @@ class MutationDeleteContentTest {
         assertThat(contentRepository.findById(contentEntity.getId()).isEmpty(), is(true));
         System.out.println(contentRepository.findAll());
         assertThat(contentRepository.count(), is(0L));
-        assertThat(tagRepository.count(), is(0L));
 
         // assert content has been unlinked from Stages
         stageEntity = stageRepository.getReferenceById(stageEntity.getId());
@@ -168,9 +158,9 @@ class MutationDeleteContentTest {
      * Then an error is returned
      */
     @Test
-    void testDeleteNonExistingContent(GraphQlTester graphQlTester) {
-        UUID id = UUID.randomUUID();
-        String query = """
+    void testDeleteNonExistingContent(final GraphQlTester graphQlTester) {
+        final UUID id = UUID.randomUUID();
+        final String query = """
                 mutation($id: UUID!) {
                     mutateContent(contentId: $id){
                         deleteContent
