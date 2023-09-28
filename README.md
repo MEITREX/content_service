@@ -41,7 +41,8 @@ reasons:
 - database is automatically started and stopped when tests are executed or the application is started
 
 For Postgresql and H2, two different configurations are required.
-For this purpose, a separate configuration file `application-dev.properties` is used which contains all the configuration
+For this purpose, a separate configuration file `application-dev.properties` is used which contains all the
+configuration
 settings for development. To activate this, the following environment variable has to be set: `SPRING_CONFIG_NAME=dev`.
 
 ## API description
@@ -50,8 +51,7 @@ The GraphQL API is described in the [api.md file](api.md).
 
 The endpoint for the GraphQL API is `/graphql`. The GraphQL Playground is available at `/graphiql`.
 
-## How to run
+## Get started
 
-How to run services locally is described in
-the [wiki](https://gits-enpro.readthedocs.io/en/latest/dev-manuals/backend/get-started.html).
-
+A guide how to start development can be
+found [wiki](https://gits-enpro.readthedocs.io/en/latest/dev-manuals/backend/get-started.html).
