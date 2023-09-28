@@ -33,7 +33,8 @@ class SectionServiceTest {
 
     @Test
     void createSectionTest() {
-        //init
+        final UUID courseId = UUID.randomUUID();
+
         final CreateSectionInput input = CreateSectionInput.builder()
                 .setChapterId(UUID.randomUUID())
                 .setName("Test Section")
@@ -43,12 +44,14 @@ class SectionServiceTest {
                 .name(input.getName())
                 .id(UUID.randomUUID())
                 .chapterId(input.getChapterId())
+                .courseId(courseId)
                 .stages(new HashSet<>()).build();
 
         final Section expectedResult = Section.builder()
                 .setId(sectionEntity.getId())
                 .setName(sectionEntity.getName())
                 .setChapterId(sectionEntity.getChapterId())
+                .setCourseId(courseId)
                 .setStages(new ArrayList<>())
                 .build();
 
@@ -56,13 +59,14 @@ class SectionServiceTest {
         when(sectionRepository.save(any())).thenReturn(sectionEntity);
 
         // execute method under test
-        final Section result = sectionService.createSection(input);
+        final Section result = sectionService.createSection(courseId, input);
 
         assertEquals(expectedResult, result);
         assertEquals(expectedResult.getId(), result.getId());
         assertEquals(expectedResult.getName(), result.getName());
         assertEquals(expectedResult.getChapterId(), result.getChapterId());
         assertEquals(expectedResult.getStages(), result.getStages());
+        assertEquals(expectedResult.getCourseId(), result.getCourseId());
     }
 
     @Test

@@ -1,6 +1,8 @@
 package de.unistuttgart.iste.gits.content_service.controller;
 
+import de.unistuttgart.iste.gits.common.exception.NoAccessToCourseException;
 import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.gits.common.user_handling.UserCourseAccessValidator;
 import de.unistuttgart.iste.gits.content_service.service.*;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
@@ -29,18 +31,48 @@ public class ContentController {
     }
 
     @QueryMapping
-    public List<Content> contentsByIds(@Argument final List<UUID> ids) {
-        return contentService.getContentsById(ids);
+    public List<Content> contentsByIds(@Argument final List<UUID> ids,
+                                       @ContextValue final LoggedInUser currentUser) {
+        final List<Content> contents = contentService.getContentsById(ids);
+
+        for (final Content content : contents) {
+            // check if the user has access to the course
+            UserCourseAccessValidator.validateUserHasAccessToCourse(currentUser,
+                    LoggedInUser.UserRoleInCourse.STUDENT,
+                    content.getMetadata().getCourseId());
+        }
+
+        return contents;
     }
 
     @QueryMapping
-    public List<List<Content>> contentsByCourseIds(@Argument List<UUID> courseIds) {
+    public List<List<Content>> contentsByCourseIds(@Argument final List<UUID> courseIds,
+                                                   @ContextValue final LoggedInUser currentUser) {
+        for (final UUID courseId : courseIds) {
+            // check if the user has access to the course
+            UserCourseAccessValidator.validateUserHasAccessToCourse(currentUser,
+                    LoggedInUser.UserRoleInCourse.STUDENT,
+                    courseId);
+        }
+
         return contentService.getContentsByCourseIds(courseIds);
     }
 
     @QueryMapping
-    public List<Content> findContentsByIds(@Argument final List<UUID> ids) {
-        return contentService.findContentsById(ids);
+    public List<Content> findContentsByIds(@Argument final List<UUID> ids,
+                                           @ContextValue final LoggedInUser currentUser) {
+        return contentService.findContentsById(ids).stream()
+                .map(content -> {
+                    try {
+                        // check if the user has access to the course, otherwise return null
+                        UserCourseAccessValidator.validateUserHasAccessToCourse(currentUser,
+                                LoggedInUser.UserRoleInCourse.STUDENT,
+                                content.getMetadata().getCourseId());
+                        return content;
+                    } catch (final NoAccessToCourseException ex) {
+                        return null;
+                    }
+                }).toList();
     }
 
     @QueryMapping
@@ -48,12 +80,53 @@ public class ContentController {
                                                     @Argument final int amount,
                                                     @Argument final List<SkillType> skillTypes,
                                                     @ContextValue final LoggedInUser currentUser) {
-        return suggestionService.createSuggestions(chapterIds, currentUser.getId(), amount, skillTypes);
+        final List<Content> requiredContents = suggestionService.getAvailableRequiredContentsOfChaptersForUser(
+                chapterIds,
+                currentUser.getId()
+        );
+
+        final List<Content> optionalContents = suggestionService.getAvailableOptionalContentsOfChaptersForUser(
+                chapterIds,
+                currentUser.getId()
+        );
+
+        for (final Content content : requiredContents) {
+            // check if the user has access to the course
+            UserCourseAccessValidator.validateUserHasAccessToCourse(currentUser,
+                    LoggedInUser.UserRoleInCourse.STUDENT,
+                    content.getMetadata().getCourseId());
+        }
+
+        for (final Content content : optionalContents) {
+            // check if the user has access to the course
+            UserCourseAccessValidator.validateUserHasAccessToCourse(currentUser,
+                    LoggedInUser.UserRoleInCourse.STUDENT,
+                    content.getMetadata().getCourseId());
+        }
+
+        return suggestionService.createSuggestions(
+                requiredContents,
+                optionalContents,
+                currentUser.getId(),
+                amount,
+                skillTypes);
     }
 
     @QueryMapping
-    public List<List<Content>> contentsByChapterIds(@Argument final List<UUID> chapterIds) {
-        return contentService.getContentsByChapterIds(chapterIds);
+    public List<List<Content>> contentsByChapterIds(@Argument final List<UUID> chapterIds,
+                                                    @ContextValue final LoggedInUser currentUser) {
+        final List<List<Content>> contents = contentService.getContentsByChapterIds(chapterIds);
+
+        for (final List<Content> contentsOfChapter : contents) {
+            for (final Content content : contentsOfChapter) {
+                // check if the user has access to the course
+                UserCourseAccessValidator.validateUserHasAccessToCourse(currentUser,
+                        LoggedInUser.UserRoleInCourse.STUDENT,
+                        content.getMetadata().getCourseId());
+            }
+        }
+
+        return contents;
     }
 
     @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "achievableSkillTypesByChapterIds")
@@ -62,18 +135,37 @@ public class ContentController {
     }
 
     @MutationMapping
-    public ContentMutation mutateContent(@Argument final UUID contentId) {
+    public ContentMutation mutateContent(@Argument final UUID contentId, @ContextValue final LoggedInUser currentUser) {
+        Content content = contentService.getContentsById(List.of(contentId)).get(0);
+
+        // check if the user is admin in the course, otherwise throw an exception
+        UserCourseAccessValidator.validateUserHasAccessToCourse(currentUser,
+                LoggedInUser.UserRoleInCourse.ADMINISTRATOR,
+                content.getMetadata().getCourseId());
+
         //parent object for nested mutations
         return new ContentMutation(contentId, contentId);
     }
 
     @MutationMapping(name = "_internal_createMediaContent")
-    public MediaContent createMediaContent(@Argument final CreateMediaContentInput input, @Argument UUID courseId) {
+    public MediaContent createMediaContent(@Argument final CreateMediaContentInput input,
+                                           @Argument final UUID courseId,
+                                           @ContextValue final LoggedInUser currentUser) {
+        UserCourseAccessValidator.validateUserHasAccessToCourse(currentUser,
+                LoggedInUser.UserRoleInCourse.ADMINISTRATOR,
+                courseId);
+
         return contentService.createMediaContent(input, courseId);
     }
 
     @MutationMapping(name = "_internal_createAssessment")
-    public Assessment createAssessment(@Argument final CreateAssessmentInput input, @Argument UUID courseId) {
+    public Assessment createAssessment(@Argument final CreateAssessmentInput input,
+                                       @Argument final UUID courseId,
+                                       @ContextValue final LoggedInUser currentUser) {
+        UserCourseAccessValidator.validateUserHasAccessToCourse(currentUser,
+                LoggedInUser.UserRoleInCourse.ADMINISTRATOR,
+                courseId);
+
         return contentService.createAssessment(input, courseId);
     }
 
