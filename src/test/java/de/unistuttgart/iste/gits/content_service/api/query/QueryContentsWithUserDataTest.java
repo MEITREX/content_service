@@ -1,7 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.api.query;
 
-import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.gits.common.testutil.*;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
@@ -27,12 +27,18 @@ class QueryContentsWithUserDataTest {
     @Autowired
     private UserProgressDataRepository userProgressDataRepository;
 
+    @InjectCurrentUserHeader
+    private final LoggedInUser user = new LoggedInUser(UUID.randomUUID(),
+            "test", "testFirstName", "testLastName", List.of());
+
+    private final UUID userId = user.getId();
+
     @Test
     void testQueryWithUserDataForCurrentUser(HttpGraphQlTester graphQlTester) {
         // arrange one content object with two user data objects
-        UUID chapterId = UUID.randomUUID();
-        UUID userId1 = UUID.randomUUID();
-        UUID userId2 = UUID.randomUUID();
+        final UUID chapterId = UUID.randomUUID();
+        final UUID userId2 = UUID.randomUUID();
+
         MediaContentEntity contentEntity = TestData.dummyMediaContentEntityBuilder()
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
                         .chapterId(chapterId)
@@ -40,18 +46,8 @@ class QueryContentsWithUserDataTest {
                 .build();
         contentEntity = contentRepository.save(contentEntity);
 
-        String currentUser = """
-                {
-                    "id": "%s",
-                    "userName": "MyUserName",
-                    "firstName": "John",
-                    "lastName": "Doe",
-                    "courseMemberships": []
-                }
-                """.formatted(userId1.toString());
-
-        UserProgressDataEntity userProgressDataEntity1 = UserProgressDataEntity.builder()
-                .userId(userId1)
+        final UserProgressDataEntity userProgressDataEntity1 = UserProgressDataEntity.builder()
+                .userId(userId)
                 .contentId(contentEntity.getId())
                 .learningInterval(1)
                 .progressLog(List.of(
@@ -110,15 +106,13 @@ class QueryContentsWithUserDataTest {
                     }
                 }
                 """;
-        graphQlTester.mutate()
-                .header("CurrentUser", currentUser)
-                .build()
+        graphQlTester
                 .document(query)
                 .execute()
                 .path("contents.elements").entityList(Object.class).hasSize(1)
                 .path("contents.elements[0].id").entity(UUID.class).isEqualTo(contentEntity.getId())
                 .path("contents.elements[0].metadata.chapterId").entity(UUID.class).isEqualTo(chapterId)
-                .path("contents.elements[0].userProgressData.userId").entity(UUID.class).isEqualTo(userId1)
+                .path("contents.elements[0].userProgressData.userId").entity(UUID.class).isEqualTo(userId)
                 .path("contents.elements[0].userProgressData.learningInterval").entity(Integer.class).isEqualTo(1)
                 .path("contents.elements[0].userProgressData.lastLearnDate").entity(OffsetDateTime.class)
                 .matches(lastLearnDate -> lastLearnDate.isEqual(OffsetDateTime.parse("2021-01-01T00:00:00+01:00")))
@@ -148,9 +142,8 @@ class QueryContentsWithUserDataTest {
     @Test
     void testQueryWithUserDataForOtherUser(HttpGraphQlTester graphQlTester) {
         // arrange one content object with two user data objects
-        UUID chapterId = UUID.randomUUID();
-        UUID userId1 = UUID.randomUUID();
-        UUID userId2 = UUID.randomUUID();
+        final UUID chapterId = UUID.randomUUID();
+        final UUID userId2 = UUID.randomUUID();
         MediaContentEntity contentEntity = TestData.dummyMediaContentEntityBuilder()
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
                         .chapterId(chapterId)
@@ -159,7 +152,7 @@ class QueryContentsWithUserDataTest {
         contentEntity = contentRepository.save(contentEntity);
 
         UserProgressDataEntity userProgressDataEntity1 = UserProgressDataEntity.builder()
-                .userId(userId1)
+                .userId(userId)
                 .contentId(contentEntity.getId())
                 .learningInterval(1)
                 .progressLog(List.of(
@@ -215,12 +208,12 @@ class QueryContentsWithUserDataTest {
                 }
                 """;
         graphQlTester.document(query)
-                .variable("userId", userId1)
+                .variable("userId", userId)
                 .execute()
                 .path("contents.elements").entityList(Object.class).hasSize(1)
                 .path("contents.elements[0].id").entity(UUID.class).isEqualTo(contentEntity.getId())
                 .path("contents.elements[0].metadata.chapterId").entity(UUID.class).isEqualTo(chapterId)
-                .path("contents.elements[0].progressDataForUser.userId").entity(UUID.class).isEqualTo(userId1)
+                .path("contents.elements[0].progressDataForUser.userId").entity(UUID.class).isEqualTo(userId)
                 .path("contents.elements[0].progressDataForUser.learningInterval").entity(Integer.class).isEqualTo(1)
                 .path("contents.elements[0].progressDataForUser.log[0].timestamp").entity(OffsetDateTime.class).satisfies(
                         offsetDateTime -> assertThat(
