@@ -1,8 +1,14 @@
 type Query {
     """
-    get all contents
+    Retrieves all existing contents.
     """
-    contents: ContentPayload!
+    contents: ContentPayload! @deprecated(reason: "Querying all contents will not be supported in the future. Use contentsByIds instead")
+
+    """
+    Retrieves all existing contents for a given course.
+    """
+    contentsByCourseIds(courseIds: [UUID!]!): [[Content!]!]
+
     """
     Get contents by ids. Throws an error if any of the ids are not found.
     """
@@ -14,7 +20,7 @@ type Query {
     findContentsByIds(ids: [UUID!]!): [Content]!
 
     """
-    get contents by chapter ids. Returns a list containing sublists, where each sublist contains all contents
+    Get contents by chapter ids. Returns a list containing sublists, where each sublist contains all contents
     associated with that chapter
     """
     contentsByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!

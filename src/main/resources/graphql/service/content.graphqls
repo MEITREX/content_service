@@ -40,6 +40,10 @@ type ContentMetadata {
     """
     chapterId: UUID!
     """
+    ID of the course this content is associated with
+    """
+    courseId: UUID!
+    """
     TagNames this content is tagged with
     """
     tagNames: [String!]!

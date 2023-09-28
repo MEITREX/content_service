@@ -1,24 +1,15 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
-import de.unistuttgart.iste.gits.common.event.ResourceUpdateEvent;
+import de.unistuttgart.iste.gits.common.event.*;
 import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.gits.content_service.TestData;
 import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentMetadataEmbeddable;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
 import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
-import de.unistuttgart.iste.gits.generated.dto.Content;
-import de.unistuttgart.iste.gits.generated.dto.ContentType;
-import de.unistuttgart.iste.gits.generated.dto.SkillType;
+import de.unistuttgart.iste.gits.generated.dto.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
@@ -268,7 +259,7 @@ class ContentServiceTest {
         List<Content> unlinkedContentForChapter2 = mediaContentEntities.subList(4, 5).stream().map(contentMapper::entityToDto).toList();
 
         //mock database queries
-        when(sectionRepository.findByChapterIdIn(chapterIds)).thenReturn(List.of(sectionEntity, sectionEntity2, sectionEntity3));
+        when(sectionRepository.findByChapterIdInOrderByPosition(chapterIds)).thenReturn(List.of(sectionEntity, sectionEntity2, sectionEntity3));
         when(contentRepository.findByChapterIdIn(chapterIds)).thenReturn(mediaContentEntities);
 
         // execute method under test

@@ -34,6 +34,11 @@ public class ContentController {
     }
 
     @QueryMapping
+    public List<List<Content>> contentsByCourseIds(@Argument List<UUID> courseIds) {
+        return contentService.getContentsByCourseIds(courseIds);
+    }
+
+    @QueryMapping
     public List<Content> findContentsByIds(@Argument final List<UUID> ids) {
         return contentService.findContentsById(ids);
     }
@@ -62,14 +67,14 @@ public class ContentController {
         return new ContentMutation(contentId, contentId);
     }
 
-    @MutationMapping
-    public MediaContent createMediaContent(@Argument final CreateMediaContentInput input) {
-        return contentService.createMediaContent(input);
+    @MutationMapping(name = "_internal_createMediaContent")
+    public MediaContent createMediaContent(@Argument final CreateMediaContentInput input, @Argument UUID courseId) {
+        return contentService.createMediaContent(input, courseId);
     }
 
-    @MutationMapping
-    public Assessment createAssessment(@Argument final CreateAssessmentInput input) {
-        return contentService.createAssessment(input);
+    @MutationMapping(name = "_internal_createAssessment")
+    public Assessment createAssessment(@Argument final CreateAssessmentInput input, @Argument UUID courseId) {
+        return contentService.createAssessment(input, courseId);
     }
 
     @SchemaMapping(typeName = CONTENT_MUTATION)

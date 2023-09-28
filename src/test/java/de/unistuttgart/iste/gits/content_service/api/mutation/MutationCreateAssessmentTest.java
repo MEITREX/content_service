@@ -54,11 +54,12 @@ class MutationCreateAssessmentTest {
     @Test
     @Transactional
     @Commit
-    void testCreateAssessment(final GraphQlTester graphQlTester) {
-        final UUID chapterId = UUID.randomUUID();
-        final String query = """
-                mutation($chapterId: UUID!) {
-                    createAssessment(input: {
+    void testCreateAssessment(GraphQlTester graphQlTester) {
+        UUID chapterId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+        String query = """
+                mutation($chapterId: UUID!, $courseId: UUID!) {
+                    createAssessment: _internal_createAssessment(courseId: $courseId, input: {
                         metadata: {
                             chapterId: $chapterId
                             name: "name"
@@ -93,6 +94,7 @@ class MutationCreateAssessmentTest {
 
         final FlashcardSetAssessment createdAssessment = graphQlTester.document(query)
                 .variable("chapterId", chapterId)
+                .variable("courseId", courseId)
                 .execute()
                 .path("createAssessment").entity(FlashcardSetAssessment.class).get();
 
@@ -137,10 +139,11 @@ class MutationCreateAssessmentTest {
      * Then a ValidationException is thrown
      */
     @Test
-    void testCreateAssessmentWithMediaContentType(final GraphQlTester graphQlTester) {
-        final String query = """
-                mutation {
-                    createAssessment(input: {
+    void testCreateAssessmentWithMediaContentType(GraphQlTester graphQlTester) {
+        UUID courseId = UUID.randomUUID();
+        String query = """
+                mutation($courseId: UUID!) {
+                    createAssessment: _internal_createAssessment(courseId: $courseId, input: {
                         metadata: {
                             type: MEDIA
                             name: "name"
@@ -159,6 +162,7 @@ class MutationCreateAssessmentTest {
                 """;
 
         graphQlTester.document(query)
+                .variable("courseId", courseId)
                 .execute()
                 .errors()
                 .satisfy(errors -> {

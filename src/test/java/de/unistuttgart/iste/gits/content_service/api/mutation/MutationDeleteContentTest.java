@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.is;
 
 @ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "user_progress_data", "content"})
+@TablesToDelete({"content_tags", "user_progress_data", "section", "stage", "content" })
 class MutationDeleteContentTest {
 
     @Autowired

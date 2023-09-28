@@ -8,6 +8,9 @@ import java.util.UUID;
 
 
 @Entity(name = "Section")
+@Table(indexes = {
+        @Index(name = "idx_section_chapter_id", columnList = "chapter_id")
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,8 +21,11 @@ public class SectionEntity {
     @GeneratedValue
     private UUID id;
 
-    @Column
+    @Column(nullable = false, name = "chapter_id")
     private UUID chapterId;
+
+    @OrderColumn(nullable = false)
+    private int position;
 
     @Column(nullable = false, length = 255)
     private String name;

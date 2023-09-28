@@ -8,6 +8,9 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity(name = "Stage")
+@Table(indexes = {
+        @Index(name = "idx_stage_section_id", columnList = "section_id")
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,7 +21,7 @@ public class StageEntity {
     @GeneratedValue
     private UUID id;
 
-    @Column
+    @Column(nullable = false, name = "section_id")
     private UUID sectionId;
 
     @Column(nullable = false)

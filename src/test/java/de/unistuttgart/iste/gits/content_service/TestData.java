@@ -35,6 +35,7 @@ public class TestData {
 
     public static ContentMetadataEmbeddable.ContentMetadataEmbeddableBuilder dummyContentMetadataEmbeddableBuilder() {
         return ContentMetadataEmbeddable.builder()
+                .courseId(UUID.randomUUID())
                 .chapterId(UUID.randomUUID())
                 .name("Test Content")
                 .rewardPoints(0)
@@ -53,6 +54,7 @@ public class TestData {
                                 .suggestedDate(OffsetDateTime.parse("2020-01-01T00:00:00.000Z"))
                                 .rewardPoints(20)
                                 .chapterId(chapterId)
+                                .courseId(UUID.randomUUID())
                                 .build()
                 ).build();
     }

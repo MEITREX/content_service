@@ -13,7 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static de.unistuttgart.iste.gits.common.util.GitsCollectionUtils.groupIntoSubLists;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +35,8 @@ public class SectionService {
                         .name(input.getName())
                         .chapterId(input.getChapterId())
                         .stages(new HashSet<>())
+                        // set position to last
+                        .position(sectionRepository.findHighestPositionByChapterId(input.getChapterId()).orElse(0)) // set position to last
                         .build()
         );
         return sectionMapper.entityToDto(sectionEntity);
@@ -62,7 +65,7 @@ public class SectionService {
      * @param sectionId ID of Section
      * @return ID of deleted Object
      */
-    public UUID deleteWorkPath(final UUID sectionId) {
+    public UUID deleteSection(final UUID sectionId) {
         requireSectionExisting(sectionId);
 
         sectionRepository.deleteById(sectionId);
@@ -85,7 +88,7 @@ public class SectionService {
         if (chapterIds == null || chapterIds.isEmpty() || dto.getOperation() == null) {
             throw new IncompleteEventMessageException(IncompleteEventMessageException.ERROR_INCOMPLETE_MESSAGE);
         }
-        sections = sectionRepository.findByChapterIdIn(chapterIds);
+        sections = sectionRepository.findByChapterIdInOrderByPosition(chapterIds);
         sectionRepository.deleteAllInBatch(sections);
     }
 
@@ -139,25 +142,12 @@ public class SectionService {
      * @return A list of lists of sections. The outer list contains sublists which each contain the sections
      *         for one chapter.
      */
-    public List<List<Section>> getSectionsByChapterIds(final List<UUID> chapterIds) {
-        final List<List<Section>> result = new ArrayList<>(chapterIds.size());
-
+    public List<List<Section>> getSectionsByChapterIds(List<UUID> chapterIds) {
         // get a list containing all sections for the given chapters, but not divided by chapter yet
-        final List<SectionEntity> entities = sectionRepository.findByChapterIdIn(chapterIds);
+        List<SectionEntity> entities = sectionRepository.findByChapterIdInOrderByPosition(chapterIds);
+        List<Section> sections = entities.stream().map(sectionMapper::entityToDto).toList();
 
-        // map the different sections into groups by chapter
-        final Map<UUID, List<Section>> sectionsByChapterId = entities.stream()
-                .map(sectionMapper::entityToDto)
-                .collect(Collectors.groupingBy(Section::getChapterId));
-
-        // put the different groups of sections into the result list such that the order matches the order of chapter
-        // ids given in the chapterIds argument
-        for(final UUID chapterId : chapterIds) {
-            final List<Section> sections = sectionsByChapterId.getOrDefault(chapterId, Collections.emptyList());
-            result.add(sections);
-        }
-
-        return result;
+        return groupIntoSubLists(sections, chapterIds, Section::getChapterId);
     }
 
     /**
