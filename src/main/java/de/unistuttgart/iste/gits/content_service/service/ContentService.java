@@ -1,10 +1,11 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
 
-import de.unistuttgart.iste.gits.common.event.*;
+import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
+import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.gits.common.util.PaginationUtil;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
@@ -52,7 +53,7 @@ public class ContentService {
 
         final UUID removedId = deleteContentAndRemoveDependencies(deletedEntity);
 
-        topicPublisher.informContentDependentServices(List.of(removedId), CrudOperation.DELETE);
+        topicPublisher.notifyContentChanges(List.of(removedId), CrudOperation.DELETE);
         return uuid;
     }
 
@@ -232,8 +233,6 @@ public class ContentService {
     private <T extends ContentEntity> T createContent(T contentEntity) {
         contentEntity = contentRepository.save(contentEntity);
 
-        topicPublisher.notifyChange(contentEntity, CrudOperation.CREATE);
-
         return contentEntity;
     }
 
@@ -250,32 +249,10 @@ public class ContentService {
 
         // if the content is assigned to a different chapter course Links need to be potentially updated and therefore an Update request is sent to the resource services
         if (!oldContentEntity.getMetadata().getChapterId().equals(updatedContentEntity.getMetadata().getChapterId())) {
-            topicPublisher.informContentDependentServices(List.of(updatedContentEntity.getId()), CrudOperation.UPDATE);
+            topicPublisher.notifyContentChanges(List.of(updatedContentEntity.getId()), CrudOperation.UPDATE);
         }
 
         return updatedContentEntity;
-    }
-
-    /**
-     * method to forward received resource updates with additional information to course association topic
-     *
-     * @param dto resource update dto
-     */
-    public void forwardResourceUpdates(final ResourceUpdateEvent dto) throws IncompleteEventMessageException {
-
-        // completeness check of input
-        if (dto.getEntityId() == null || dto.getContentIds() == null || dto.getOperation() == null) {
-            throw new IncompleteEventMessageException(IncompleteEventMessageException.ERROR_INCOMPLETE_MESSAGE);
-        }
-
-        // find all chapter IDs
-        final List<UUID> contentEntityIds = contentRepository.findAllById(dto.getContentIds())
-                .stream()
-                .map(contentEntity -> contentEntity.getMetadata().getChapterId())
-                .toList();
-
-
-        topicPublisher.forwardChange(dto.getEntityId(), contentEntityIds, dto.getOperation());
     }
 
     /**
@@ -307,12 +284,12 @@ public class ContentService {
 
         if (!contentIds.isEmpty()) {
             // inform dependant services that content entities were deleted
-            topicPublisher.informContentDependentServices(contentIds, CrudOperation.DELETE);
+            topicPublisher.notifyContentChanges(contentIds, CrudOperation.DELETE);
         }
     }
 
     /**
-     * Removes a stage links to the content entity and then deleted the content entity afterward.
+     * Removes a stage links to the content entity and then delete the content entity afterwards.
      * This also deletes the user progress data and unused tags
      * and publishes the changes applied to the content entity.
      *
@@ -325,9 +302,6 @@ public class ContentService {
         stageService.deleteContentLinksFromStages(contentEntity);
 
         contentRepository.delete(contentEntity);
-
-        // publish changes applied to content entity
-        topicPublisher.notifyChange(contentEntity, CrudOperation.DELETE);
 
         return contentEntity.getId();
     }

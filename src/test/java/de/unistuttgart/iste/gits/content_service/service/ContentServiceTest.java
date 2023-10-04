@@ -1,14 +1,14 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
+import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.common.event.*;
 import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
+import de.unistuttgart.iste.gits.common.testutil.MockTestPublisherConfiguration;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentMetadataEmbeddable;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
-import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.SkillType;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
-@ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
+@ContextConfiguration(classes = MockTestPublisherConfiguration.class)
 class ContentServiceTest {
 
     private final ContentRepository contentRepository = Mockito.mock(ContentRepository.class);
@@ -41,64 +41,6 @@ class ContentServiceTest {
     private final ContentService contentService = new ContentService(contentRepository, userProgressDataRepository,
             stageService, contentMapper, contentValidator, mockPublisher);
 
-    @Test
-    void forwardResourceUpdates() {
-
-        final ResourceUpdateEvent dto = ResourceUpdateEvent.builder()
-                .entityId(UUID.randomUUID())
-                .contentIds(List.of(UUID.randomUUID()))
-                .operation(CrudOperation.CREATE)
-                .build();
-
-        final ContentEntity testEntity = ContentEntity.builder()
-                .id(dto.getContentIds()
-                        .get(0))
-                .metadata( ContentMetadataEmbeddable.builder()
-                        .chapterId(UUID.randomUUID())
-                        .name("Test")
-                        .rewardPoints(10)
-                        .type(ContentType.MEDIA)
-                        .suggestedDate(OffsetDateTime.now())
-                        .build()
-                )
-                .build();
-
-        //mock repository
-        when(contentRepository.findAllById(dto.getContentIds())).thenReturn(List.of(testEntity));
-
-        // execute method under test
-        assertDoesNotThrow(() -> contentService.forwardResourceUpdates(dto));
-
-
-        verify(mockPublisher, times(1))
-                .forwardChange(dto.getEntityId(), List.of(testEntity.getMetadata().getChapterId()), dto.getOperation());
-    }
-
-    @Test
-    void forwardFaultyResourceUpdates() {
-        final ResourceUpdateEvent noEntityDto = ResourceUpdateEvent.builder()
-                .contentIds(List.of(UUID.randomUUID()))
-                .operation(CrudOperation.CREATE)
-                .build();
-        final ResourceUpdateEvent nullListDto = ResourceUpdateEvent.builder()
-                .entityId(UUID.randomUUID())
-                .operation(CrudOperation.CREATE)
-                .build();
-        final ResourceUpdateEvent emptyListDto = ResourceUpdateEvent.builder()
-                .entityId(UUID.randomUUID())
-                .contentIds(new ArrayList<UUID>())
-                .operation(CrudOperation.CREATE)
-                .build();
-        final ResourceUpdateEvent noOperationDto = ResourceUpdateEvent.builder()
-                .entityId(UUID.randomUUID())
-                .contentIds(List.of(UUID.randomUUID()))
-                .build();
-
-        //execute method under test
-        assertThrows(IncompleteEventMessageException.class, () -> contentService.forwardResourceUpdates(noEntityDto));
-        assertThrows(IncompleteEventMessageException.class, () -> contentService.forwardResourceUpdates(nullListDto));
-        assertThrows(IncompleteEventMessageException.class, () -> contentService.forwardResourceUpdates(noOperationDto));
-    }
 
     @Test
     void cascadeContentDeletion() {
@@ -142,8 +84,7 @@ class ContentServiceTest {
 
         verify(contentRepository, times(1)).delete(argThat(content -> content.getId().equals(testEntity.getId())));
         verify(contentRepository, times(1)).delete(argThat(content -> content.getId().equals(testEntity2.getId())));
-        verify(mockPublisher, times(2)).notifyChange(any(ContentEntity.class), eq(CrudOperation.DELETE));
-        verify(mockPublisher, times(1)).informContentDependentServices(List.of(testEntity.getId(), testEntity2.getId()), CrudOperation.DELETE);
+        verify(mockPublisher, times(1)).notifyContentChanges(List.of(testEntity.getId(), testEntity2.getId()), CrudOperation.DELETE);
         verify(userProgressDataRepository, times(1)).deleteByContentId(argThat(content -> content.equals(testEntity.getId())));
         verify(userProgressDataRepository, times(1)).deleteByContentId(argThat(content -> content.equals(testEntity2.getId())));
     }
@@ -171,7 +112,6 @@ class ContentServiceTest {
         // ends before any DB access is made
         verify(contentRepository, times(0)).findByChapterIdIn(any());
         verify(contentRepository, times(0)).delete(any(ContentEntity.class));
-        verify(mockPublisher, times(0)).informContentDependentServices(any(), any());
 
 
         //execute method under test

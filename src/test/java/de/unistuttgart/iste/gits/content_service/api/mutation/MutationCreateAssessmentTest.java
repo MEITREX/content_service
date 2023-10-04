@@ -1,14 +1,14 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 
+import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
+import de.unistuttgart.iste.gits.common.testutil.MockTestPublisherConfiguration;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
+@ContextConfiguration(classes = MockTestPublisherConfiguration.class)
 @GraphQlApiTest
 @TablesToDelete({"content_tags", "content"})
 class MutationCreateAssessmentTest {
@@ -124,9 +124,6 @@ class MutationCreateAssessmentTest {
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.REMEMBER)));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(2));
 
-        verify(topicPublisher, times(1))
-                .notifyChange(assessmentEntity, CrudOperation.CREATE);
-
     }
 
     /**
@@ -166,7 +163,5 @@ class MutationCreateAssessmentTest {
                 });
 
         assertThat(contentRepository.count(), is(0L));
-
-        verify(topicPublisher, never()).notifyChange(any(), any());
     }
 }

@@ -1,13 +1,13 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
+import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
+import de.unistuttgart.iste.gits.common.testutil.MockTestPublisherConfiguration;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.MediaContent;
 import jakarta.transaction.Transactional;
@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
+@ContextConfiguration(classes = MockTestPublisherConfiguration.class)
 @GraphQlApiTest
 @TablesToDelete({"content_tags", "content"})
 class MutationCreateMediaContentTest {
@@ -105,8 +105,6 @@ class MutationCreateMediaContentTest {
         assertThat(mediaContentEntity.getMetadata().getType(), is(ContentType.MEDIA));
         assertThat(mediaContentEntity.getMetadata().getChapterId(), is(chapterId));
         assertThat(mediaContentEntity.getMetadata().getRewardPoints(), is(1));
-
-        verify(topicPublisher, atLeastOnce()).notifyChange(contentEntity, CrudOperation.CREATE);
     }
 
     /**
@@ -141,6 +139,5 @@ class MutationCreateMediaContentTest {
                 });
 
         assertThat(contentRepository.findAll(), hasSize(0));
-        verify(topicPublisher, never()).notifyChange(any(), any());
     }
 }

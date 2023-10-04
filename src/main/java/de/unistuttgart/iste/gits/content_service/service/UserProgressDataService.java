@@ -1,7 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
+import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
@@ -93,7 +93,7 @@ public class UserProgressDataService {
 
         userProgressDataRepository.save(userProgressDataEntity);
 
-        topicPublisher.forwardContentProgressed(userProgressLogEvent);
+        topicPublisher.notifyUserProgressProcessed(userProgressLogEvent);
     }
 
     /**
@@ -139,7 +139,6 @@ public class UserProgressDataService {
      * @return progress percentage
      */
     public double getStageProgressForUser(final Stage stage, final UUID userId, final boolean requiredContent) {
-        int numbOfCompletedContent = 0;
 
         final List<Content> contentList;
 
@@ -153,8 +152,7 @@ public class UserProgressDataService {
             return 100.00;
         }
 
-
-        numbOfCompletedContent = countNumCompletedContent(userId, contentList);
+        final int numbOfCompletedContent = countNumCompletedContent(userId, contentList);
 
         return (double) numbOfCompletedContent / contentList.size() * 100;
     }

@@ -22,19 +22,6 @@ public class SubscriptionController {
     private final SectionService sectionService;
     private final UserProgressDataService userProgressDataService;
 
-    @Topic(name = "resource-update", pubsubName = "gits")
-    @PostMapping(path = "/content-service/resource-update-pubsub")
-    public Mono<Void> updateAssociation(@RequestBody final CloudEvent<ResourceUpdateEvent> cloudEvent) {
-
-        return Mono.fromRunnable(() -> {
-            try {
-                contentService.forwardResourceUpdates(cloudEvent.getData());
-            } catch (final Exception e) {
-                log.error("Error while processing resource-update event. {}", e.getMessage());
-            }
-        });
-    }
-
     /**
      * Listens to the content-progressed topic and logs the user progress.
      */
@@ -50,8 +37,8 @@ public class SubscriptionController {
         });
     }
 
-    @Topic(name = "chapter-changes", pubsubName = "gits")
-    @PostMapping(path = "/content-service/chapter-changes-pubsub")
+    @Topic(name = "chapter-changed", pubsubName = "gits")
+    @PostMapping(path = "/content-service/chapter-changed-pubsub")
     public Mono<Void> cascadeCourseDeletion(@RequestBody final CloudEvent<ChapterChangeEvent> cloudEvent) {
         return Mono.fromRunnable(() -> {
             try {

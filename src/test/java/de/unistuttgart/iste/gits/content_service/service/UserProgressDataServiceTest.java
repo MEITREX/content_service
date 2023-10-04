@@ -1,8 +1,8 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
+import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
 import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
@@ -186,7 +186,7 @@ class UserProgressDataServiceTest {
                         .build()
         );
 
-        verify(topicPublisher).forwardContentProgressed(event);
+        verify(topicPublisher).notifyUserProgressProcessed(event);
     }
 
     /**
