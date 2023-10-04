@@ -1,12 +1,17 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
-import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.gits.common.testutil.MockTestPublisherConfiguration;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.UserProgressDataEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +19,9 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static graphql.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,8 +42,6 @@ class MutationDeleteContentTest {
     private StageRepository stageRepository;
     @Autowired
     private SectionRepository sectionRepository;
-    @Autowired
-    private TopicPublisher topicPublisher;
 
 
     /**
@@ -68,7 +73,6 @@ class MutationDeleteContentTest {
                 .learningInterval(1)
                 .build();
         progress2 = userProgressRepository.save(progress2);
-
 
 
         final String query = """
@@ -164,7 +168,7 @@ class MutationDeleteContentTest {
                 mutation($id: UUID!) {
                     mutateContent(contentId: $id){
                         deleteContent
-                    } 
+                    }
                 }
                 """;
 

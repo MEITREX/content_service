@@ -96,14 +96,14 @@ class ContentServiceTest {
                 .operation(CrudOperation.CREATE)
                 .build();
         final ChapterChangeEvent emptyListDto = ChapterChangeEvent.builder()
-                .chapterIds(new ArrayList<UUID>())
+                .chapterIds(new ArrayList<>())
                 .operation(CrudOperation.DELETE)
                 .build();
         final ChapterChangeEvent nullListDto = ChapterChangeEvent.builder()
                 .operation(CrudOperation.DELETE)
                 .build();
         final ChapterChangeEvent noOperationDto = ChapterChangeEvent.builder()
-                .chapterIds(new ArrayList<UUID>())
+                .chapterIds(new ArrayList<>())
                 .build();
 
         //execute method under test

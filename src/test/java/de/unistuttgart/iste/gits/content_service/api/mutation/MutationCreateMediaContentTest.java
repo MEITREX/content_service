@@ -1,9 +1,6 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
-import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.gits.common.testutil.MockTestPublisherConfiguration;
 import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
@@ -11,36 +8,23 @@ import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentR
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.MediaContent;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-@ContextConfiguration(classes = MockTestPublisherConfiguration.class)
 @GraphQlApiTest
 @TablesToDelete({"content_tags", "content"})
 class MutationCreateMediaContentTest {
 
     @Autowired
     private ContentRepository contentRepository;
-
-    @Autowired
-    private TopicPublisher topicPublisher;
-
-    @BeforeEach
-    void beforeEach() {
-        reset(topicPublisher);
-    }
 
     /**
      * Given a valid CreateAssessmentInput
