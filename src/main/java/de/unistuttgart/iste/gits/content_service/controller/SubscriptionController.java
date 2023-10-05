@@ -27,7 +27,7 @@ public class SubscriptionController {
      */
     @Topic(name = "content-progressed", pubsubName = "gits")
     @PostMapping(path = "/content-progressed-pubsub")
-    public Mono<Void> logUserProgress(@RequestBody final CloudEvent<UserProgressLogEvent> cloudEvent) {
+    public Mono<Void> logUserProgress(@RequestBody final CloudEvent<UserProgressUpdatedEvent> cloudEvent) {
         return Mono.fromRunnable(() -> {
             try {
                 userProgressDataService.logUserProgress(cloudEvent.getData());
