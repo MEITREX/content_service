@@ -1,7 +1,8 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
+import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
+import de.unistuttgart.iste.gits.common.event.ContentProgressedEvent;
+import de.unistuttgart.iste.gits.common.event.UserProgressUpdatedEvent;
 import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
@@ -79,22 +80,37 @@ public class UserProgressDataService {
      * A new progress log item will be added to the progress log.
      * The event will be forwarded to the topic "user-progress-updated".
      *
-     * @param userProgressLogEvent the event to log
+     * @param contentProgressedEvent the event to log
      */
-    public void logUserProgress(final UserProgressLogEvent userProgressLogEvent) {
+    public void logUserProgress(final ContentProgressedEvent contentProgressedEvent) {
         final UserProgressDataEntity userProgressDataEntity = getUserProgressDataEntity(
-                userProgressLogEvent.getUserId(), userProgressLogEvent.getContentId());
+                contentProgressedEvent.getUserId(), contentProgressedEvent.getContentId());
 
         userProgressDataEntity.setLearningInterval(
-                calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity));
+                calculateNewLearningInterval(contentProgressedEvent, userProgressDataEntity));
 
-        final var logItem = userProgressDataMapper.eventToEmbeddable(userProgressLogEvent);
+        final var logItem = userProgressDataMapper.eventToEmbeddable(contentProgressedEvent);
         logItem.setTimestamp(OffsetDateTime.now());
         userProgressDataEntity.getProgressLog().add(logItem);
 
         userProgressDataRepository.save(userProgressDataEntity);
 
-        topicPublisher.forwardContentProgressed(userProgressLogEvent);
+        final Content content = contentService.getContentsById(List.of(contentProgressedEvent.getContentId())).get(0);
+        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content));
+    }
+
+    private UserProgressUpdatedEvent createUserProgressUpdatedEvent(final ContentProgressedEvent event,
+                                                                    final Content content) {
+        return UserProgressUpdatedEvent.builder()
+                .userId(event.getUserId())
+                .contentId(event.getContentId())
+                .chapterId(content.getMetadata().getChapterId())
+                .courseId(content.getMetadata().getCourseId())
+                .success(event.isSuccess())
+                .correctness(event.getCorrectness())
+                .hintsUsed(event.getHintsUsed())
+                .timeToComplete(event.getTimeToComplete())
+                .build();
     }
 
     /**
@@ -114,18 +130,19 @@ public class UserProgressDataService {
      * The learning interval can never be smaller than 1, except when it was never scheduled for
      * repetition to begin with.
      */
-    protected Integer calculateNewLearningInterval(final UserProgressLogEvent userProgressLogEvent, final UserProgressDataEntity userProgressDataEntity) {
+    protected Integer calculateNewLearningInterval(final ContentProgressedEvent userProgressUpdatedEvent,
+                                                   final UserProgressDataEntity userProgressDataEntity) {
         if (userProgressDataEntity.getLearningInterval() == null) {
             return null;
         }
         final double newLearningInterval;
-        if (userProgressLogEvent.isSuccess()) {
-            final int hintsUsedCapped = Math.min(userProgressLogEvent.getHintsUsed(), 10);
+        if (userProgressUpdatedEvent.isSuccess()) {
+            final int hintsUsedCapped = Math.min(userProgressUpdatedEvent.getHintsUsed(), 10);
             newLearningInterval = userProgressDataEntity.getLearningInterval() *
-                                  (1 + userProgressLogEvent.getCorrectness() - hintsUsedCapped * 0.1);
+                                  (1 + userProgressUpdatedEvent.getCorrectness() - hintsUsedCapped * 0.1);
         } else {
             newLearningInterval = userProgressDataEntity.getLearningInterval()
-                                  * (0.5 * userProgressLogEvent.getCorrectness());
+                                  * (0.5 * userProgressUpdatedEvent.getCorrectness());
         }
 
         return (int) Math.floor(Math.max(1, newLearningInterval));
@@ -140,7 +157,6 @@ public class UserProgressDataService {
      * @return progress percentage
      */
     public double getStageProgressForUser(final Stage stage, final UUID userId, final boolean requiredContent) {
-        int numbOfCompletedContent = 0;
 
         final List<Content> contentList;
 
@@ -154,8 +170,7 @@ public class UserProgressDataService {
             return 100.00;
         }
 
-
-        numbOfCompletedContent = countNumCompletedContent(userId, contentList);
+        final int numbOfCompletedContent = countNumCompletedContent(userId, contentList);
 
         return (double) numbOfCompletedContent / contentList.size() * 100;
     }
