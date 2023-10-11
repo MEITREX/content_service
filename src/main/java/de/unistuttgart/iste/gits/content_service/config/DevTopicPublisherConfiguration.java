@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.gits.content_service.config;
 
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
+import de.unistuttgart.iste.gits.common.dapr.MockTopicPublisher;
+import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.*;
 
@@ -15,16 +16,4 @@ public class DevTopicPublisherConfiguration {
         return new MockTopicPublisher();
     }
 
-    @Slf4j
-    static class MockTopicPublisher extends TopicPublisher {
-
-        public MockTopicPublisher() {
-            super(null);
-        }
-
-        @Override
-        protected void publishEvent(Object dto, String topic) {
-            log.info("Would have published message to topic {}: {}", topic, dto);
-        }
-    }
 }

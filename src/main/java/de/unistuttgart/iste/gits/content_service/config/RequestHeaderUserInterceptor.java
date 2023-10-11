@@ -17,7 +17,7 @@ public class RequestHeaderUserInterceptor implements WebGraphQlInterceptor {
     @NotNull
     @Override
     @SneakyThrows
-    public Mono<WebGraphQlResponse> intercept(@NotNull WebGraphQlRequest request, @NotNull Chain chain) {
+    public Mono<WebGraphQlResponse> intercept(@NotNull final WebGraphQlRequest request, @NotNull final Chain chain) {
         RequestHeaderUserProcessor.process(request);
         return chain.next(request);
     }

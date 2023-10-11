@@ -1,50 +1,38 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
-import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.AssessmentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
+import de.unistuttgart.iste.gits.common.testutil.*;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
-import de.unistuttgart.iste.gits.generated.dto.ContentType;
-import de.unistuttgart.iste.gits.generated.dto.FlashcardSetAssessment;
-import de.unistuttgart.iste.gits.generated.dto.SkillType;
+import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
+import static de.unistuttgart.iste.gits.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-@ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content", "tag"})
+@TablesToDelete({"content_tags", "content"})
 class MutationCreateAssessmentTest {
 
     @Autowired
     private ContentRepository contentRepository;
 
-    @Autowired
-    private TopicPublisher topicPublisher;
+    private final UUID courseId = UUID.randomUUID();
 
-    @BeforeEach
-    void beforeEach() {
-        reset(topicPublisher);
-    }
+    @InjectCurrentUserHeader
+    private final LoggedInUser loggedInUser = userWithMembershipInCourseWithId(courseId, LoggedInUser.UserRoleInCourse.ADMINISTRATOR);
 
     /**
      * Given a valid CreateAssessmentInput
@@ -54,11 +42,11 @@ class MutationCreateAssessmentTest {
     @Test
     @Transactional
     @Commit
-    void testCreateAssessment(GraphQlTester graphQlTester) {
-        UUID chapterId = UUID.randomUUID();
-        String query = """
-                mutation($chapterId: UUID!) {
-                    createAssessment(input: {
+    void testCreateAssessment(final GraphQlTester graphQlTester) {
+        final UUID chapterId = UUID.randomUUID();
+        final String query = """
+                mutation($chapterId: UUID!, $courseId: UUID!) {
+                    createAssessment: _internal_createAssessment(courseId: $courseId, input: {
                         metadata: {
                             chapterId: $chapterId
                             name: "name"
@@ -91,8 +79,9 @@ class MutationCreateAssessmentTest {
                 }
                 """;
 
-        FlashcardSetAssessment createdAssessment = graphQlTester.document(query)
+        final FlashcardSetAssessment createdAssessment = graphQlTester.document(query)
                 .variable("chapterId", chapterId)
+                .variable("courseId", courseId)
                 .execute()
                 .path("createAssessment").entity(FlashcardSetAssessment.class).get();
 
@@ -109,25 +98,22 @@ class MutationCreateAssessmentTest {
         assertThat(createdAssessment.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.REMEMBER)));
         assertThat(createdAssessment.getAssessmentMetadata().getInitialLearningInterval(), is(2));
 
-        ContentEntity contentEntity = contentRepository.findById(createdAssessment.getId()).orElseThrow();
+        final ContentEntity contentEntity = contentRepository.findById(createdAssessment.getId()).orElseThrow();
         assertThat(contentEntity, is(instanceOf(AssessmentEntity.class)));
 
-        AssessmentEntity assessmentEntity = (AssessmentEntity) contentEntity;
+        final AssessmentEntity assessmentEntity = (AssessmentEntity) contentEntity;
 
         // check that assessment entity is correct
         assertThat(assessmentEntity.getMetadata().getName(), is("name"));
         assertThat(assessmentEntity.getMetadata().getSuggestedDate(),
                 is(LocalDate.of(2021, 1, 1).atStartOfDay().atOffset(ZoneOffset.UTC)));
-        assertThat(assessmentEntity.getTagNames(), containsInAnyOrder("tag1", "tag2"));
+        assertThat(assessmentEntity.getMetadata().getTags(), containsInAnyOrder("tag1", "tag2"));
         assertThat(assessmentEntity.getMetadata().getType(), is(ContentType.FLASHCARDS));
         assertThat(assessmentEntity.getMetadata().getChapterId(), is(chapterId));
         assertThat(assessmentEntity.getMetadata().getRewardPoints(), is(1));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillPoints(), is(1));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.REMEMBER)));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(2));
-
-        verify(topicPublisher, times(1))
-                .notifyChange(assessmentEntity, CrudOperation.CREATE);
 
     }
 
@@ -137,10 +123,10 @@ class MutationCreateAssessmentTest {
      * Then a ValidationException is thrown
      */
     @Test
-    void testCreateAssessmentWithMediaContentType(GraphQlTester graphQlTester) {
-        String query = """
-                mutation {
-                    createAssessment(input: {
+    void testCreateAssessmentWithMediaContentType(final GraphQlTester graphQlTester) {
+        final String query = """
+                mutation($courseId: UUID!) {
+                    createAssessment: _internal_createAssessment(courseId: $courseId, input: {
                         metadata: {
                             type: MEDIA
                             name: "name"
@@ -159,6 +145,7 @@ class MutationCreateAssessmentTest {
                 """;
 
         graphQlTester.document(query)
+                .variable("courseId", courseId)
                 .execute()
                 .errors()
                 .satisfy(errors -> {
@@ -168,7 +155,5 @@ class MutationCreateAssessmentTest {
                 });
 
         assertThat(contentRepository.count(), is(0L));
-
-        verify(topicPublisher, never()).notifyChange(any(), any());
     }
 }

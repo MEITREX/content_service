@@ -1,46 +1,37 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
-import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.MediaContentEntity;
+import de.unistuttgart.iste.gits.common.testutil.*;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser.UserRoleInCourse;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.test_config.MockTopicPublisherConfiguration;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import de.unistuttgart.iste.gits.generated.dto.MediaContent;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import static de.unistuttgart.iste.gits.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-@ContextConfiguration(classes = MockTopicPublisherConfiguration.class)
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content", "tag"})
+@TablesToDelete({"content_tags", "content"})
 class MutationCreateMediaContentTest {
 
     @Autowired
     private ContentRepository contentRepository;
 
-    @Autowired
-    private TopicPublisher topicPublisher;
+    private final UUID courseId = UUID.randomUUID();
 
-    @BeforeEach
-    void beforeEach() {
-        reset(topicPublisher);
-    }
+    @InjectCurrentUserHeader
+    private final LoggedInUser loggedInUser = userWithMembershipInCourseWithId(courseId, UserRoleInCourse.ADMINISTRATOR);
 
     /**
      * Given a valid CreateAssessmentInput
@@ -50,11 +41,11 @@ class MutationCreateMediaContentTest {
     @Test
     @Transactional
     @Commit
-    void testCreateMediaContent(GraphQlTester graphQlTester) {
-        UUID chapterId = UUID.randomUUID();
-        String query = """
-                mutation($chapterId: UUID!) {
-                    createMediaContent(input: {
+    void testCreateMediaContent(final GraphQlTester graphQlTester) {
+        final UUID chapterId = UUID.randomUUID();
+        final String query = """
+                mutation($chapterId: UUID!, $courseId: UUID!) {
+                    createMediaContent: _internal_createMediaContent(courseId: $courseId, input: {
                         metadata: {
                             chapterId: $chapterId
                             name: "name"
@@ -77,8 +68,9 @@ class MutationCreateMediaContentTest {
                 }
                 """;
 
-        MediaContent createdMediaContent = graphQlTester.document(query)
+        final MediaContent createdMediaContent = graphQlTester.document(query)
                 .variable("chapterId", chapterId)
+                .variable("courseId", courseId)
                 .execute()
                 .path("createMediaContent").entity(MediaContent.class).get();
 
@@ -92,21 +84,19 @@ class MutationCreateMediaContentTest {
         assertThat(createdMediaContent.getMetadata().getChapterId(), is(chapterId));
         assertThat(createdMediaContent.getMetadata().getRewardPoints(), is(1));
 
-        ContentEntity contentEntity = contentRepository.findById(createdMediaContent.getId()).orElseThrow();
+        final ContentEntity contentEntity = contentRepository.findById(createdMediaContent.getId()).orElseThrow();
         assertThat(contentEntity, is(instanceOf(MediaContentEntity.class)));
 
-        MediaContentEntity mediaContentEntity = (MediaContentEntity) contentEntity;
+        final MediaContentEntity mediaContentEntity = (MediaContentEntity) contentEntity;
 
         // check that mediaContent entity is correct
         assertThat(mediaContentEntity.getMetadata().getName(), is("name"));
         assertThat(mediaContentEntity.getMetadata().getSuggestedDate(),
                 is(OffsetDateTime.parse("2021-01-01T00:00:00.000Z")));
-        assertThat(mediaContentEntity.getTagNames(), containsInAnyOrder("tag1", "tag2"));
+        assertThat(mediaContentEntity.getMetadata().getTags(), containsInAnyOrder("tag1", "tag2"));
         assertThat(mediaContentEntity.getMetadata().getType(), is(ContentType.MEDIA));
         assertThat(mediaContentEntity.getMetadata().getChapterId(), is(chapterId));
         assertThat(mediaContentEntity.getMetadata().getRewardPoints(), is(1));
-
-        verify(topicPublisher, atLeastOnce()).notifyChange(contentEntity, CrudOperation.CREATE);
     }
 
     /**
@@ -115,10 +105,10 @@ class MutationCreateMediaContentTest {
      * Then a ValidationException is thrown
      */
     @Test
-    void testCreateMediaContentWithFlashcardsType(GraphQlTester graphQlTester) {
-        String query = """
-                mutation {
-                    createMediaContent(input: {
+    void testCreateMediaContentWithFlashcardsType(final GraphQlTester graphQlTester) {
+        final String query = """
+                mutation($courseId: UUID!) {
+                    createMediaContent: _internal_createMediaContent(courseId: $courseId, input: {
                         metadata: {
                             type: FLASHCARDS,
                             name: "name"
@@ -132,6 +122,7 @@ class MutationCreateMediaContentTest {
                 """;
 
         graphQlTester.document(query)
+                .variable("courseId", courseId)
                 .execute()
                 .errors()
                 .satisfy(errors -> {
@@ -141,6 +132,5 @@ class MutationCreateMediaContentTest {
                 });
 
         assertThat(contentRepository.findAll(), hasSize(0));
-        verify(topicPublisher, never()).notifyChange(any(), any());
     }
 }

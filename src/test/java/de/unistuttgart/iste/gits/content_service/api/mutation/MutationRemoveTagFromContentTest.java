@@ -1,34 +1,37 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 
-import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.gits.common.testutil.*;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser.UserRoleInCourse;
 import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.TagEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.TagRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static de.unistuttgart.iste.gits.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content", "tag"})
+@TablesToDelete({"content_tags", "content"})
 class MutationRemoveTagFromContentTest {
 
     @Autowired
     private ContentRepository contentRepository;
-    @Autowired
-    private TagRepository tagRepository;
+
+    private final UUID courseId = UUID.randomUUID();
+
+    @InjectCurrentUserHeader
+    private final LoggedInUser loggedInUser = userWithMembershipInCourseWithId(courseId, UserRoleInCourse.ADMINISTRATOR);
 
     /**
      * Given a content with tags
@@ -38,14 +41,14 @@ class MutationRemoveTagFromContentTest {
     @Test
     @Transactional
     @Commit
-    void testRemoveTagFromContent(GraphQlTester graphQlTester) {
-        ContentEntity contentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder()
-                .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
-                        .tags(Set.of(TagEntity.fromName("tag1"), TagEntity.fromName("tag2")))
+    void testRemoveTagFromContent(final GraphQlTester graphQlTester) {
+        final ContentEntity contentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId)
+                .metadata(TestData.dummyContentMetadataEmbeddableBuilder(courseId)
+                        .tags(Set.of("tag1", "tag2"))
                         .build())
                 .build());
 
-        String query = """
+        final String query = """
                 mutation($contentId: UUID!, $tagName: String!) {
                     mutateContent(contentId: $contentId){
                         removeTagFromContent(tagName: $tagName) {
@@ -67,13 +70,9 @@ class MutationRemoveTagFromContentTest {
                 .hasSize(1)
                 .contains("tag2");
 
-        ContentEntity updatedContentEntity = contentRepository.findById(contentEntity.getId()).orElseThrow();
+        final ContentEntity updatedContentEntity = contentRepository.findById(contentEntity.getId()).orElseThrow();
         assertThat(updatedContentEntity.getMetadata().getTags(), hasSize(1));
-        assertThat(updatedContentEntity.getTagNames(), containsInAnyOrder("tag2"));
-
-        List<TagEntity> tags = tagRepository.findAll();
-        assertThat(tags, hasSize(1));
-        assertThat(tags.get(0).getName(), is("tag2"));
+        assertThat(updatedContentEntity.getMetadata().getTags(), containsInAnyOrder("tag2"));
 
     }
 
@@ -85,14 +84,14 @@ class MutationRemoveTagFromContentTest {
     @Test
     @Transactional
     @Commit
-    void testRemoveNonExistingTagFromContent(GraphQlTester graphQlTester) {
-        ContentEntity contentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder()
-                .metadata(TestData.dummyContentMetadataEmbeddableBuilder()
-                        .tags(Set.of(TagEntity.fromName("tag1"), TagEntity.fromName("tag2")))
+    void testRemoveNonExistingTagFromContent(final GraphQlTester graphQlTester) {
+        final ContentEntity contentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId)
+                .metadata(TestData.dummyContentMetadataEmbeddableBuilder(courseId)
+                        .tags(Set.of("tag1", "tag2"))
                         .build())
                 .build());
 
-        String query = """
+        final String query = """
                 mutation($contentId: UUID!, $tagName: String!) {
                     mutateContent(contentId: $contentId){
                         removeTagFromContent(tagName: $tagName) {
@@ -114,9 +113,9 @@ class MutationRemoveTagFromContentTest {
                 .hasSize(2)
                 .contains("tag1", "tag2");
 
-        ContentEntity updatedContentEntity = contentRepository.findById(contentEntity.getId()).orElseThrow();
+        final ContentEntity updatedContentEntity = contentRepository.findById(contentEntity.getId()).orElseThrow();
         assertThat(updatedContentEntity.getMetadata().getTags(), hasSize(2));
-        assertThat(updatedContentEntity.getTagNames(), containsInAnyOrder("tag1", "tag2"));
+        assertThat(updatedContentEntity.getMetadata().getTags(), containsInAnyOrder("tag1", "tag2"));
     }
 
 

@@ -1,12 +1,9 @@
-package de.unistuttgart.iste.gits.content_service.persistence.dao;
+package de.unistuttgart.iste.gits.content_service.persistence.entity;
 
 import de.unistuttgart.iste.gits.generated.dto.SkillType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -27,5 +24,5 @@ public class AssessmentMetadataEmbeddable {
     private List<SkillType> skillTypes;
 
     @Column(nullable = true)
-    private int initialLearningInterval;
+    private Integer initialLearningInterval;
 }

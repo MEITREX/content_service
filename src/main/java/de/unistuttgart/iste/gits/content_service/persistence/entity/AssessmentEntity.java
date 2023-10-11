@@ -1,8 +1,6 @@
-package de.unistuttgart.iste.gits.content_service.persistence.dao;
+package de.unistuttgart.iste.gits.content_service.persistence.entity;
 
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

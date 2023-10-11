@@ -1,12 +1,11 @@
-package de.unistuttgart.iste.gits.content_service.persistence.dao;
+package de.unistuttgart.iste.gits.content_service.persistence.entity;
 
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.OffsetDateTime;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Embeddable
 @Data
@@ -28,11 +27,20 @@ public class ContentMetadataEmbeddable {
     @Enumerated(EnumType.STRING)
     private ContentType type;
 
-    @EqualsAndHashCode.Exclude
-    @ManyToMany(fetch = FetchType.LAZY, cascade =
-            {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-    private Set<TagEntity> tags;
+    @ElementCollection
+    @Builder.Default
+    private Set<String> tags = new HashSet<>();
 
     @Column(nullable = false, name = "chapter_id")
     private UUID chapterId;
+
+    @Column(nullable = false, name = "course_id")
+    private UUID courseId;
+
+    public Set<String> getTags() {
+        if (tags == null) {
+            tags = new HashSet<>();
+        }
+        return tags;
+    }
 }

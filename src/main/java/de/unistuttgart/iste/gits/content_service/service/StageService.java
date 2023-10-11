@@ -1,23 +1,14 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.gits.generated.dto.CreateStageInput;
-import de.unistuttgart.iste.gits.generated.dto.Stage;
-import de.unistuttgart.iste.gits.generated.dto.UpdateStageInput;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,22 +25,17 @@ public class StageService {
      * @param sectionId Section ID the Stage belongs to
      * @return created Stage
      */
-    public Stage createNewStage(UUID sectionId, CreateStageInput input) {
-
-        requireSectionExisting(sectionId);
-
-        SectionEntity sectionEntity = sectionRepository.getReferenceById(sectionId);
-        StageEntity stageEntity = StageEntity.builder()
+    public Stage createNewStage(final UUID sectionId, final CreateStageInput input) {
+        final SectionEntity sectionEntity = requireSectionExisting(sectionId);
+        final StageEntity stageEntity = StageEntity.builder()
                 .sectionId(sectionId)
                 .position(sectionEntity.getStages().size())
-                .requiredContents(validateStageContent(
+                .requiredContents(getAndValidateContentsOfStage(
                         sectionEntity.getChapterId(),
-                        input.getRequiredContents()
-                ))
-                .optionalContents(validateStageContent(
+                        input.getRequiredContents()))
+                .optionalContents(getAndValidateContentsOfStage(
                         sectionEntity.getChapterId(),
-                        input.getOptionalContents()
-                ))
+                        input.getOptionalContents()))
                 .build();
 
         return stageMapper.entityToDto(stageRepository.save(stageEntity));
@@ -61,27 +47,19 @@ public class StageService {
      * @param input Update Input. Fields must not be null
      * @return updated Stage
      */
-    public Stage updateStage(UpdateStageInput input) {
-
-        requireStageExisting(input.getId());
-
-        // fetch old Stage Object
-        StageEntity stageEntity = stageRepository.getReferenceById(input.getId());
-
-        requireSectionExisting(stageEntity.getSectionId());
-
-        // fetch Section, Stage belongs to
-        SectionEntity sectionEntity = sectionRepository.getReferenceById(stageEntity.getSectionId());
+    public Stage updateStage(final UpdateStageInput input) {
+        final StageEntity stageEntity = requireStageExisting(input.getId());
+        final SectionEntity sectionEntity = requireSectionExisting(stageEntity.getSectionId());
 
         // set updated Content
         stageEntity.setRequiredContents(
-                validateStageContent(
+                getAndValidateContentsOfStage(
                         sectionEntity.getChapterId(),
                         input.getRequiredContents()
                 ));
 
         stageEntity.setOptionalContents(
-                validateStageContent(
+                getAndValidateContentsOfStage(
                         sectionEntity.getChapterId(),
                         input.getOptionalContents()
                 ));
@@ -97,13 +75,12 @@ public class StageService {
      * @param contentIds List of Content IDs to be validated
      * @return Set of validated Content Entities
      */
-    private Set<ContentEntity> validateStageContent(UUID chapterId, List<UUID> contentIds) {
+    private Set<ContentEntity> getAndValidateContentsOfStage(final UUID chapterId, final List<UUID> contentIds) {
+        final Set<ContentEntity> resultSet = new HashSet<>();
 
-        Set<ContentEntity> resultSet = new HashSet<>();
+        final List<ContentEntity> contentEntities = contentRepository.findAllById(contentIds);
 
-        List<ContentEntity> contentEntities = contentRepository.findContentEntitiesByIdIn(contentIds);
-
-        for (ContentEntity contentEntity : contentEntities) {
+        for (final ContentEntity contentEntity : contentEntities) {
             // only add content that is located in the same chapter as the Work-Path / Stage
             if (contentEntity.getMetadata().getChapterId().equals(chapterId)) {
                 resultSet.add(contentEntity);
@@ -119,18 +96,15 @@ public class StageService {
      * @param stageId Stage ID to be removed
      * @return ID of deleted Stage
      */
-    public UUID deleteStage(UUID stageId) {
+    public UUID deleteStage(final UUID stageId) {
+        final StageEntity deletedStageEntity = requireStageExisting(stageId);
 
-        requireStageExisting(stageId);
-
-        StageEntity deletedStageEntity = stageRepository.getReferenceById(stageId);
-
-        SectionEntity sectionEntity = sectionRepository.getReferenceById(deletedStageEntity.getSectionId());
+        final SectionEntity sectionEntity = sectionRepository.getReferenceById(deletedStageEntity.getSectionId());
 
         sectionEntity.getStages().remove(deletedStageEntity);
 
         //if a stage is deleted all subsequent stages have to have their position moved up by 1 in the list
-        for (StageEntity entity : sectionEntity.getStages()) {
+        for (final StageEntity entity : sectionEntity.getStages()) {
 
             if (entity.getPosition() > deletedStageEntity.getPosition()) {
                 //move entity one position up
@@ -149,10 +123,10 @@ public class StageService {
      *
      * @param contentEntity a content Entity that is up for deletion
      */
-    public void deleteContentLinksFromStages(ContentEntity contentEntity) {
-        List<StageEntity> stageEntities = stageRepository.findAllByRequiredContentsContainingOrOptionalContentsContaining(contentEntity, contentEntity);
+    public void deleteContentLinksFromStages(final ContentEntity contentEntity) {
+        final List<StageEntity> stageEntities = stageRepository.findAllByRequiredContentsContainingOrOptionalContentsContaining(contentEntity, contentEntity);
 
-        for (StageEntity stageEntity : stageEntities) {
+        for (final StageEntity stageEntity : stageEntities) {
             stageEntity.getRequiredContents().remove(contentEntity);
             stageEntity.getOptionalContents().remove(contentEntity);
         }
@@ -164,28 +138,24 @@ public class StageService {
      * Checks if a Stage exists.
      *
      * @param uuid The id of the Stage to check.
+     * @return The StageEntity with the given id.
      * @throws EntityNotFoundException If the chapter does not exist.
      */
-    private void requireStageExisting(UUID uuid) {
-        if (!stageRepository.existsById(uuid)) {
-            throw new EntityNotFoundException("Stage with id " + uuid + " not found");
-        }
+    private StageEntity requireStageExisting(final UUID uuid) {
+        return stageRepository.findById(uuid)
+                .orElseThrow(() -> new EntityNotFoundException("Stage with id " + uuid + " not found"));
     }
 
     /**
      * Checks if a Section exists.
      *
      * @param uuid The id of the Section to check.
+     * @return The SectionEntity with the given id.
      * @throws EntityNotFoundException If the chapter does not exist.
      */
-    private void requireSectionExisting(UUID uuid) {
-        if (uuid == null) {
-            throw new NullPointerException("Section must be not null!");
-        }
-        if (!sectionRepository.existsById(uuid)) {
-            throw new EntityNotFoundException("Section with id " + uuid + " not found");
-        }
+    private SectionEntity requireSectionExisting(final UUID uuid) {
+        return sectionRepository.findById(uuid)
+                .orElseThrow(() -> new EntityNotFoundException("Section with id " + uuid + " not found"));
     }
-
 
 }

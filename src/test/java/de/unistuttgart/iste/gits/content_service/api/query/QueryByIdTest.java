@@ -1,8 +1,10 @@
 package de.unistuttgart.iste.gits.content_service.api.query;
 
 import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
+import de.unistuttgart.iste.gits.common.testutil.InjectCurrentUserHeader;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 import java.util.List;
 import java.util.UUID;
 
+import static de.unistuttgart.iste.gits.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.hasSize;
@@ -21,24 +24,29 @@ class QueryByIdTest {
     @Autowired
     private ContentRepository contentRepository;
 
+    private final UUID courseId = UUID.randomUUID();
+
+    @InjectCurrentUserHeader
+    private final LoggedInUser loggedInUser = userWithMembershipInCourseWithId(courseId, LoggedInUser.UserRoleInCourse.STUDENT);
+
     /**
      * Given valid ids
      * When the contentsByIds query is called
      * Then the contents are returned in the same order as the ids
      */
     @Test
-    void getByIdOrderIsConsistent(GraphQlTester graphQlTester) {
-        List<ContentEntity> contentEntities = List.of(
-                contentRepository.save(TestData.dummyMediaContentEntityBuilder().build()),
-                contentRepository.save(TestData.dummyMediaContentEntityBuilder().build()),
-                contentRepository.save(TestData.dummyMediaContentEntityBuilder().build())
+    void getByIdOrderIsConsistent(final GraphQlTester graphQlTester) {
+        final List<ContentEntity> contentEntities = List.of(
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build()),
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build()),
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build())
         );
 
-        List<UUID> ids = contentEntities.stream()
+        final List<UUID> ids = contentEntities.stream()
                 .map(ContentEntity::getId)
                 .toList();
 
-        String query = """
+        final String query = """
                 query($ids: [UUID!]!) {
                     contentsByIds(ids: $ids) {
                         id
@@ -54,7 +62,7 @@ class QueryByIdTest {
                 .containsExactly(ids.toArray(UUID[]::new));
 
         // test the order is correct
-        List<UUID> idsReordered = List.of(ids.get(2), ids.get(0), ids.get(1));
+        final List<UUID> idsReordered = List.of(ids.get(2), ids.get(0), ids.get(1));
 
         graphQlTester.document(query)
                 .variable("ids", idsReordered)
@@ -70,18 +78,18 @@ class QueryByIdTest {
      * Then the contents are returned in the same order as the ids
      */
     @Test
-    void findByIdOrderIsConsistent(GraphQlTester graphQlTester) {
-        List<ContentEntity> contentEntities = List.of(
-                contentRepository.save(TestData.dummyMediaContentEntityBuilder().build()),
-                contentRepository.save(TestData.dummyMediaContentEntityBuilder().build()),
-                contentRepository.save(TestData.dummyMediaContentEntityBuilder().build())
+    void findByIdOrderIsConsistent(final GraphQlTester graphQlTester) {
+        final List<ContentEntity> contentEntities = List.of(
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build()),
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build()),
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build())
         );
 
-        List<UUID> ids = contentEntities.stream()
+        final List<UUID> ids = contentEntities.stream()
                 .map(ContentEntity::getId)
                 .toList();
 
-        String query = """
+        final String query = """
                 query($ids: [UUID!]!) {
                     findContentsByIds(ids: $ids) {
                         id
@@ -97,7 +105,7 @@ class QueryByIdTest {
                 .containsExactly(ids.toArray(UUID[]::new));
 
         // test the order is correct
-        List<UUID> idsReordered = List.of(ids.get(2), ids.get(0), ids.get(1));
+        final List<UUID> idsReordered = List.of(ids.get(2), ids.get(0), ids.get(1));
 
         graphQlTester.document(query)
                 .variable("ids", idsReordered)
@@ -113,16 +121,16 @@ class QueryByIdTest {
      * Then an error is returned containing the ids of the non-existing contents
      */
     @Test
-    void getByNonExistingIds(GraphQlTester graphQlTester) {
-        ContentEntity existingContentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder().build());
+    void getByNonExistingIds(final GraphQlTester graphQlTester) {
+        final ContentEntity existingContentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build());
 
-        List<UUID> ids = List.of(
+        final List<UUID> ids = List.of(
                 existingContentEntity.getId(),
                 UUID.randomUUID(),
                 UUID.randomUUID()
         );
 
-        String query = """
+        final String query = """
                 query($ids: [UUID!]!) {
                     contentsByIds(ids: $ids) {
                         id
@@ -136,8 +144,7 @@ class QueryByIdTest {
                 .errors()
                 .satisfy(errors -> {
                     assertThat(errors, hasSize(1));
-                    String errorMessage = errors.get(0).getMessage();
-                    assertThat(errorMessage, containsStringIgnoringCase("Contents with ids"));
+                    final String errorMessage = errors.get(0).getMessage();
                     assertThat(errorMessage, containsStringIgnoringCase(ids.get(1).toString()));
                     assertThat(errorMessage, containsStringIgnoringCase(ids.get(2).toString()));
                     assertThat(errorMessage, containsStringIgnoringCase("not found"));
@@ -150,16 +157,16 @@ class QueryByIdTest {
      * Then the contents are returned in the same order as the ids and null is used for the non-existing contents
      */
     @Test
-    void findByNonExistingIds(GraphQlTester graphQlTester) {
-        ContentEntity existingContentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder().build());
+    void findByNonExistingIds(final GraphQlTester graphQlTester) {
+        final ContentEntity existingContentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build());
 
-        List<UUID> ids = List.of(
+        final List<UUID> ids = List.of(
                 existingContentEntity.getId(),
                 UUID.randomUUID(),
                 UUID.randomUUID()
         );
 
-        String query = """
+        final String query = """
                 query($ids: [UUID!]!) {
                     findContentsByIds(ids: $ids) {
                         id

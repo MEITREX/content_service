@@ -1,9 +1,11 @@
 package de.unistuttgart.iste.gits.content_service.service;
 
-import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
+import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
+import de.unistuttgart.iste.gits.common.event.ContentProgressedEvent;
+import de.unistuttgart.iste.gits.common.event.UserProgressUpdatedEvent;
 import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.gits.generated.dto.*;
@@ -16,6 +18,7 @@ import org.modelmapper.ModelMapper;
 import java.time.*;
 import java.util.*;
 
+import static de.unistuttgart.iste.gits.content_service.TestData.buildDummyUserProgressData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,6 +35,9 @@ class UserProgressDataServiceTest {
     private ContentService contentService;
     @Spy
     private UserProgressDataMapper userProgressDataMapper = new UserProgressDataMapper(new ModelMapper());
+
+    @Spy
+    private ContentMapper contentMapper = new ContentMapper(new ModelMapper());
     @Mock
     private TopicPublisher topicPublisher;
 
@@ -45,7 +51,7 @@ class UserProgressDataServiceTest {
      */
     @Test
     void getUserProgressData() {
-        var userProgressEntity = UserProgressDataEntity.builder()
+        final var userProgressEntity = UserProgressDataEntity.builder()
                 .progressLog(Collections.emptyList())
                 .learningInterval(1)
                 .userId(UUID.randomUUID())
@@ -54,7 +60,7 @@ class UserProgressDataServiceTest {
 
         doReturn(Optional.of(userProgressEntity)).when(userProgressDataRepository).findByUserIdAndContentId(any(), any());
 
-        var actual = userProgressDataService
+        final var actual = userProgressDataService
                 .getUserProgressData(userProgressEntity.getUserId(), userProgressEntity.getContentId());
 
         assertThat(actual.getUserId(), is(equalTo(userProgressEntity.getUserId())));
@@ -74,7 +80,7 @@ class UserProgressDataServiceTest {
      */
     @Test
     void lastLearnDateAndNextLearnDate() {
-        var userProgressEntity = UserProgressDataEntity.builder()
+        final var userProgressEntity = UserProgressDataEntity.builder()
                 .progressLog(List.of(
                         ProgressLogItemEmbeddable.builder()
                                 .timestamp(OffsetDateTime.of(2021, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))
@@ -91,15 +97,15 @@ class UserProgressDataServiceTest {
 
         doReturn(Optional.of(userProgressEntity)).when(userProgressDataRepository).findByUserIdAndContentId(any(), any());
 
-        var actual = userProgressDataService
+        final var actual = userProgressDataService
                 .getUserProgressData(userProgressEntity.getUserId(), userProgressEntity.getContentId());
 
         assertThat(actual.getUserId(), is(equalTo(userProgressEntity.getUserId())));
         assertThat(actual.getContentId(), is(equalTo(userProgressEntity.getContentId())));
         assertThat(actual.getLearningInterval(), is(equalTo(userProgressEntity.getLearningInterval())));
 
-        var expectedLastLearnDate = LocalDate.of(2021, 1, 1).atStartOfDay().atOffset(ZoneOffset.UTC);
-        var expectedNextLearnDate = expectedLastLearnDate.plusDays(7);
+        final var expectedLastLearnDate = LocalDate.of(2021, 1, 1).atStartOfDay().atOffset(ZoneOffset.UTC);
+        final var expectedNextLearnDate = expectedLastLearnDate.plusDays(7);
         assertThat(actual.getLastLearnDate(), is(expectedLastLearnDate));
         assertThat(actual.getNextLearnDate(), is(expectedNextLearnDate));
         assertThat(actual.getLog(), hasSize(1));
@@ -109,20 +115,20 @@ class UserProgressDataServiceTest {
 
     @Test
     void userDataIsInitializedWhenAbsent() {
-        var contentId = UUID.randomUUID();
-        var userId = UUID.randomUUID();
-        AssessmentEntity assessmentEntity = TestData.dummyAssessmentEntityBuilder()
+        final var contentId = UUID.randomUUID();
+        final var userId = UUID.randomUUID();
+        final AssessmentEntity assessmentEntity = TestData.dummyAssessmentEntityBuilder(UUID.randomUUID())
                 .assessmentMetadata(TestData.dummyAssessmentMetadataEmbeddableBuilder()
                         .initialLearningInterval(2)
                         .build())
                 .id(contentId).build();
 
         doReturn(Optional.empty()).when(userProgressDataRepository).findByUserIdAndContentId(any(), any());
-        doReturn(assessmentEntity).when(contentService).getContentById(any());
+        doReturn(assessmentEntity).when(contentService).requireContentExisting(any());
         // save method returns its argument
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
-        var actual = userProgressDataService.getUserProgressData(userId, contentId);
+        final var actual = userProgressDataService.getUserProgressData(userId, contentId);
 
         assertThat(actual.getUserId(), is(equalTo(userId)));
         assertThat(actual.getContentId(), is(equalTo(contentId)));
@@ -142,9 +148,16 @@ class UserProgressDataServiceTest {
      */
     @Test
     void logProgress() {
-        var contentId = UUID.randomUUID();
-        var userId = UUID.randomUUID();
-        UserProgressLogEvent event = UserProgressLogEvent.builder()
+        final var contentId = UUID.randomUUID();
+        final var userId = UUID.randomUUID();
+        final Content content = MediaContent.builder()
+                .setId(contentId)
+                .setMetadata(ContentMetadata.builder()
+                        .setChapterId(UUID.randomUUID())
+                        .setCourseId(UUID.randomUUID())
+                        .build())
+                .build();
+        final ContentProgressedEvent event = ContentProgressedEvent.builder()
                 .contentId(contentId)
                 .userId(userId)
                 .timeToComplete(100)
@@ -153,13 +166,14 @@ class UserProgressDataServiceTest {
                 .success(true)
                 .build();
 
-        UserProgressDataEntity initialProgress = UserProgressDataEntity.builder()
+        final UserProgressDataEntity initialProgress = UserProgressDataEntity.builder()
                 .progressLog(new ArrayList<>())
                 .learningInterval(null)
                 .userId(userId)
                 .contentId(contentId)
                 .build();
 
+        doReturn(List.of(content)).when(contentService).getContentsById(List.of(contentId));
         doReturn(Optional.of(initialProgress)).when(userProgressDataRepository).findByUserIdAndContentId(any(), any());
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
@@ -181,7 +195,17 @@ class UserProgressDataServiceTest {
                         .build()
         );
 
-        verify(topicPublisher).forwardContentProgressed(event);
+        final UserProgressUpdatedEvent expectedUserProgressEvent = UserProgressUpdatedEvent.builder()
+                .contentId(contentId)
+                .chapterId(content.getMetadata().getChapterId())
+                .courseId(content.getMetadata().getCourseId())
+                .userId(userId)
+                .timeToComplete(100)
+                .correctness(1.0)
+                .hintsUsed(0)
+                .success(true)
+                .build();
+        verify(topicPublisher).notifyUserProgressUpdated(expectedUserProgressEvent);
     }
 
     /**
@@ -191,17 +215,17 @@ class UserProgressDataServiceTest {
      */
     @Test
     void learningIntervalSuccess() {
-        UserProgressLogEvent userProgressLogEvent = UserProgressLogEvent.builder()
+        final ContentProgressedEvent userProgressLogEvent = ContentProgressedEvent.builder()
                 .correctness(1.0)
                 .success(true)
                 .hintsUsed(0)
                 .build();
 
-        UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
+        final UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .learningInterval(2)
                 .build();
 
-        var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
+        final var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
         assertThat(actual, is(4));
     }
 
@@ -212,17 +236,17 @@ class UserProgressDataServiceTest {
      */
     @Test
     void learningIntervalFailure() {
-        UserProgressLogEvent userProgressLogEvent = UserProgressLogEvent.builder()
+        final ContentProgressedEvent userProgressLogEvent = ContentProgressedEvent.builder()
                 .correctness(1.0)
                 .success(false)
                 .hintsUsed(0)
                 .build();
 
-        UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
+        final UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .learningInterval(10)
                 .build();
 
-        var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
+        final var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
         assertThat(actual, is(5));
     }
 
@@ -233,17 +257,17 @@ class UserProgressDataServiceTest {
      */
     @Test
     void learningIntervalFailureLowCorrectness() {
-        UserProgressLogEvent userProgressLogEvent = UserProgressLogEvent.builder()
+        final ContentProgressedEvent userProgressLogEvent = ContentProgressedEvent.builder()
                 .correctness(0.1)
                 .success(false)
                 .hintsUsed(0)
                 .build();
 
-        UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
+        final UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .learningInterval(100)
                 .build();
 
-        var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
+        final var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
         assertThat(actual, is(5));
     }
 
@@ -254,17 +278,17 @@ class UserProgressDataServiceTest {
      */
     @Test
     void learningIntervalSuccessLowCorrectness() {
-        UserProgressLogEvent userProgressLogEvent = UserProgressLogEvent.builder()
+        final ContentProgressedEvent userProgressLogEvent = ContentProgressedEvent.builder()
                 .correctness(0.5)
                 .success(true)
                 .hintsUsed(0)
                 .build();
 
-        UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
+        final UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .learningInterval(10)
                 .build();
 
-        var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
+        final var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
         assertThat(actual, is(15));
     }
 
@@ -275,17 +299,17 @@ class UserProgressDataServiceTest {
      */
     @Test
     void learningIntervalHintsUsed() {
-        UserProgressLogEvent userProgressLogEvent = UserProgressLogEvent.builder()
+        final ContentProgressedEvent userProgressLogEvent = ContentProgressedEvent.builder()
                 .correctness(1.0)
                 .success(true)
                 .hintsUsed(1)
                 .build();
 
-        UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
+        final UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .learningInterval(10)
                 .build();
 
-        var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
+        final var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
         assertThat(actual, is(19));
     }
 
@@ -296,17 +320,17 @@ class UserProgressDataServiceTest {
      */
     @Test
     void learningIntervalManyHintsUsed() {
-        UserProgressLogEvent userProgressLogEvent = UserProgressLogEvent.builder()
+        final ContentProgressedEvent userProgressLogEvent = ContentProgressedEvent.builder()
                 .correctness(1.0)
                 .success(true)
                 .hintsUsed(100)
                 .build();
 
-        UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
+        final UserProgressDataEntity userProgressDataEntity = UserProgressDataEntity.builder()
                 .learningInterval(10)
                 .build();
 
-        var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
+        final var actual = userProgressDataService.calculateNewLearningInterval(userProgressLogEvent, userProgressDataEntity);
         assertThat(actual, is(10));
     }
 
@@ -317,36 +341,38 @@ class UserProgressDataServiceTest {
      * but rather directly work with data made available by the provided contents in the Stage.
      */
     @Test
-    void getStageProgressWithContentUserdataTests(){
+    void getStageProgressWithContentUserdataTests() {
 
         // init test data
-        UUID userId = UUID.randomUUID();
-        MediaContent mediaContent = buildDummyMediaContent();
-        MediaContent mediaContent2 = buildDummyMediaContent();
+        final UUID userId = UUID.randomUUID();
+        final MediaContent mediaContent = buildDummyMediaContent();
+        final MediaContent mediaContent2 = buildDummyMediaContent();
 
-        UserProgressData userProgressData  = userProgressDataMapper.entityToDto(buildDummyUserProgressData(true, userId, mediaContent.getId()));
-        UserProgressData userProgressData2  = userProgressDataMapper.entityToDto(buildDummyUserProgressData(false, userId, mediaContent2.getId()));
+        final UserProgressDataEntity userProgressData =
+                buildDummyUserProgressData(true, userId, mediaContent.getId());
+        final UserProgressDataEntity userProgressData2 =
+                buildDummyUserProgressData(false, userId, mediaContent2.getId());
 
-        mediaContent.setUserProgressData(userProgressData);
-        mediaContent2.setUserProgressData(userProgressData2);
-
-        Stage stage = Stage.builder()
+        final Stage stage = Stage.builder()
                 .setId(UUID.randomUUID())
                 .setPosition(0)
                 .setRequiredContents(new ArrayList<>())
                 .setOptionalContents(List.of(mediaContent, mediaContent2))
                 .build();
 
+        when(userProgressDataRepository.findByUserIdAndContentId(userId, mediaContent.getId()))
+                .thenReturn(Optional.of(userProgressData));
+        when(userProgressDataRepository.findByUserIdAndContentId(userId, mediaContent2.getId()))
+                .thenReturn(Optional.of(userProgressData2));
+
         // run method under test
-        double result = userProgressDataService.getStageProgressForUser(stage, userId, false);
+        final double result = userProgressDataService.getStageProgressForUser(stage, userId, false);
 
         // verify methods called
-        verify(userProgressDataRepository, never()).findByUserIdAndContentId(any(), any());
+        verify(userProgressDataRepository, times(2)).findByUserIdAndContentId(any(), any());
 
         // assertions
         assertEquals(50.0, result);
-
-
     }
 
     /**
@@ -355,29 +381,29 @@ class UserProgressDataServiceTest {
      * Expected behaviour therefor contains the retrieval of all progress data for contents within the Stage.
      */
     @Test
-    void getStageProgressWithDbQueryTests(){
+    void getStageProgressWithDbQueryTests() {
 
         // init test data
-        UUID userId = UUID.randomUUID();
-        MediaContent mediaContent = buildDummyMediaContent();
-        MediaContent mediaContent2 = buildDummyMediaContent();
+        final UUID userId = UUID.randomUUID();
+        final MediaContent mediaContent = buildDummyMediaContent();
+        final MediaContent mediaContent2 = buildDummyMediaContent();
 
-        Stage stage = Stage.builder()
+        final Stage stage = Stage.builder()
                 .setId(UUID.randomUUID())
                 .setPosition(0)
                 .setRequiredContents(List.of(mediaContent, mediaContent2))
                 .setOptionalContents(new ArrayList<>())
                 .build();
 
-        UserProgressDataEntity progressDataEntity = buildDummyUserProgressData(true, userId, mediaContent.getId());
-        UserProgressDataEntity progressDataEntity2 = buildDummyUserProgressData(false, userId, mediaContent2.getId());
+        final UserProgressDataEntity progressDataEntity = buildDummyUserProgressData(true, userId, mediaContent.getId());
+        final UserProgressDataEntity progressDataEntity2 = buildDummyUserProgressData(false, userId, mediaContent2.getId());
 
         // mock repository
         doReturn(Optional.of(progressDataEntity)).when(userProgressDataRepository).findByUserIdAndContentId(userId, mediaContent.getId());
         doReturn(Optional.of(progressDataEntity2)).when(userProgressDataRepository).findByUserIdAndContentId(userId, mediaContent2.getId());
 
         // run method under test
-        double result = userProgressDataService.getStageProgressForUser(stage, userId, true);
+        final double result = userProgressDataService.getStageProgressForUser(stage, userId, true);
 
         // verify methods called
         verify(userProgressDataRepository, never()).save(any());
@@ -388,12 +414,63 @@ class UserProgressDataServiceTest {
     }
 
     /**
+     * Testcase for function to calculate progress for a user over an entire chapter.
+     * This Testcase assumes Progress has already been made for all content
+     */
+    @Test
+    void getProgressByChapterIdsForUserTest() {
+        final UUID chapterId1 = UUID.randomUUID();
+        final UUID chapterId2 = UUID.randomUUID();
+        final UUID userId = UUID.randomUUID();
+
+        final List<UUID> chapterIds = List.of(chapterId1, chapterId2);
+
+        // init content and user progress
+        final List<MediaContentEntity> mediaContentEntities = List.of(TestData.buildContentEntity(chapterId1),
+                TestData.buildContentEntity(chapterId1));
+
+        for (int i = 0; i < mediaContentEntities.size(); i++) {
+            final MediaContentEntity mediaContentEntity = mediaContentEntities.get(i);
+            final boolean success = i % 2 == 0;
+            final UserProgressDataEntity progressDataEntity = buildDummyUserProgressData(success, userId, mediaContentEntity.getId());
+            // mock repository calls
+            doReturn(Optional.of(progressDataEntity)).when(userProgressDataRepository)
+                    .findByUserIdAndContentId(userId, mediaContentEntity.getId());
+
+        }
+
+        final List<Content> contentsForChapter1 = mediaContentEntities.stream().map(contentMapper::entityToDto).toList();
+        final List<Content> contentsForChapter2 = List.of();
+
+        // mock service with repository calls
+        when(contentService.getContentsByChapterIds(chapterIds)).thenReturn(List.of(contentsForChapter1, contentsForChapter2));
+
+        // run method under test
+        final List<CompositeProgressInformation> resultList = userProgressDataService.getProgressByChapterIdsForUser(chapterIds, userId);
+        // assertions
+        assertEquals(2, resultList.size());
+
+        assertEquals(50.0, resultList.get(0).getProgress());
+        assertEquals(1, resultList.get(0).getCompletedContents());
+        assertEquals(2, resultList.get(0).getTotalContents());
+
+        assertEquals(100.0, resultList.get(1).getProgress());
+        assertEquals(0, resultList.get(1).getCompletedContents());
+        assertEquals(0, resultList.get(1).getTotalContents());
+
+        // verify called methods
+        verify(userProgressDataRepository, times(2)).findByUserIdAndContentId(any(), any());
+        verify(contentService, times(1)).getContentsByChapterIds(chapterIds);
+    }
+
+    /**
      * helper method to generate some generic media content DTO
+     *
      * @return media content Object
      */
-    private MediaContent buildDummyMediaContent(){
-        UUID contentId = UUID.randomUUID();
-        ContentMetadata metadata = ContentMetadata.builder()
+    private MediaContent buildDummyMediaContent() {
+        final UUID contentId = UUID.randomUUID();
+        final ContentMetadata metadata = ContentMetadata.builder()
                 .setChapterId(UUID.randomUUID())
                 .setName("TestContent")
                 .setRewardPoints(10)
@@ -402,35 +479,11 @@ class UserProgressDataServiceTest {
                 .setSuggestedDate(OffsetDateTime.now())
                 .build();
 
-        MediaContent mediaContent = MediaContent.builder()
+        return MediaContent.builder()
                 .setId(contentId)
                 .setMetadata(metadata)
                 .build();
-
-        return mediaContent;
     }
 
-    /**
-     * helper method to generate some progress data
-     * @param success if evaluation of progress is a success
-     * @param userId ID of the User this Progress data belongs to
-     * @param contentId ID of the Content the Progress is tracked for
-     * @return database representation of a Progress data Item
-     */
-    private UserProgressDataEntity buildDummyUserProgressData(boolean success, UUID userId, UUID contentId){
-        ProgressLogItemEmbeddable logItem = ProgressLogItemEmbeddable.builder()
-                .correctness(70.00)
-                .timestamp(OffsetDateTime.now())
-                .hintsUsed(0)
-                .success(success)
-                .timeToComplete(null)
-                .build();
-        UserProgressDataEntity userProgressData = UserProgressDataEntity.builder()
-                .userId(userId)
-                .contentId(contentId)
-                .progressLog(List.of(logItem))
-                .learningInterval(null)
-                .build();
-        return userProgressData;
-    }
+
 }

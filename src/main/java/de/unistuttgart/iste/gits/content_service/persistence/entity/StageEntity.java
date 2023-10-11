@@ -1,16 +1,16 @@
-package de.unistuttgart.iste.gits.content_service.persistence.dao;
+package de.unistuttgart.iste.gits.content_service.persistence.entity;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Entity(name = "Stage")
+@Table(indexes = {
+        @Index(name = "idx_stage_section_id", columnList = "section_id")
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -21,7 +21,7 @@ public class StageEntity {
     @GeneratedValue
     private UUID id;
 
-    @Column
+    @Column(nullable = false, name = "section_id")
     private UUID sectionId;
 
     @Column(nullable = false)

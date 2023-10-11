@@ -1,32 +1,40 @@
 type Mutation {
     """
     Create new media content
+    ️⚠️ This mutation is only accessible internally in the system ⚠️
+    🔒 The user must have admin access to the course containing the section to perform this action.
     """
-    createMediaContent(input: CreateMediaContentInput!): MediaContent!
+    _internal_createMediaContent(courseId: UUID!, input: CreateMediaContentInput!): MediaContent!
 
     """
     Create a new Assessment
+    ⚠️ This mutation is only accessible internally in the system ⚠️
+    🔒 The user must have admin access to the course containing the section to perform this action.
     """
-    createAssessment(input: CreateAssessmentInput!): Assessment!
+    _internal_createAssessment(courseId: UUID!, input: CreateAssessmentInput!): Assessment!
 
     """
     Modify Content
+    🔒 The user must have admin access to the course containing the section to perform this action.
     """
     mutateContent(contentId: UUID!): ContentMutation!
 
     """
     Create new Section
+    ⚠️ This mutation is only accessible internally in the system ⚠️
+    🔒 The user must have admin access to the course containing the section to perform this action.
     """
-    createSection(input: CreateSectionInput!): Section!
+    _internal_createSection(courseId: UUID!, input: CreateSectionInput!): Section!
 
     """
-    Modify Sections
+    Modify the section with the given id.
+    🔒 The user must have admin access to the course containing the section to perform this action.
     """
     mutateSection(sectionId: UUID!): SectionMutation!
 
 }
 
-type ContentMutation{
+type ContentMutation {
 
     """
     Identifier of Content

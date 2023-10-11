@@ -1,8 +1,9 @@
 package de.unistuttgart.iste.gits.content_service.api.mutation;
 
-import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
+import de.unistuttgart.iste.gits.common.testutil.*;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser.UserRoleInCourse;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.gits.generated.dto.CreateStageInput;
 import de.unistuttgart.iste.gits.generated.dto.Stage;
@@ -10,38 +11,41 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
+import static de.unistuttgart.iste.gits.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static org.junit.jupiter.api.Assertions.*;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content"})
 class MutationCreateStageTest {
 
     @Autowired
     private SectionRepository sectionRepository;
 
+    private final UUID courseId = UUID.randomUUID();
+
+    @InjectCurrentUserHeader
+    private final LoggedInUser loggedInUser = userWithMembershipInCourseWithId(courseId, UserRoleInCourse.ADMINISTRATOR);
 
     @Test
-    void testStageCreation(GraphQlTester tester) {
-        List<UUID> contentIds = new ArrayList<>();
+    void testStageCreation(final GraphQlTester tester) {
+        final List<UUID> contentIds = new ArrayList<>();
 
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")
+                .courseId(courseId)
                 .chapterId(UUID.randomUUID())
                 .stages(new HashSet<>())
                 .build();
         sectionEntity = sectionRepository.save(sectionEntity);
 
-        CreateStageInput stageInput = CreateStageInput.builder()
+        final CreateStageInput stageInput = CreateStageInput.builder()
                 .setRequiredContents(contentIds)
                 .setOptionalContents(contentIds)
                 .build();
 
-        String query = """
+        final String query = """
                 mutation($id: UUID!, $input: CreateStageInput){
                     mutateSection(sectionId: $id){
                         createStage(input: $input) {

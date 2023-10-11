@@ -1,11 +1,8 @@
 package de.unistuttgart.iste.gits.content_service.api.query;
 
-import de.unistuttgart.iste.gits.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.gits.common.testutil.TablesToDelete;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ContentMetadataEmbeddable;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.SectionEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.StageEntity;
+import de.unistuttgart.iste.gits.common.testutil.*;
+import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.gits.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.gits.generated.dto.ContentType;
@@ -17,11 +14,13 @@ import java.time.OffsetDateTime;
 import java.util.Set;
 import java.util.UUID;
 
+import static de.unistuttgart.iste.gits.common.testutil.TestUsers.userWithMembershipInCourseWithId;
+
 /**
  * Basic test for the suggestions query, detailed tests are in the SuggestionsServiceTest.
  */
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content", "tag"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content"})
 class QuerySuggestionsTest {
 
     @Autowired
@@ -29,34 +28,29 @@ class QuerySuggestionsTest {
     @Autowired
     private StageRepository stageRepository;
 
+    private final UUID courseId = UUID.randomUUID();
+
+    @InjectCurrentUserHeader
+    private final LoggedInUser loggedInUser = userWithMembershipInCourseWithId(courseId, LoggedInUser.UserRoleInCourse.STUDENT);
+
     /**
      * Given a user with progress
      * When the suggestions query is called
      * Then the suggestions are returned
      */
     @Test
-    void testSuggestions(HttpGraphQlTester graphQlTester) {
-        UUID userId = UUID.randomUUID();
-        UUID chapterId = UUID.randomUUID();
-
-        String currentUser = """
-                {
-                    "id": "%s",
-                    "userName": "MyUserName",
-                    "firstName": "John",
-                    "lastName": "Doe",
-                    "courseMemberships": []
-                }
-                """.formatted(userId.toString());
+    void testSuggestions(final HttpGraphQlTester graphQlTester) {
+        final UUID chapterId = UUID.randomUUID();
 
         // Arrange
-        SectionEntity testSection = sectionRepository.save(SectionEntity.builder()
+        final SectionEntity testSection = sectionRepository.save(SectionEntity.builder()
                 .name("Test Section")
                 .chapterId(chapterId)
+                .courseId(courseId)
                 .stages(Set.of())
                 .build());
 
-        StageEntity testStage = stageRepository.save(
+        stageRepository.save(
                 StageEntity.builder()
                         .position(1)
                         .sectionId(testSection.getId())
@@ -67,6 +61,7 @@ class QuerySuggestionsTest {
                                                 .suggestedDate(OffsetDateTime.now().minusDays(1))
                                                 .name("ContentDue1")
                                                 .chapterId(chapterId)
+                                                .courseId(courseId)
                                                 .build())
                                         .build(),
                                 ContentEntity.builder()
@@ -75,6 +70,7 @@ class QuerySuggestionsTest {
                                                 .suggestedDate(OffsetDateTime.now().minusDays(2))
                                                 .name("ContentDue2")
                                                 .chapterId(chapterId)
+                                                .courseId(courseId)
                                                 .build())
                                         .build(),
                                 ContentEntity.builder()
@@ -83,13 +79,14 @@ class QuerySuggestionsTest {
                                                 .suggestedDate(OffsetDateTime.now().minusDays(3))
                                                 .name("ContentDue3")
                                                 .chapterId(chapterId)
+                                                .courseId(courseId)
                                                 .build())
                                         .build()
                         ))
                         .optionalContents(Set.of())
                         .build());
 
-        String query = """
+        final String query = """
                 query($chapterIds: [UUID!]!) {
                     suggestionsByChapterIds(chapterIds: $chapterIds, amount: 2) {
                         type
@@ -103,9 +100,6 @@ class QuerySuggestionsTest {
                 """;
 
         graphQlTester
-                .mutate()
-                .header("CurrentUser", currentUser)
-                .build()
                 .document(query)
                 .variable("chapterIds", Set.of(chapterId))
                 .execute()

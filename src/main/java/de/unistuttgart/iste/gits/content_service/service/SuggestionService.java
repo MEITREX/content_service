@@ -3,11 +3,13 @@ package de.unistuttgart.iste.gits.content_service.service;
 import de.unistuttgart.iste.gits.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,7 +45,8 @@ public class SuggestionService {
      *     <li>Contents with more reward points are suggested before contents with less reward points.</li>
      * </ol>
      *
-     * @param chapterIds the IDs of the chapters for which suggestions should be created.
+     * @param requiredContents required contents which should be taken into account for the suggestion
+     * @param optionalContents optional contents which should be taken into account for the suggestion
      * @param userId     the ID of the user for which suggestions should be created.
      * @param amount     the amount of suggestions to create.
      * @param skillTypes the skill types of the suggestions to create. If the list is empty, all skill types are
@@ -51,46 +54,92 @@ public class SuggestionService {
      *                   media contents are ignored.
      * @return the created suggestions.
      */
-    public List<Suggestion> createSuggestions(List<UUID> chapterIds, UUID userId, int amount, List<SkillType> skillTypes) {
+    public List<Suggestion> createSuggestions(final List<Content> requiredContents,
+                                              final List<Content> optionalContents,
+                                              final UUID userId,
+                                              final int amount,
+                                              final List<SkillType> skillTypes) {
         userProgressDataCache.clear();
 
-        List<Stage> availableStages = sectionService.getSectionsByChapterIds(chapterIds)
-                .stream()
-                .flatMap(Collection::stream)
-                .flatMap(section -> getAvailableStagesOfSection(section, userId).stream())
-                .toList();
-
-        Stream<Content> requiredContents = availableStages.stream().flatMap(stage -> stage.getRequiredContents().stream());
-        Stream<Content> optionalContents = availableStages.stream().flatMap(stage -> stage.getOptionalContents().stream());
-
         return Stream.concat(
-                        filterAndSort(requiredContents, userId, skillTypes),
-                        filterAndSort(optionalContents, userId, skillTypes))
+                        filterAndSort(requiredContents.stream(), userId, skillTypes),
+                        filterAndSort(optionalContents.stream(), userId, skillTypes))
                 .limit(amount)
                 .map(content -> createSuggestion(content, getUserProgressData(userId, content.getId())))
                 .toList();
     }
 
     /**
-     * Filters the given contents by the given skill types and sorts them according to the prioritization described
-     * in {@link SuggestionService#createSuggestions(List, UUID, int, List)}.
+     * Method which for a given user fetches the required contents which are currently available to the user to work
+     * on in the given chapters.
+     * @param chapterIds the chapters to get the available required contents for
+     * @param userId the user to get the available required contents for
+     * @return a list of the available required contents
      */
-    private Stream<Content> filterAndSort(Stream<Content> contents, UUID userId, List<SkillType> skillTypes) {
+    public List<Content> getAvailableRequiredContentsOfChaptersForUser(final List<UUID> chapterIds,
+                                                                         final UUID userId) {
+        final List<Stage> availableStages = sectionService.getSectionsByChapterIds(chapterIds)
+                .stream()
+                .flatMap(Collection::stream)
+                .flatMap(section -> getAvailableStagesOfSection(section, userId).stream())
+                .toList();
+
+        return availableStages.stream().flatMap(stage -> stage.getRequiredContents().stream()).toList();
+    }
+
+    /**
+     * Method which for a given user fetches the optional contents which are currently available to the user to work
+     * @param chapterIds the chapters to get the available optional contents for
+     * @param userId the user to get the available optional contents for
+     * @return a list of the available optional contents
+     */
+    public List<Content> getAvailableOptionalContentsOfChaptersForUser(final List<UUID> chapterIds,
+                                                                         final UUID userId) {
+        final List<Stage> availableStages = sectionService.getSectionsByChapterIds(chapterIds)
+                .stream()
+                .flatMap(Collection::stream)
+                .flatMap(section -> getAvailableStagesOfSection(section, userId).stream())
+                .toList();
+
+        return availableStages.stream().flatMap(stage -> stage.getOptionalContents().stream()).toList();
+    }
+
+    /**
+     * Filters the given contents by the given skill types and sorts them according to the prioritization described
+     * in {@link SuggestionService#createSuggestions(List, List, UUID, int, List)}
+     */
+    private Stream<Content> filterAndSort(final Stream<Content> contents, final UUID userId, final List<SkillType> skillTypes) {
         return contents
                 .filter(content -> isNewOrDueForReview(content, userId))
                 .filter(content -> hasCorrectSkillType(content, skillTypes))
                 // sort by due date for new contents and next learn date for repetitions
-                .sorted(comparing((Content content) -> Duration.between(now(), getRelevantLearnDate(content, userId)).toDays())
-                        .thenComparing(content -> getUserProgressData(userId, content.getId()).getIsLearned())
-                        .thenComparing(content -> content.getMetadata().getRewardPoints(), reverseOrder()));
+                .sorted(byNextLearnDateOrRepetitionDate(userId)
+                        // then sort if content is new or a repetition, with new contents first
+                        .thenComparing(newContentFirst(userId))
+                        // then sort by reward points, with more reward points first
+                        .thenComparing(byRewardPoints(), reverseOrder()));
+    }
+
+    @NotNull
+    private static Function<Content, Integer> byRewardPoints() {
+        return content -> content.getMetadata().getRewardPoints();
+    }
+
+    @NotNull
+    private Function<Content, Boolean> newContentFirst(final UUID userId) {
+        return content -> getUserProgressData(userId, content.getId()).getIsLearned();
+    }
+
+    private Comparator<Content> byNextLearnDateOrRepetitionDate(final UUID userId) {
+        return comparing((Content content) -> Duration.between(now(), getRelevantLearnDate(content, userId)).toDays());
     }
 
     /**
      * @return the date when the user should learn the given content next, which is either the suggested date or the
      * next learn date, depending on whether the user has already learned the content.
      */
-    private OffsetDateTime getRelevantLearnDate(Content content, UUID userId) {
-        UserProgressData userProgressData = getUserProgressData(userId, content.getId());
+    private OffsetDateTime getRelevantLearnDate(final Content content, final UUID userId) {
+        final UserProgressData userProgressData = getUserProgressData(userId, content.getId());
 
         if (userProgressData.getIsLearned()) {
             return userProgressData.getNextLearnDate();
@@ -99,25 +148,25 @@ public class SuggestionService {
         return content.getMetadata().getSuggestedDate();
     }
 
-    private boolean isNewOrDueForReview(Content content, UUID userId) {
-        UserProgressData userProgressData = getUserProgressData(userId, content.getId());
+    private boolean isNewOrDueForReview(final Content content, final UUID userId) {
+        final UserProgressData userProgressData = getUserProgressData(userId, content.getId());
         return !userProgressData.getIsLearned() || userProgressData.getIsDueForReview();
     }
 
-    private Suggestion createSuggestion(Content content, UserProgressData userProgressData) {
-        SuggestionType type = userProgressData.getIsLearned()
+    private Suggestion createSuggestion(final Content content, final UserProgressData userProgressData) {
+        final SuggestionType type = userProgressData.getIsLearned()
                 ? SuggestionType.REPETITION
                 : SuggestionType.NEW_CONTENT;
 
         return new Suggestion(content, type);
     }
 
-    private List<Stage> getAvailableStagesOfSection(Section section, UUID userId) {
+    private List<Stage> getAvailableStagesOfSection(final Section section, final UUID userId) {
         if (section.getStages().isEmpty()) {
             return List.of();
         }
 
-        List<Stage> reachableStages = new ArrayList<>(section.getStages().size());
+        final List<Stage> reachableStages = new ArrayList<>(section.getStages().size());
         reachableStages.add(section.getStages().get(0));
 
         for (int i = 0; i < section.getStages().size() - 1; i++) {
@@ -133,13 +182,13 @@ public class SuggestionService {
     /**
      * @return the user progress data for the given user and content. The result is cached.
      */
-    private UserProgressData getUserProgressData(UUID userId, UUID contentId) {
-        Pair<UUID, UUID> key = Pair.of(userId, contentId);
+    private UserProgressData getUserProgressData(final UUID userId, final UUID contentId) {
+        final Pair<UUID, UUID> key = Pair.of(userId, contentId);
         if (userProgressDataCache.containsKey(key)) {
             return userProgressDataCache.get(key);
         }
 
-        UserProgressData userProgressData = userProgressDataService.getUserProgressData(userId, contentId);
+        final UserProgressData userProgressData = userProgressDataService.getUserProgressData(userId, contentId);
         userProgressDataCache.put(key, userProgressData);
         return userProgressData;
     }
@@ -148,7 +197,7 @@ public class SuggestionService {
      * @return whether the given stage is completed by the given user. Completion means that all required contents
      * are learned.
      */
-    private boolean isCompleted(Stage stage, UUID userId) {
+    private boolean isCompleted(final Stage stage, final UUID userId) {
         return stage.getRequiredContents().stream()
                 .allMatch(contentEntity -> getUserProgressData(userId, contentEntity.getId()).getIsLearned());
     }
@@ -158,17 +207,17 @@ public class SuggestionService {
      * method always returns true. Otherwise, this method returns true if the content is an assessment and its skill
      * type is contained in the list of skill types.
      */
-    private boolean hasCorrectSkillType(Content content, List<SkillType> skillTypes) {
+    private boolean hasCorrectSkillType(final Content content, final List<SkillType> skillTypes) {
         if (isEmpty(skillTypes)) {
             return true;
         }
 
-        if (!(content instanceof Assessment assessment)) {
+        if (!(content instanceof final Assessment assessment)) {
             return false;
         }
 
         // check if assessment contains one of the given skill types
-        Set<SkillType> intersection = assessment.getAssessmentMetadata()
+        final Set<SkillType> intersection = assessment.getAssessmentMetadata()
                 .getSkillTypes()
                 .stream().filter(skillTypes::contains)
                 .collect(Collectors.toSet());

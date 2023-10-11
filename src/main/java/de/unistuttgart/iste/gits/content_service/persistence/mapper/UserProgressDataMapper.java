@@ -1,8 +1,8 @@
 package de.unistuttgart.iste.gits.content_service.persistence.mapper;
 
-import de.unistuttgart.iste.gits.common.event.UserProgressLogEvent;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.ProgressLogItemEmbeddable;
-import de.unistuttgart.iste.gits.content_service.persistence.dao.UserProgressDataEntity;
+import de.unistuttgart.iste.gits.common.event.ContentProgressedEvent;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ProgressLogItemEmbeddable;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.UserProgressDataEntity;
 import de.unistuttgart.iste.gits.generated.dto.UserProgressData;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -17,11 +17,11 @@ public class UserProgressDataMapper {
 
     private final ModelMapper modelMapper;
 
-    public UserProgressData entityToDto(UserProgressDataEntity userProgressDataEntity) {
-        UserProgressData result = modelMapper.map(userProgressDataEntity, UserProgressData.class);
+    public UserProgressData entityToDto(final UserProgressDataEntity userProgressDataEntity) {
+        final UserProgressData result = modelMapper.map(userProgressDataEntity, UserProgressData.class);
 
-        Optional<OffsetDateTime> optionalLastLearnDate = getLastLearnDate(userProgressDataEntity);
-        Optional<OffsetDateTime> optionalNextLearnDate = getNextLearnDate(userProgressDataEntity, optionalLastLearnDate);
+        final Optional<OffsetDateTime> optionalLastLearnDate = getLastLearnDate(userProgressDataEntity);
+        final Optional<OffsetDateTime> optionalNextLearnDate = getNextLearnDate(userProgressDataEntity, optionalLastLearnDate);
 
         result.setLastLearnDate(optionalLastLearnDate.orElse(null));
         result.setNextLearnDate(optionalNextLearnDate.orElse(null));
@@ -32,28 +32,28 @@ public class UserProgressDataMapper {
         return result;
     }
 
-    public ProgressLogItemEmbeddable eventToEmbeddable(UserProgressLogEvent userProgressLogEvent) {
-        return modelMapper.map(userProgressLogEvent, ProgressLogItemEmbeddable.class);
+    public ProgressLogItemEmbeddable eventToEmbeddable(final ContentProgressedEvent contentProgressedEvent) {
+        return modelMapper.map(contentProgressedEvent, ProgressLogItemEmbeddable.class);
     }
 
-    private static Boolean isDueForReview(Optional<OffsetDateTime> optionalNextLearnDate) {
+    private static Boolean isDueForReview(final Optional<OffsetDateTime> optionalNextLearnDate) {
         return optionalNextLearnDate
                 .map(nextReviewDate -> nextReviewDate.isBefore(OffsetDateTime.now()))
                 .orElse(false);
     }
 
-    private static boolean isLearned(UserProgressDataEntity userProgressDataEntity) {
+    private static boolean isLearned(final UserProgressDataEntity userProgressDataEntity) {
         return userProgressDataEntity.getProgressLog().stream()
                 .anyMatch(ProgressLogItemEmbeddable::isSuccess);
     }
 
-    private static Optional<OffsetDateTime> getNextLearnDate(UserProgressDataEntity userProgressDataEntity, Optional<OffsetDateTime> optionalLastLearnDate) {
+    private static Optional<OffsetDateTime> getNextLearnDate(final UserProgressDataEntity userProgressDataEntity, final Optional<OffsetDateTime> optionalLastLearnDate) {
         return userProgressDataEntity.getLearningInterval() == null
                 ? Optional.empty()
                 : optionalLastLearnDate.map(lastLearnDate -> lastLearnDate.plusDays(userProgressDataEntity.getLearningInterval()));
     }
 
-    private static Optional<OffsetDateTime> getLastLearnDate(UserProgressDataEntity userProgressDataEntity) {
+    private static Optional<OffsetDateTime> getLastLearnDate(final UserProgressDataEntity userProgressDataEntity) {
         return userProgressDataEntity.getProgressLog().stream()
                 .filter(ProgressLogItemEmbeddable::isSuccess)
                 .map(ProgressLogItemEmbeddable::getTimestamp)
