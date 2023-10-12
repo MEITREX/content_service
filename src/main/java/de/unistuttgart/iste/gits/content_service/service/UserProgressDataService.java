@@ -56,7 +56,7 @@ public class UserProgressDataService {
      * @param contentId ID of Content
      * @return a newly initialized User Progress Entity
      */
-    public UserProgressDataEntity createInitialUserProgressData(final UUID userId, final UUID contentId) {
+    public synchronized UserProgressDataEntity createInitialUserProgressData(final UUID userId, final UUID contentId) {
         log.info("Creating initial user progress data for user {} and content {}", userId, contentId);
         final ContentEntity contentEntity = contentService.requireContentExisting(contentId);
 
