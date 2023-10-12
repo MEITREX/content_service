@@ -214,11 +214,11 @@ input AssessmentMetadataInput {
 }
 
 input CreateSectionInput {
-
     """
     Chapter Section will belong to
     """
     chapterId: UUID!
+
     """
     name given to Section
     """
@@ -227,7 +227,6 @@ input CreateSectionInput {
 
 
 input CreateStageInput{
-
     """
     updated List of UUIDs for content labeled as required in this Stage
     """
@@ -240,7 +239,6 @@ input CreateStageInput{
 }
 
 input UpdateStageInput{
-
     """
     Identifier of the Stage
     """
