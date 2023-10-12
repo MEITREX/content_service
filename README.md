@@ -1,12 +1,43 @@
 # Content Service
 
-The Content Service serves as a critical component within our system, providing essential information about course
-content:
+The Content Service primarily focuses on the following core responsibilities:
 
-1. **Content Information:** This service offers detailed insights into the content that is part of a course. Users can
-   access information about which chapters the content belongs to, the unlock dates for specific content, and any
-   prerequisites that need to be learned before unlocking certain content.
+### Content Management
 
+1. **Creating Content:**
+   - This service enables the creation of content entities. These entities represent an abstraction of actual content,
+     but they do not store actual data such as media files.
+
+2. **Modifying Content:**
+   - Users can make changes to existing content, updating information or structure as needed.
+
+3. **Deleting Content:**
+   - Content that is no longer needed can be removed from the system.
+
+### Structuring Content
+
+1. **Content Abstraction:**
+   - Content entities in this service serve as abstractions of actual content, referencing the location of the content
+     in other services. This approach allows for more efficient management of content resources.
+
+2. **Staging Content:**
+   - Content can be organized into stages, providing a structured approach to content progression.
+
+3. **Ordering Sections:**
+   - Stages can be ordered within sections, creating a logical flow for content consumption.
+
+### User Progress Tracking
+
+- **Tracking User Progress:**
+   - The Content Service provides mechanisms to track user progress, allowing users to resume where they left off and
+     providing insights into their content journey.
+
+### Content Suggestions
+
+- **Suggesting Content:**
+   - The Content Service offers content suggestions for individual users.
+   - Suggestions can be restricted by filter parameters, including chapters, skill types, and the number of suggestions.
+   - Suggested content includes required and optional items and is sorted based on various factors.
 
 ## Environment variables
 
