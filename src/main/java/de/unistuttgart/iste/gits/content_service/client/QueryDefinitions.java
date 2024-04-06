@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.gits.content_service.client;
+package de.unistuttgart.iste.meitrex.content_service.client;
 
 import lombok.NoArgsConstructor;
 
@@ -21,6 +21,14 @@ public class QueryDefinitions {
                          skillTypes
                          skillPoints
                          initialLearningInterval
+                     }
+                     items{
+                        id
+                        associatedSkillEntities{
+                            id
+                            skillName
+                        }
+                        associatedBloomLevels
                      }
                  }
                 progressDataForUser(userId: $userId) {

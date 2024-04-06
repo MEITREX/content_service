@@ -1,9 +1,10 @@
-package de.unistuttgart.iste.gits.content_service;
+package de.unistuttgart.iste.meitrex.content_service;
 
 
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.generated.dto.ContentType;
-import de.unistuttgart.iste.gits.generated.dto.SkillType;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.generated.dto.BloomLevel;
+import de.unistuttgart.iste.meitrex.generated.dto.ContentType;
+import de.unistuttgart.iste.meitrex.generated.dto.SkillType;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -24,11 +25,35 @@ public class TestData {
                 .assessmentMetadata(dummyAssessmentMetadataEmbeddableBuilder().build());
     }
 
+    public static AssessmentEntity.AssessmentEntityBuilder<?, ?> dummyAssessmentEntityBuilderWithItems(final UUID courseId) {
+        SkillEntity skillEntity=SkillEntity.builder()
+                .id(UUID.randomUUID())
+                .skillName("Test")
+                .build();
+        ItemEntity item=ItemEntity.builder()
+                .id(UUID.randomUUID())
+                .associatedSkills(List.of(skillEntity))
+                .associatedBloomLevels(List.of(BloomLevel.UNDERSTAND))
+                .build();
+        return AssessmentEntity.builder()
+                .metadata(dummyContentMetadataEmbeddableBuilder(courseId)
+                        .type(ContentType.FLASHCARDS)
+                        .build())
+                .items(List.of(item))
+                .assessmentMetadata(dummyAssessmentMetadataEmbeddableBuilder().build());
+    }
+
     public static AssessmentMetadataEmbeddable.AssessmentMetadataEmbeddableBuilder dummyAssessmentMetadataEmbeddableBuilder() {
         return AssessmentMetadataEmbeddable.builder()
                 .skillPoints(2)
                 .skillTypes(List.of(SkillType.REMEMBER))
                 .initialLearningInterval(1);
+    }
+    public  static ItemEntity.ItemEntityBuilder dummyItemEntityBuilder(UUID itemId){
+        return ItemEntity.builder()
+                .id(itemId)
+                .associatedSkills(List.of(SkillEntity.builder().skillName("Test").build()))
+                .associatedBloomLevels(List.of(BloomLevel.REMEMBER));
     }
 
     public static ContentMetadataEmbeddable.ContentMetadataEmbeddableBuilder dummyContentMetadataEmbeddableBuilder(final UUID courseId) {
@@ -90,6 +115,28 @@ public class TestData {
                 .assessmentMetadata(dummyAssessmentMetadataEmbeddableBuilder()
                         .skillTypes(List.of(skillTypes))
                         .build())
+                .build();
+    }
+
+    public static AssessmentEntity assessmentEntityWithItems(final UUID courseId, final UUID chapterId) {
+        SkillEntity skillEntity=SkillEntity.builder()
+                .id(UUID.randomUUID())
+                .skillName("Test")
+                .build();
+        ItemEntity item=ItemEntity.builder()
+                .id(UUID.randomUUID())
+                .associatedSkills(List.of(skillEntity))
+                .associatedBloomLevels(List.of(BloomLevel.UNDERSTAND))
+                .build();
+        return dummyAssessmentEntityBuilder(courseId)
+                .metadata(dummyContentMetadataEmbeddableBuilder(courseId)
+                        .chapterId(chapterId)
+                        .type(ContentType.FLASHCARDS)
+                        .build())
+                .assessmentMetadata(dummyAssessmentMetadataEmbeddableBuilder()
+                        .skillTypes(List.of(SkillType.REMEMBER))
+                        .build())
+                .items(List.of(item))
                 .build();
     }
 }

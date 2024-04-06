@@ -1,6 +1,6 @@
-package de.unistuttgart.iste.gits.content_service.persistence.entity;
+package de.unistuttgart.iste.meitrex.content_service.persistence.entity;
 
-import de.unistuttgart.iste.gits.common.persistence.IWithId;
+import de.unistuttgart.iste.meitrex.common.persistence.IWithId;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * Super class for assessment and media content.
  * The type is determined by the "content_type" column, which is
- * {@link de.unistuttgart.iste.gits.generated.dto.ContentType#MEDIA} for media content and
+ * {@link de.unistuttgart.iste.meitrex.generated.dto.ContentType#MEDIA} for media content and
  * anything else for assessment content.
  * <p>
  * The strategy for inheritance is {@link InheritanceType#SINGLE_TABLE},

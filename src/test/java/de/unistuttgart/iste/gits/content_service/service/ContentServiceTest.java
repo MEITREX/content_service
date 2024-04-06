@@ -1,16 +1,16 @@
-package de.unistuttgart.iste.gits.content_service.service;
+package de.unistuttgart.iste.meitrex.content_service.service;
 
-import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
-import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
-import de.unistuttgart.iste.gits.common.testutil.MockTestPublisherConfiguration;
-import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
-import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
+import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
+import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
+import de.unistuttgart.iste.meitrex.common.testutil.MockTestPublisherConfiguration;
+import de.unistuttgart.iste.meitrex.content_service.TestData;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
+import de.unistuttgart.iste.meitrex.content_service.validation.ContentValidator;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
@@ -36,9 +36,11 @@ class ContentServiceTest {
     private final ContentValidator contentValidator = Mockito.spy(ContentValidator.class);
     private final TopicPublisher mockPublisher = Mockito.mock(TopicPublisher.class);
     private final UserProgressDataRepository userProgressDataRepository = Mockito.mock(UserProgressDataRepository.class);
+    private final ItemRepository itemRepository = Mockito.mock(ItemRepository.class);
+    private final SkillRepository skillRepository = Mockito.mock(SkillRepository.class);
 
     private final ContentService contentService = new ContentService(contentRepository, sectionRepository, userProgressDataRepository,
-            stageService, contentMapper, contentValidator, mockPublisher);
+            stageService, contentMapper, contentValidator, itemRepository,skillRepository,mockPublisher);
 
 
     @Test

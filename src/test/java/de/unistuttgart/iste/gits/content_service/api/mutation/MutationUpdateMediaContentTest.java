@@ -1,13 +1,13 @@
-package de.unistuttgart.iste.gits.content_service.api.mutation;
+package de.unistuttgart.iste.meitrex.content_service.api.mutation;
 
-import de.unistuttgart.iste.gits.common.testutil.*;
-import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.gits.generated.dto.ContentType;
-import de.unistuttgart.iste.gits.generated.dto.MediaContent;
+import de.unistuttgart.iste.meitrex.common.testutil.*;
+import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.meitrex.content_service.TestData;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.MediaContentEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.meitrex.generated.dto.ContentType;
+import de.unistuttgart.iste.meitrex.generated.dto.MediaContent;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +17,8 @@ import org.springframework.test.annotation.Commit;
 import java.time.OffsetDateTime;
 import java.util.*;
 
-import static de.unistuttgart.iste.gits.common.testutil.TestUsers.userWithMembershipInCourseWithId;
-import static de.unistuttgart.iste.gits.common.user_handling.LoggedInUser.UserRoleInCourse.ADMINISTRATOR;
+import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMembershipInCourseWithId;
+import static de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse.ADMINISTRATOR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 

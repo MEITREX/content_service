@@ -88,6 +88,24 @@ type Query {
     """
     _internal_noauth_achievableSkillTypesByChapterIds(chapterIds: [UUID!]!): [[SkillType!]!]!
 
+
+
+    """
+    Retrieves all skills that are achievable for the given chapters.
+    Each chapter will have its own list of skills(batching query).
+    ⚠️ This query is only accessible internally in the system and allows the caller to fetch without
+    any permissions check and should not be called without any validation of the caller's permissions. ⚠️
+    """
+    _internal_noauth_achievableSkillsByChapterIds(chapterIds: [UUID!]!): [[Skill!]!]!
+
+    """
+    Retrieves all skills that are achievable for the given courses.
+    Each course will have its own list of skill(batching query).
+    ⚠️ This query is only accessible internally in the system and allows the caller to fetch without
+    any permissions check and should not be called without any validation of the caller's permissions. ⚠️
+    """
+    _internal_noauth_achievableSkillsByCourseIds(courseIds: [UUID!]!): [[Skill!]!]!
+
     """
     Retrieves all Content that is currently not part of any section within chapters.
     ⚠️ This query is only accessible internally in the system and allows the caller to fetch content without

@@ -1,13 +1,13 @@
-package de.unistuttgart.iste.gits.content_service.api.mutation;
+package de.unistuttgart.iste.meitrex.content_service.api.mutation;
 
-import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
-import de.unistuttgart.iste.gits.common.testutil.*;
-import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
+import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
+import de.unistuttgart.iste.meitrex.common.testutil.*;
+import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
+import de.unistuttgart.iste.meitrex.content_service.TestData;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.util.*;
 
-import static de.unistuttgart.iste.gits.common.testutil.TestUsers.userWithMembershipInCourseWithId;
+import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static graphql.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -40,6 +40,10 @@ class MutationDeleteContentTest {
     private StageRepository stageRepository;
     @Autowired
     private SectionRepository sectionRepository;
+    @Autowired
+    private ItemRepository itemRepository;
+    @Autowired
+    private SkillRepository skillRepository;
 
     private final UUID courseId = UUID.randomUUID();
 
@@ -67,6 +71,7 @@ class MutationDeleteContentTest {
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder(courseId)
                         .tags(new HashSet<>(Set.of("Tag", "Tag2")))
                         .build())
+                        .items(List.of(TestData.dummyItemEntityBuilder(UUID.randomUUID()).build()))
                 .build());
         contentEntity = contentRepository.save(contentEntity);
 
@@ -101,6 +106,9 @@ class MutationDeleteContentTest {
 
         // test that user progress is deleted
         assertThat(userProgressRepository.count(), is(0L));
+
+        assertThat(skillRepository.count(),is(0L));
+        assertThat(itemRepository.count(),is(0L));
 
         verify(topicPublisher).notifyContentChanges(List.of(contentEntity.getId()), CrudOperation.DELETE);
 

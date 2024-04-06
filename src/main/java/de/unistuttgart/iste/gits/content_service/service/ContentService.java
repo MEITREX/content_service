@@ -1,15 +1,15 @@
-package de.unistuttgart.iste.gits.content_service.service;
+package de.unistuttgart.iste.meitrex.content_service.service;
 
 
-import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
-import de.unistuttgart.iste.gits.common.event.CrudOperation;
-import de.unistuttgart.iste.gits.common.exception.IncompleteEventMessageException;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
-import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
+import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
+import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
+import de.unistuttgart.iste.meitrex.content_service.validation.ContentValidator;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static de.unistuttgart.iste.gits.common.util.GitsCollectionUtils.groupIntoSubLists;
+import static de.unistuttgart.iste.meitrex.common.util.MeitrexCollectionUtils.groupIntoSubLists;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +34,10 @@ public class ContentService {
     private final StageService stageService;
     private final ContentMapper contentMapper;
     private final ContentValidator contentValidator;
+
+    private final ItemRepository itemRepository;
+
+    private final SkillRepository skillRepository;
     private final TopicPublisher topicPublisher;
 
     /**
@@ -306,7 +310,9 @@ public class ContentService {
         userProgressDataRepository.deleteByContentId(contentEntity.getId());
         // remove content from sections
         stageService.deleteContentLinksFromStages(contentEntity);
-
+        if(contentEntity instanceof AssessmentEntity){
+            deleteRelatedSkillsIfNecessary(contentEntity);
+        }
         contentRepository.delete(contentEntity);
 
         return contentEntity.getId();
@@ -372,6 +378,70 @@ public class ContentService {
                 .toList();
 
         return groupIntoSubLists(contentsWithNoSection, chapterIds, content -> content.getMetadata().getChapterId());
+    }
+
+    /**
+     * An assessment consists of items. Each item has at least one skill.
+     * Checks each skill, if there is an item of another assessment, which belongs to this item.
+     * If not, the skill is deleted.
+     * @param contentEntity assessment to delete
+     */
+    private void deleteRelatedSkillsIfNecessary(ContentEntity contentEntity){
+        AssessmentEntity assessment= (AssessmentEntity) contentEntity;
+        for(ItemEntity item:assessment.getItems()){
+            for(SkillEntity skill:item.getAssociatedSkills()) {
+                deleteSkillWhenNoOtherAssessmentUsesTheSkill(contentEntity,skill.getId());
+            }
+        }
+
+    }
+    private void deleteSkillWhenNoOtherAssessmentUsesTheSkill(ContentEntity contentEntity,UUID skillId){
+        List<ItemEntity>itemsForSkill=itemRepository.findBySkill_Id(skillId);
+        for(ItemEntity itemForSkill:itemsForSkill){
+            ContentEntity entity=contentRepository.findByItem_Id(itemForSkill.getId());
+            if(entity.getId()!=contentEntity.getId()){
+                return;
+            }
+        }
+        skillRepository.deleteById(skillId);
+    }
+
+    /**
+     * returns the skills of the assessments of the given chapters
+     * @param chapterIds ids of the chapters
+     * @return skill for the given chapters
+     */
+
+    public List<List<SkillEntity>> getSkillsByChapterIds(List<UUID> chapterIds){
+        List<List<SkillEntity>>skillLists=new ArrayList<>();
+        for(UUID chapterId:chapterIds) {
+            List<ItemEntity>items = contentRepository.findItemsByChapterId(chapterId);
+            HashSet<SkillEntity> skillSet=new HashSet<SkillEntity>();
+            for(ItemEntity item:items){
+                List<SkillEntity>skills=item.getAssociatedSkills();
+                skillSet.addAll(skills);
+            }
+            skillLists.add(skillSet.stream().toList());
+        }
+       return skillLists;
+    }
+    /**
+     * returns the skills of the assessments of the given courses
+     * @param courseIds ids of the courses
+     * @return skill for the given courses
+     */
+    public List<List<SkillEntity>> getSkillsByCourseIds(List<UUID> courseIds){
+        List<List<SkillEntity>>skillLists=new ArrayList<>();
+        for(UUID courseId:courseIds) {
+            List<ItemEntity>items = contentRepository.findItemsByChapterId(courseId);
+            HashSet<SkillEntity> skillSet=new HashSet<SkillEntity>();
+            for(ItemEntity item:items){
+                List<SkillEntity>skills=item.getAssociatedSkills();
+                skillSet.addAll(skills);
+            }
+            skillLists.add(skillSet.stream().toList());
+        }
+        return skillLists;
     }
 
 }

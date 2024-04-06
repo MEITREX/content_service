@@ -1,6 +1,6 @@
-package de.unistuttgart.iste.gits.content_service.persistence.entity;
+package de.unistuttgart.iste.meitrex.content_service.persistence.entity;
 
-import de.unistuttgart.iste.gits.generated.dto.SkillType;
+import de.unistuttgart.iste.meitrex.generated.dto.SkillType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;

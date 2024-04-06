@@ -1,6 +1,6 @@
-package de.unistuttgart.iste.gits.content_service.service;
+package de.unistuttgart.iste.meitrex.content_service.service;
 
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;

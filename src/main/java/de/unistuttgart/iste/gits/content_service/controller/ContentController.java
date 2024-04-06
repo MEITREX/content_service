@@ -1,10 +1,11 @@
-package de.unistuttgart.iste.gits.content_service.controller;
+package de.unistuttgart.iste.meitrex.content_service.controller;
 
-import de.unistuttgart.iste.gits.common.exception.NoAccessToCourseException;
-import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.gits.content_service.service.*;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.meitrex.common.exception.NoAccessToCourseException;
+import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SkillEntity;
+import de.unistuttgart.iste.meitrex.content_service.service.*;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.data.method.annotation.*;
@@ -14,8 +15,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static de.unistuttgart.iste.gits.common.user_handling.UserCourseAccessValidator.validateUserHasAccessToCourse;
-import static de.unistuttgart.iste.gits.common.user_handling.UserCourseAccessValidator.validateUserHasAccessToCourses;
+import static de.unistuttgart.iste.meitrex.common.user_handling.UserCourseAccessValidator.validateUserHasAccessToCourse;
+import static de.unistuttgart.iste.meitrex.common.user_handling.UserCourseAccessValidator.validateUserHasAccessToCourses;
 
 @Slf4j
 @Controller
@@ -183,6 +184,17 @@ public class ContentController {
     @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentWithNoSectionByChapterIds")
     public List<List<Content>> contentWithNoSectionByChapterIds(@Argument final List<UUID> chapterIds) {
         return contentService.getContentWithNoSection(chapterIds);
+    }
+
+
+    @QueryMapping(name=INTERNAL_NOAUTH_PREFIX+"achievableSkillsByCourseIds")
+    public List<List<SkillEntity>>achievableSkillsByCourseIds(@Argument final List<UUID>courseIds){
+        return contentService.getSkillsByCourseIds(courseIds);
+    }
+
+    @QueryMapping(name=INTERNAL_NOAUTH_PREFIX+"achievableSkillsByChapterIds")
+    public List<List<SkillEntity>>achievableSkillsByChapterIds(@Argument final List<UUID>chapterIds){
+        return contentService.getSkillsByChapterIds(chapterIds);
     }
 
     /**

@@ -1,8 +1,9 @@
-package de.unistuttgart.iste.gits.content_service.persistence.entity;
+package de.unistuttgart.iste.meitrex.content_service.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OrderBy;
+import org.hibernate.annotations.SQLOrder;
 
 import java.io.Serializable;
 import java.util.*;
@@ -24,7 +25,7 @@ public class UserProgressDataEntity {
     private UUID contentId;
 
     @ElementCollection
-    @OrderBy(clause = "timestamp DESC")
+    @SQLOrder( "timestamp DESC")
     @Builder.Default
     private List<ProgressLogItemEmbeddable> progressLog = new ArrayList<>();
 

@@ -1,7 +1,7 @@
-package de.unistuttgart.iste.gits.content_service.persistence.mapper;
+package de.unistuttgart.iste.meitrex.content_service.persistence.mapper;
 
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;

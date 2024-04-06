@@ -1,9 +1,9 @@
-package de.unistuttgart.iste.gits.content_service.controller;
+package de.unistuttgart.iste.meitrex.content_service.controller;
 
 
-import de.unistuttgart.iste.gits.common.event.ChapterChangeEvent;
-import de.unistuttgart.iste.gits.common.event.ContentProgressedEvent;
-import de.unistuttgart.iste.gits.content_service.service.*;
+import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
+import de.unistuttgart.iste.meitrex.common.event.ContentProgressedEvent;
+import de.unistuttgart.iste.meitrex.content_service.service.*;
 import io.dapr.Topic;
 import io.dapr.client.domain.CloudEvent;
 import lombok.RequiredArgsConstructor;
@@ -56,18 +56,22 @@ public class SubscriptionController {
             }
 
         });
-
     }
-
-
-
-
-
-
-
-
-
-
+  /* method probably not necessary  @Topic(name="item-changed",pubsubName = "gits")
+    @PostMapping(path="/content-service/item-changed-pubsub")
+    public Mono<Void> onItemChanged(@RequestBody final CloudEvent<ItemChangeEvent> cloudEvent){
+        return Mono.fromRunnable(() -> {
+            try {
+                if (cloudEvent.getData().getOperation() != CrudOperation.DELETE)
+                    return;
+                contentService.deleteItem(cloudEvent.getData().getItemId());
+            } catch (final Exception e) {
+                // we need to catch all exceptions because otherwise if some invalid data is in the message queue
+                // it will never get processed and instead the service will just crash forever
+                log.error("Error while processing item change event", e);
+            }
+        });
+    }*/
 
 
 }

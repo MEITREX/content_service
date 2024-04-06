@@ -1,6 +1,6 @@
-package de.unistuttgart.iste.gits.content_service.config;
+package de.unistuttgart.iste.meitrex.content_service.config;
 
-import de.unistuttgart.iste.gits.common.user_handling.RequestHeaderUserProcessor;
+import de.unistuttgart.iste.meitrex.common.user_handling.RequestHeaderUserProcessor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;

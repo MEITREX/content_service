@@ -1,14 +1,14 @@
-package de.unistuttgart.iste.gits.content_service.api.query;
+package de.unistuttgart.iste.meitrex.content_service.api.query;
 
-import de.unistuttgart.iste.gits.common.testutil.*;
-import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.gits.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
-import de.unistuttgart.iste.gits.generated.dto.Section;
-import de.unistuttgart.iste.gits.generated.dto.Stage;
+import de.unistuttgart.iste.meitrex.common.testutil.*;
+import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
+import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
+import de.unistuttgart.iste.meitrex.content_service.TestData;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.SectionMapper;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
+import de.unistuttgart.iste.meitrex.generated.dto.Section;
+import de.unistuttgart.iste.meitrex.generated.dto.Stage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -19,7 +19,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.*;
 
-import static de.unistuttgart.iste.gits.common.testutil.TestUsers.userWithMembershipInCourseWithId;
+import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @GraphQlApiTest

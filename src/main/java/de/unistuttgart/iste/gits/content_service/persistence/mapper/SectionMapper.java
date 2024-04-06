@@ -1,8 +1,8 @@
-package de.unistuttgart.iste.gits.content_service.persistence.mapper;
+package de.unistuttgart.iste.meitrex.content_service.persistence.mapper;
 
-import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.gits.generated.dto.Section;
-import de.unistuttgart.iste.gits.generated.dto.Stage;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.meitrex.generated.dto.Section;
+import de.unistuttgart.iste.meitrex.generated.dto.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

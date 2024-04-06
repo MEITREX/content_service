@@ -1,12 +1,12 @@
-package de.unistuttgart.iste.gits.content_service.service;
+package de.unistuttgart.iste.meitrex.content_service.service;
 
-import de.unistuttgart.iste.gits.common.dapr.TopicPublisher;
-import de.unistuttgart.iste.gits.common.event.ContentProgressedEvent;
-import de.unistuttgart.iste.gits.common.event.UserProgressUpdatedEvent;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
-import de.unistuttgart.iste.gits.generated.dto.*;
+import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
+import de.unistuttgart.iste.meitrex.common.event.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ItemRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.*;
 
-import static de.unistuttgart.iste.gits.common.util.GitsCollectionUtils.countAsInt;
+import static de.unistuttgart.iste.meitrex.common.util.MeitrexCollectionUtils.countAsInt;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +24,8 @@ public class UserProgressDataService {
     private final UserProgressDataRepository userProgressDataRepository;
     private final ContentService contentService;
     private final UserProgressDataMapper userProgressDataMapper;
+
+    private final ItemRepository itemRepository;
     private final TopicPublisher topicPublisher;
 
     /**
@@ -98,11 +100,42 @@ public class UserProgressDataService {
         userProgressDataRepository.save(userProgressDataEntity);
 
         final Content content = contentService.getContentsById(List.of(contentProgressedEvent.getContentId())).get(0);
-        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content));
+        final List<ItemResponse>itemResponses=createItemResponsesList(contentProgressedEvent);
+        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content,itemResponses));
     }
 
+    /**
+     * adds the item specific information to the responses
+     * @param event the event from the Quiz Service
+     * @return list with all responses from the event and for each response the added item information
+     */
+    private List<ItemResponse>createItemResponsesList(final ContentProgressedEvent event){
+        List<Response>responses=event.getResponses();
+        List<ItemResponse>itemResponses=new ArrayList<ItemResponse>();
+        for(Response response:responses){
+            ItemEntity item = itemRepository.findById(response.getItemId()).get();
+            List<SkillEntity>skillEntities=item.getAssociatedSkills();
+            List<UUID>skillIds=new ArrayList<>();
+            for(SkillEntity skillEntity:skillEntities){
+                skillIds.add(skillEntity.getId());
+            }
+            List<LevelOfBloomsTaxonomy>bloomLevelsForEvent=new ArrayList<LevelOfBloomsTaxonomy>();
+            for(BloomLevel level:item.getAssociatedBloomLevels()){
+                bloomLevelsForEvent.add(mapBloomsTaxonomy(level));
+            }
+            ItemResponse itemResponse=new ItemResponse().builder()
+                    .itemId(response.getItemId())
+                    .response(response.getResponse())
+                    .skillIds(skillIds)
+                    .levelsOfBloomsTaxonomy(bloomLevelsForEvent)
+                    .build();
+            itemResponses.add(itemResponse);
+        }
+        return itemResponses;
+    }
     private UserProgressUpdatedEvent createUserProgressUpdatedEvent(final ContentProgressedEvent event,
-                                                                    final Content content) {
+                                                                    final Content content,
+                                                                    final List<ItemResponse> itemResponses) {
         return UserProgressUpdatedEvent.builder()
                 .userId(event.getUserId())
                 .contentId(event.getContentId())
@@ -112,7 +145,19 @@ public class UserProgressDataService {
                 .correctness(event.getCorrectness())
                 .hintsUsed(event.getHintsUsed())
                 .timeToComplete(event.getTimeToComplete())
+                .responses(itemResponses)
                 .build();
+    }
+
+    private LevelOfBloomsTaxonomy mapBloomsTaxonomy(BloomLevel bloomLevel){
+        return switch (bloomLevel) {
+            case UNDERSTAND -> LevelOfBloomsTaxonomy.UNDERSTAND;
+            case REMEMBER -> LevelOfBloomsTaxonomy.REMEMBER;
+            case APPLY -> LevelOfBloomsTaxonomy.APPLY;
+            case ANALYZE -> LevelOfBloomsTaxonomy.ANALYZE;
+            case EVALUATE ->LevelOfBloomsTaxonomy.EVALUATE;
+            case CREATE ->LevelOfBloomsTaxonomy.CREATE;
+        };
     }
 
     /**

@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.gits.content_service.client;
+package de.unistuttgart.iste.meitrex.content_service.client;
 
 
 // COPY PASTED from org.springframework.graphql.test.tester.WebTestClientTransport
