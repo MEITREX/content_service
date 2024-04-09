@@ -1352,7 +1352,7 @@ The type of suggestion.
 
 
 Represents a user's progress on a content item.
-See https://gits-enpro.readthedocs.io/en/latest/dev-manuals/gamification/userProgress.html
+See https://meitrex.readthedocs.io/en/latest/dev-manuals/gamification/userProgress.html
 
 <table>
 <thead>

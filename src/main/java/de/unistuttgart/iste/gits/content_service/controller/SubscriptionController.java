@@ -31,6 +31,7 @@ public class SubscriptionController {
     public Mono<Void> logUserProgress(@RequestBody final CloudEvent<ContentProgressedEvent> cloudEvent) {
         return Mono.fromRunnable(() -> {
             try {
+                log.info("Received content-progressed event: {}", cloudEvent.getData());
                 userProgressDataService.logUserProgress(cloudEvent.getData());
             } catch (final Exception e) {
                 log.error("Error while processing logUserProgress event. {}", e.getMessage());
