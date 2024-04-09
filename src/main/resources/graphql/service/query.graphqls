@@ -98,6 +98,7 @@ type Query {
     """
     _internal_noauth_achievableSkillsByChapterIds(chapterIds: [UUID!]!): [[Skill!]!]!
 
+
     """
     Retrieves all skills that are achievable for the given courses.
     Each course will have its own list of skill(batching query).

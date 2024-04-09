@@ -1,10 +1,10 @@
-package de.unistuttgart.iste.meitrex.content_service.controller;
+package de.unistuttgart.iste.gits.content_service.controller;
 
 import de.unistuttgart.iste.meitrex.common.exception.NoAccessToCourseException;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SkillEntity;
-import de.unistuttgart.iste.meitrex.content_service.service.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SkillEntity;
+import de.unistuttgart.iste.gits.content_service.service.*;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -188,12 +188,13 @@ public class ContentController {
 
 
     @QueryMapping(name=INTERNAL_NOAUTH_PREFIX+"achievableSkillsByCourseIds")
-    public List<List<SkillEntity>>achievableSkillsByCourseIds(@Argument final List<UUID>courseIds){
+    public List<List<SkillEntity>>internalAchievableSkillsByCourseIds(@Argument final List<UUID>courseIds){
+        System.out.println("entered");
         return contentService.getSkillsByCourseIds(courseIds);
     }
 
     @QueryMapping(name=INTERNAL_NOAUTH_PREFIX+"achievableSkillsByChapterIds")
-    public List<List<SkillEntity>>achievableSkillsByChapterIds(@Argument final List<UUID>chapterIds){
+    public List<List<SkillEntity>>interalAchievableSkillsByChapterIds(@Argument final List<UUID>chapterIds){
         return contentService.getSkillsByChapterIds(chapterIds);
     }
 

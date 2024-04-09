@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.meitrex.content_service.validation;
+package de.unistuttgart.iste.gits.content_service.validation;
 
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.validation.ValidationException;

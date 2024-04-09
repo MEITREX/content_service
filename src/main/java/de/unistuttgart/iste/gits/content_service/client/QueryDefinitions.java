@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.meitrex.content_service.client;
+package de.unistuttgart.iste.gits.content_service.client;
 
 import lombok.NoArgsConstructor;
 
@@ -24,8 +24,7 @@ public class QueryDefinitions {
                      }
                      items{
                         id
-                        associatedSkillEntities{
-                            id
+                        associatedSkills{
                             skillName
                         }
                         associatedBloomLevels

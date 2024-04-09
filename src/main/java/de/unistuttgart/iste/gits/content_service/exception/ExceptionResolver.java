@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.meitrex.content_service.exception;
+package de.unistuttgart.iste.gits.content_service.exception;
 
 import de.unistuttgart.iste.meitrex.common.exception.ExceptionToGraphQlErrorConverter;
 import graphql.GraphQLError;

@@ -1,11 +1,11 @@
-package de.unistuttgart.iste.meitrex.content_service.service;
+package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.*;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ItemRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ItemRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +100,10 @@ public class UserProgressDataService {
         userProgressDataRepository.save(userProgressDataEntity);
 
         final Content content = contentService.getContentsById(List.of(contentProgressedEvent.getContentId())).get(0);
-        final List<ItemResponse>itemResponses=createItemResponsesList(contentProgressedEvent);
+        List<ItemResponse>itemResponses=new ArrayList<>();
+        if(contentProgressedEvent.getResponses()!=null){
+           itemResponses=createItemResponsesList(contentProgressedEvent);
+        }
         topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content,itemResponses));
     }
 

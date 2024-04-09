@@ -1,8 +1,8 @@
-package de.unistuttgart.iste.meitrex.content_service.persistence.mapper;
+package de.unistuttgart.iste.gits.content_service.persistence.mapper;
 
 import de.unistuttgart.iste.meitrex.common.event.ContentProgressedEvent;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ProgressLogItemEmbeddable;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.UserProgressDataEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ProgressLogItemEmbeddable;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.UserProgressDataEntity;
 import de.unistuttgart.iste.meitrex.generated.dto.UserProgressData;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;

@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.meitrex.content_service.service;
+package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import org.junit.jupiter.api.Test;

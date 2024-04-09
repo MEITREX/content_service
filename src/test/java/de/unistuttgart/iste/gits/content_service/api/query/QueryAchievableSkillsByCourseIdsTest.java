@@ -1,17 +1,20 @@
-package de.unistuttgart.iste.meitrex.content_service.api.query;
+package de.unistuttgart.iste.gits.content_service.api.query;
 import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SkillEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SkillEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.GraphQlTester;
 import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMembershipInCourseWithId;
+
+import java.util.List;
 import java.util.UUID;
 
 @GraphQlApiTest
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content_items","content"})
 public class QueryAchievableSkillsByCourseIdsTest {
 
     @Autowired
@@ -26,22 +29,26 @@ public class QueryAchievableSkillsByCourseIdsTest {
     void testQueryAchievableSkillsByCourseIds(final GraphQlTester graphQlTester) {
         final UUID chapterId = UUID.randomUUID();
         final UUID courseId =UUID.randomUUID();
-
+        final UUID chapterId2 = UUID.randomUUID();
         AssessmentEntity assessmentEntity1 = TestData.assessmentEntityWithItems(courseId,chapterId);
 
         assessmentEntity1 = contentRepository.save(assessmentEntity1);
 
 
+
         final String query = """
-                query ($chapterId: UUID!) {
-                    _internal_noauth_achievableSkillTypesByCourseIds(chapterIds: [$courseId])
+                query ($courseId: UUID!) {
+                   _internal_noauth_achievableSkillsByCourseIds(courseIds: [$courseId]){
+                       id
+                       skillName
+                   }
                 }
                 """;
-
+        System.out.println(assessmentEntity1.getItems().get(0).getAssociatedSkills().get(0));
         graphQlTester.document(query)
                 .variable("courseId", courseId)
                 .execute()
-                .path("_internal_noauth_achievableSkillTypesByCoursseIds[0][*]")
+                .path("_internal_noauth_achievableSkillsByCourseIds[0][*]")
                 .entityList(SkillEntity.class)
                 .contains(assessmentEntity1.getItems().get(0).getAssociatedSkills().get(0));
 

@@ -224,11 +224,11 @@ input CreateItemInput{
     """
     The skills or the competencies the item belongs to.
     """
-    skill:[SkillInput!]!
+    associatedSkills:[SkillInput!]!
     """
     The Level of Blooms Taxonomy the item belongs to
     """
-    bloomLevels:[BloomLevel!]!
+    associatedBloomLevels:[BloomLevel!]!
 
 }
 
@@ -240,11 +240,11 @@ input UpdateItemInput{
     """
     The skills or the competencies the item belongs to.
     """
-    skills:[SkillInput!]!
+    associatedSkills:[SkillInput!]!
     """
     The Level of Blooms Taxonomy the item belongs to
     """
-    bloomLevels:[BloomLevel!]!
+    associatedBloomLevels:[BloomLevel!]!
 
 }
 

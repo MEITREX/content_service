@@ -1,8 +1,8 @@
-package de.unistuttgart.iste.meitrex.content_service.persistence.repository;
+package de.unistuttgart.iste.gits.content_service.persistence.repository;
 
 
 
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ItemEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ItemEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +11,5 @@ import java.util.UUID;
 
 @Repository
 public interface ItemRepository extends JpaRepository<ItemEntity, UUID> {
-    List<ItemEntity> findBySkill_Id(UUID skillId);
+    List<ItemEntity> findByAssociatedSkills_Id(UUID skillId);
 }

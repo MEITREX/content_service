@@ -1,14 +1,14 @@
-package de.unistuttgart.iste.meitrex.content_service.service;
+package de.unistuttgart.iste.gits.content_service.service;
 
 
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
 import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
-import de.unistuttgart.iste.meitrex.content_service.validation.ContentValidator;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -38,6 +38,8 @@ public class ContentService {
     private final ItemRepository itemRepository;
 
     private final SkillRepository skillRepository;
+
+    private final AssessmentRepository assessmentRepository;
     private final TopicPublisher topicPublisher;
 
     /**
@@ -388,17 +390,19 @@ public class ContentService {
      */
     private void deleteRelatedSkillsIfNecessary(ContentEntity contentEntity){
         AssessmentEntity assessment= (AssessmentEntity) contentEntity;
-        for(ItemEntity item:assessment.getItems()){
-            for(SkillEntity skill:item.getAssociatedSkills()) {
-                deleteSkillWhenNoOtherAssessmentUsesTheSkill(contentEntity,skill.getId());
+        if(assessment.getItems()!=null) {
+            for (ItemEntity item : assessment.getItems()) {
+                for (SkillEntity skill : item.getAssociatedSkills()) {
+                    deleteSkillWhenNoOtherAssessmentUsesTheSkill(contentEntity, skill.getId());
+                }
             }
         }
 
     }
     private void deleteSkillWhenNoOtherAssessmentUsesTheSkill(ContentEntity contentEntity,UUID skillId){
-        List<ItemEntity>itemsForSkill=itemRepository.findBySkill_Id(skillId);
+        List<ItemEntity>itemsForSkill=itemRepository.findByAssociatedSkills_Id(skillId);
         for(ItemEntity itemForSkill:itemsForSkill){
-            ContentEntity entity=contentRepository.findByItem_Id(itemForSkill.getId());
+            ContentEntity entity=assessmentRepository.findByItems_Id(itemForSkill.getId());
             if(entity.getId()!=contentEntity.getId()){
                 return;
             }
@@ -423,6 +427,7 @@ public class ContentService {
             }
             skillLists.add(skillSet.stream().toList());
         }
+        System.out.println("list"+skillLists);
        return skillLists;
     }
     /**
@@ -433,7 +438,8 @@ public class ContentService {
     public List<List<SkillEntity>> getSkillsByCourseIds(List<UUID> courseIds){
         List<List<SkillEntity>>skillLists=new ArrayList<>();
         for(UUID courseId:courseIds) {
-            List<ItemEntity>items = contentRepository.findItemsByChapterId(courseId);
+            List<ItemEntity>items = contentRepository.findItemsByCourseId(courseId);
+            System.out.println(items);
             HashSet<SkillEntity> skillSet=new HashSet<SkillEntity>();
             for(ItemEntity item:items){
                 List<SkillEntity>skills=item.getAssociatedSkills();
@@ -441,6 +447,7 @@ public class ContentService {
             }
             skillLists.add(skillSet.stream().toList());
         }
+        System.out.println("list"+skillLists);
         return skillLists;
     }
 

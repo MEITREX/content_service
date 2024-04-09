@@ -1,10 +1,10 @@
-package de.unistuttgart.iste.meitrex.content_service.api.mutation;
+package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
 import de.unistuttgart.iste.meitrex.generated.dto.UpdateStageInput;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import org.springframework.test.annotation.Commit;
 import java.util.*;
 
 import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMembershipInCourseWithId;
-import static de.unistuttgart.iste.meitrex.content_service.TestData.buildContentEntity;
+import static de.unistuttgart.iste.gits.content_service.TestData.buildContentEntity;
 
 @GraphQlApiTest
 @TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content"})

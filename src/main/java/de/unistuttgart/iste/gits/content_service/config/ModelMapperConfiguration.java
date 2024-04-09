@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.meitrex.content_service.config;
+package de.unistuttgart.iste.gits.content_service.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

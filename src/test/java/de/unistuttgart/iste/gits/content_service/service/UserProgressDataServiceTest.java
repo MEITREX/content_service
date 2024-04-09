@@ -1,13 +1,15 @@
-package de.unistuttgart.iste.meitrex.content_service.service;
+package de.unistuttgart.iste.gits.content_service.service;
 
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.ContentProgressedEvent;
+import de.unistuttgart.iste.meitrex.common.event.ItemResponse;
+import de.unistuttgart.iste.meitrex.common.event.Response;
 import de.unistuttgart.iste.meitrex.common.event.UserProgressUpdatedEvent;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +20,7 @@ import org.modelmapper.ModelMapper;
 import java.time.*;
 import java.util.*;
 
-import static de.unistuttgart.iste.meitrex.content_service.TestData.buildDummyUserProgressData;
+import static de.unistuttgart.iste.gits.content_service.TestData.buildDummyUserProgressData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -164,6 +166,7 @@ class UserProgressDataServiceTest {
                 .correctness(1.0)
                 .hintsUsed(0)
                 .success(true)
+                .responses(new ArrayList<>())
                 .build();
 
         final UserProgressDataEntity initialProgress = UserProgressDataEntity.builder()
@@ -204,6 +207,7 @@ class UserProgressDataServiceTest {
                 .correctness(1.0)
                 .hintsUsed(0)
                 .success(true)
+                .responses(new ArrayList<ItemResponse>())
                 .build();
         verify(topicPublisher).notifyUserProgressUpdated(expectedUserProgressEvent);
     }

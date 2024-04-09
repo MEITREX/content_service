@@ -1,13 +1,13 @@
-package de.unistuttgart.iste.meitrex.content_service.api.mutation;
+package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SkillEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SkillEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content_items","content"})
 class MutationUpdateAssessmentTest {
 
     @Autowired
@@ -44,12 +44,13 @@ class MutationUpdateAssessmentTest {
     @Transactional
     @Commit
     void testUpdateAssessment(final GraphQlTester graphQlTester) {
+        AssessmentEntity ass=TestData.dummyAssessmentEntityBuilderWithItems(courseId).build();
         final ContentEntity contentEntity = contentRepository.save(
                 TestData.dummyAssessmentEntityBuilderWithItems(courseId).build());
         final UUID newChapterId = UUID.randomUUID();
 
         final String query = """
-                mutation($assessmentId: UUID!, $chapterId: UUID!,itemId:UUID!) {
+                mutation($assessmentId: UUID!, $chapterId: UUID!,$itemId:UUID!) {
                     mutateContent(contentId: $assessmentId){
                         updateAssessment(input: {
                             metadata: {
@@ -59,21 +60,17 @@ class MutationUpdateAssessmentTest {
                                 rewardPoints: 3,
                                 tagNames: ["newTag1", "newTag2"]
                             },
-                  
                             assessmentMetadata: {
                                 skillPoints: 3,
                                 skillTypes: [UNDERSTAND, REMEMBER]
                                 initialLearningInterval: 7
                             },
-                            items:[
-                                {
-                                 id:$itemId,
-                                 skill:[
-                                    name:"Test"
-                                 ]
-                                 bloomLevels:[REMEMBER]
-                                
-                            }],
+                             items:[
+                                    {
+                                      id:$itemId
+                                      associatedSkills:[{name:"Test"}]
+                                      associatedBloomLevels:[REMEMBER]
+                            }]
                     }) {
                         id
                         metadata {
@@ -83,6 +80,13 @@ class MutationUpdateAssessmentTest {
                             type
                             chapterId
                             rewardPoints
+                        }
+                        items{
+                                id                       
+                                associatedSkills{
+                                    skillName
+                                }
+                                associatedBloomLevels
                         }
                         assessmentMetadata {
                             skillPoints

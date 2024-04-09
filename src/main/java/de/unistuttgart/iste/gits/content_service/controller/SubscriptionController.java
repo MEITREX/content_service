@@ -1,9 +1,9 @@
-package de.unistuttgart.iste.meitrex.content_service.controller;
+package de.unistuttgart.iste.gits.content_service.controller;
 
 
 import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.event.ContentProgressedEvent;
-import de.unistuttgart.iste.meitrex.content_service.service.*;
+import de.unistuttgart.iste.gits.content_service.service.*;
 import io.dapr.Topic;
 import io.dapr.client.domain.CloudEvent;
 import lombok.RequiredArgsConstructor;

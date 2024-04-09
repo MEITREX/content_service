@@ -1,8 +1,8 @@
-package de.unistuttgart.iste.meitrex.content_service.mapper;
+package de.unistuttgart.iste.gits.content_service.mapper;
 
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ProgressLogItemEmbeddable;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.UserProgressDataEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ProgressLogItemEmbeddable;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.UserProgressDataEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.meitrex.generated.dto.UserProgressData;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;

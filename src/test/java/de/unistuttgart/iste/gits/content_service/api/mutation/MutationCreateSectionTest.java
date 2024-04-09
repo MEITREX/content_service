@@ -1,10 +1,10 @@
-package de.unistuttgart.iste.meitrex.content_service.api.mutation;
+package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.CreateSectionInput;
 import de.unistuttgart.iste.meitrex.generated.dto.Section;
 import jakarta.transaction.Transactional;

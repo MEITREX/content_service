@@ -1,14 +1,17 @@
-package de.unistuttgart.iste.meitrex.content_service.api.mutation;
+package de.unistuttgart.iste.gits.content_service.api.mutation;
 
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
 import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.meitrex.generated.dto.BloomLevel;
+import de.unistuttgart.iste.meitrex.generated.dto.Item;
 import jakarta.transaction.Transactional;
+import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.util.*;
 
+import static de.unistuttgart.iste.gits.content_service.TestData.dummyItemEntity;
 import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static graphql.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -67,12 +71,14 @@ class MutationDeleteContentTest {
     @Transactional
     @Commit
     void testDeleteExistingContent(final GraphQlTester graphQlTester) {
+        ArrayList<ItemEntity>entities=new ArrayList<>();
+        entities.add(dummyItemEntity());
         ContentEntity contentEntity = contentRepository.save(TestData.dummyAssessmentEntityBuilder(courseId)
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder(courseId)
                         .tags(new HashSet<>(Set.of("Tag", "Tag2")))
                         .build())
-                        .items(List.of(TestData.dummyItemEntityBuilder(UUID.randomUUID()).build()))
-                .build());
+                .items(entities)
+                .build());;
         contentEntity = contentRepository.save(contentEntity);
 
         final UserProgressDataEntity progress1 = UserProgressDataEntity.builder()
