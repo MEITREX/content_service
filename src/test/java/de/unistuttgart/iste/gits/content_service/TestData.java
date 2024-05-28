@@ -28,6 +28,7 @@ public class TestData {
         skillEntity.setSkillName("Test");
         ItemEntity item=new ItemEntity();
         ArrayList<SkillEntity>skills=new ArrayList<>();
+        skills.add(skillEntity);
         item.setAssociatedSkills(skills);
         ArrayList<BloomLevel>levels=new ArrayList<>();
         levels.add(BloomLevel.UNDERSTAND);

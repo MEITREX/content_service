@@ -134,7 +134,7 @@ input CreateAssessmentInput {
     """
     items of the new assessments
     """
-    items: [CreateItemInput!]!
+    items: [ItemInput!]
 }
 
 input UpdateAssessmentInput {
@@ -149,7 +149,7 @@ input UpdateAssessmentInput {
     """
     items of the new assessments
     """
-    items: [UpdateItemInput!]!
+    items: [ItemInput!]
 }
 
 input CreateContentMetadataInput {
@@ -220,23 +220,13 @@ input AssessmentMetadataInput {
     """
     initialLearningInterval: Int @PositiveOrZero
 }
-input CreateItemInput{
-    """
-    The skills or the competencies the item belongs to.
-    """
-    associatedSkills:[SkillInput!]!
-    """
-    The Level of Blooms Taxonomy the item belongs to
-    """
-    associatedBloomLevels:[BloomLevel!]!
 
-}
 
-input UpdateItemInput{
+input ItemInput{
     """
     the id of the item
     """
-    id:UUID!
+    id:UUID
     """
     The skills or the competencies the item belongs to.
     """
@@ -247,6 +237,8 @@ input UpdateItemInput{
     associatedBloomLevels:[BloomLevel!]!
 
 }
+
+
 
 input SkillInput{
     """
@@ -257,7 +249,7 @@ input SkillInput{
     """
     the name of the skill
     """
-    name:String!
+    skillName:String!
 
 }
 

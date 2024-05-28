@@ -62,7 +62,7 @@ class MutationCreateAssessmentTest {
                         },
                         items:[
                                 {
-                                  associatedSkills:[{name:"Test"}]
+                                  associatedSkills:[{skillName:"Test"}]
                                   associatedBloomLevels:[REMEMBER]
                                 
                             }],
@@ -154,7 +154,7 @@ class MutationCreateAssessmentTest {
                         }
                         items:
                             [{
-                                associatedSkills:[{name:"name"}]
+                                associatedSkills:[{skillName:"name"}]
                                associatedBloomLevels:[CREATE]
                             }]
                         assessmentMetadata: {

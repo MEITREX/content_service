@@ -104,6 +104,7 @@ public class UserProgressDataService {
         if(contentProgressedEvent.getResponses()!=null){
            itemResponses=createItemResponsesList(contentProgressedEvent);
         }
+ 
         topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content,itemResponses));
     }
 

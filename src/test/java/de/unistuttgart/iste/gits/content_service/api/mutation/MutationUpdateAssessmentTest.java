@@ -48,9 +48,8 @@ class MutationUpdateAssessmentTest {
         final ContentEntity contentEntity = contentRepository.save(
                 TestData.dummyAssessmentEntityBuilderWithItems(courseId).build());
         final UUID newChapterId = UUID.randomUUID();
-
         final String query = """
-                mutation($assessmentId: UUID!, $chapterId: UUID!,$itemId:UUID!) {
+                mutation($assessmentId: UUID!, $chapterId: UUID!,$itemId:UUID!,$skillId:UUID!) {
                     mutateContent(contentId: $assessmentId){
                         updateAssessment(input: {
                             metadata: {
@@ -68,9 +67,14 @@ class MutationUpdateAssessmentTest {
                              items:[
                                     {
                                       id:$itemId
-                                      associatedSkills:[{name:"Test"}]
+                                      associatedSkills:[{skillName:"abc"}]
                                       associatedBloomLevels:[REMEMBER]
-                            }]
+                            },{
+                                      id:null
+                                      associatedSkills:[{skillName:"name",id:$skillId}]
+                                      associatedBloomLevels:[REMEMBER]
+                            }
+                            ]
                     }) {
                         id
                         metadata {
@@ -103,9 +107,9 @@ class MutationUpdateAssessmentTest {
                 .variable("assessmentId", contentEntity.getId())
                 .variable("chapterId", newChapterId)
                 .variable("itemId",assessment.getItems().get(0).getId())
+                .variable("skillId",assessment.getItems().get(0).getAssociatedSkills().get(0).getId())
                 .execute()
                 .path("mutateContent.updateAssessment").entity(FlashcardSetAssessment.class).get();
-
         // check that returned assessment is correct
         assertThat(updatedAssessment.getId(), is(notNullValue()));
         assertThat(updatedAssessment.getMetadata().getName(), is("newName"));
@@ -121,7 +125,7 @@ class MutationUpdateAssessmentTest {
         assertThat(updatedAssessment.getItems().size(), is(1));
         assertThat(updatedAssessment.getItems().get(0).getId(),is(assessment.getItems().get(0).getId()));
         assertThat(updatedAssessment.getItems().get(0).getAssociatedBloomLevels(),is(List.of(BloomLevel.REMEMBER)));
-        assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("Test"));
+        assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("test"));
 
         final ContentEntity newContentEntity = contentRepository.findById(updatedAssessment.getId()).orElseThrow();
         assertThat(newContentEntity, is(instanceOf(AssessmentEntity.class)));
@@ -142,6 +146,6 @@ class MutationUpdateAssessmentTest {
         assertThat(assessmentEntity.getItems().size(), is(1));
         assertThat(assessmentEntity.getItems().get(0).getId(),is(assessment.getItems().get(0).getId()));
         assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(),is(List.of(BloomLevel.REMEMBER)));
-        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("Test"));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("name"));
     }
 }

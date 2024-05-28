@@ -4,6 +4,8 @@ package de.unistuttgart.iste.gits.content_service.controller;
 import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.event.ContentProgressedEvent;
 import de.unistuttgart.iste.gits.content_service.service.*;
+import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
+import de.unistuttgart.iste.meitrex.common.event.ItemChangeEvent;
 import io.dapr.Topic;
 import io.dapr.client.domain.CloudEvent;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,7 @@ public class SubscriptionController {
     /**
      * Listens to the content-progressed topic and logs the user progress.
      */
-    @Topic(name = "content-progressed", pubsubName = "gits")
+    @Topic(name = "content-progressed", pubsubName = "meitrex")
     @PostMapping(path = "/content-progressed-pubsub")
     public Mono<Void> logUserProgress(@RequestBody final CloudEvent<ContentProgressedEvent> cloudEvent) {
         return Mono.fromRunnable(() -> {
@@ -39,7 +41,7 @@ public class SubscriptionController {
         });
     }
 
-    @Topic(name = "chapter-changed", pubsubName = "gits")
+    @Topic(name = "chapter-changed", pubsubName = "meitrex")
     @PostMapping(path = "/content-service/chapter-changed-pubsub")
     public Mono<Void> cascadeCourseDeletion(@RequestBody final CloudEvent<ChapterChangeEvent> cloudEvent) {
         return Mono.fromRunnable(() -> {
@@ -58,7 +60,7 @@ public class SubscriptionController {
 
         });
     }
-  /* method probably not necessary  @Topic(name="item-changed",pubsubName = "gits")
+    @Topic(name="item-changed",pubsubName = "meitrex")
     @PostMapping(path="/content-service/item-changed-pubsub")
     public Mono<Void> onItemChanged(@RequestBody final CloudEvent<ItemChangeEvent> cloudEvent){
         return Mono.fromRunnable(() -> {
@@ -72,7 +74,7 @@ public class SubscriptionController {
                 log.error("Error while processing item change event", e);
             }
         });
-    }*/
+    }
 
 
 }

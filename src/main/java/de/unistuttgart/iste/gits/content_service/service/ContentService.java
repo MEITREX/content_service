@@ -227,7 +227,22 @@ public class ContentService {
         final ContentEntity oldContentEntity = requireContentExisting(contentId);
         ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
-
+        AssessmentEntity assessment=(AssessmentEntity) updatedContentEntity;
+        List<ItemEntity>items=new ArrayList<>();
+        for(ItemEntity item:assessment.getItems()) {
+            List<SkillEntity>skills=new ArrayList<>();
+            for(SkillEntity skill:item.getAssociatedSkills()){
+                if(skill.getId()!=null){
+                    skills.add(skillRepository.findById(skill.getId()).get());
+                }
+                else {
+                    skills.add(skillRepository.save(skill));
+                }
+            }
+            item.setAssociatedSkills(skills);
+            itemRepository.save(item);
+            items.add(item);
+        }
         updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity);
         return contentMapper.assessmentEntityToDto(updatedContentEntity);
     }
@@ -242,7 +257,6 @@ public class ContentService {
     private <T extends ContentEntity> T createContent(T contentEntity, final UUID courseId) {
         contentEntity.getMetadata().setCourseId(courseId);
         contentEntity = contentRepository.save(contentEntity);
-
         return contentEntity;
     }
 
@@ -257,7 +271,6 @@ public class ContentService {
     private <T extends ContentEntity> T updateContent(final T oldContentEntity, T updatedContentEntity) {
         updatedContentEntity.getMetadata().setCourseId(oldContentEntity.getMetadata().getCourseId());
         updatedContentEntity = contentRepository.save(updatedContentEntity);
-
         // if the content is assigned to a different chapter course Links need to be potentially updated and therefore
         // an Update request is sent to the resource services
         if (!oldContentEntity.getMetadata().getChapterId().equals(updatedContentEntity.getMetadata().getChapterId())) {
@@ -427,7 +440,6 @@ public class ContentService {
             }
             skillLists.add(skillSet.stream().toList());
         }
-        System.out.println("list"+skillLists);
        return skillLists;
     }
     /**
@@ -439,7 +451,6 @@ public class ContentService {
         List<List<SkillEntity>>skillLists=new ArrayList<>();
         for(UUID courseId:courseIds) {
             List<ItemEntity>items = contentRepository.findItemsByCourseId(courseId);
-            System.out.println(items);
             HashSet<SkillEntity> skillSet=new HashSet<SkillEntity>();
             for(ItemEntity item:items){
                 List<SkillEntity>skills=item.getAssociatedSkills();
@@ -447,8 +458,29 @@ public class ContentService {
             }
             skillLists.add(skillSet.stream().toList());
         }
-        System.out.println("list"+skillLists);
         return skillLists;
+    }
+
+    /**
+     * deletes a given item
+     * @param itemId id of the item to delete
+     */
+    public void deleteItem(UUID itemId){
+        Optional<ItemEntity> itemEntity = itemRepository.findById(itemId);
+        if(itemEntity.isPresent()){
+            ItemEntity item=itemEntity.get();
+            for(SkillEntity skill:item.getAssociatedSkills()) {
+                deleteSkillWhenNoOtherItemUsesTheSkill(itemId,skill.getId());
+            }
+            itemRepository.delete(item);
+        }
+    }
+
+    private void deleteSkillWhenNoOtherItemUsesTheSkill(UUID itemId,UUID skillId){
+        List<ItemEntity>itemsForSkill=itemRepository.findByAssociatedSkills_Id(skillId);
+        if(itemsForSkill.size()==1&&itemsForSkill.get(0).getId()==itemId){
+            skillRepository.deleteById(skillId);
+        }
     }
 
 }

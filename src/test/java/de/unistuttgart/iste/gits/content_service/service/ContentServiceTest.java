@@ -209,8 +209,7 @@ class ContentServiceTest {
         // execute method under test
         final List<List<Content>> result = contentService.getContentWithNoSection(chapterIds);
 
-        System.out.println(mediaContentEntities);
-        System.out.println(mediaContentEntities);
+
 
         // compare expected vs actual outcome
         assertEquals(unlinkedContentForChapter1, result.get(0));

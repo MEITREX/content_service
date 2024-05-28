@@ -111,7 +111,6 @@ public class ContentController {
         for (final List<Content> contentsOfChapter : contents) {
             validateReadAccessToContents(currentUser, contentsOfChapter);
         }
-
         return contents;
     }
 
@@ -189,7 +188,6 @@ public class ContentController {
 
     @QueryMapping(name=INTERNAL_NOAUTH_PREFIX+"achievableSkillsByCourseIds")
     public List<List<SkillEntity>>internalAchievableSkillsByCourseIds(@Argument final List<UUID>courseIds){
-        System.out.println("entered");
         return contentService.getSkillsByCourseIds(courseIds);
     }
 

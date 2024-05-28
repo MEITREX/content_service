@@ -35,7 +35,6 @@ public class QueryAchievableSkillsByChapterIdsTest {
         AssessmentEntity assessmentEntity1 = TestData.assessmentEntityWithItems(courseId, chapterId);
 
         assessmentEntity1 = contentRepository.save(assessmentEntity1);
-        System.out.println(assessmentEntity1);
 
         final String query = """
                 query ($chapterId: UUID!) {

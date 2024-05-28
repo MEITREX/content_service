@@ -44,7 +44,6 @@ public class QueryAchievableSkillsByCourseIdsTest {
                    }
                 }
                 """;
-        System.out.println(assessmentEntity1.getItems().get(0).getAssociatedSkills().get(0));
         graphQlTester.document(query)
                 .variable("courseId", courseId)
                 .execute()
