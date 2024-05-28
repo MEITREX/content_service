@@ -376,7 +376,7 @@ class SuggestionServiceTest {
     }
 
     /**
-     * Given content with skill type ANALYSE and APPLY
+     * Given content with skill type ANALYZE and APPLY
      * When the user requests suggestions for skill type APPLY
      * Then only content with skill type APPLY should be considered
      */
@@ -392,7 +392,7 @@ class SuggestionServiceTest {
                         Stage.builder()
                                 .setRequiredContents(
                                         List.of(
-                                                assessmentWithSuggestedDateAndSkillType(now().minusDays(10), "skill1", List.of(SkillType.ANALYSE)),
+                                                assessmentWithSuggestedDateAndSkillType(now().minusDays(10), "skill1", List.of(SkillType.ANALYZE)),
                                                 assessmentWithSuggestedDateAndSkillType(now().minusDays(10), "skill2", List.of(SkillType.APPLY)),
                                                 contentWithSuggestedDate(now().minusDays(10), "noSkill")))
                                 .setOptionalContents(List.of())

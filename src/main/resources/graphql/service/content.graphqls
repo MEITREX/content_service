@@ -226,7 +226,7 @@ enum SkillType {
     REMEMBER
     UNDERSTAND
     APPLY
-    ANALYSE
+    ANALYZE
 }
 
 # for filtering

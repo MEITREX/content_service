@@ -2097,7 +2097,7 @@ Type of the assessment
 <td></td>
 </tr>
 <tr>
-<td valign="top"><strong>ANALYSE</strong></td>
+<td valign="top"><strong>ANALYZE</strong></td>
 <td></td>
 </tr>
 </tbody>
