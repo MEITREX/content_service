@@ -122,10 +122,10 @@ class MutationUpdateAssessmentTest {
         assertThat(updatedAssessment.getAssessmentMetadata().getSkillPoints(), is(3));
         assertThat(updatedAssessment.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.UNDERSTAND, SkillType.REMEMBER)));
         assertThat(updatedAssessment.getAssessmentMetadata().getInitialLearningInterval(), is(7));
-        assertThat(updatedAssessment.getItems().size(), is(1));
+        assertThat(updatedAssessment.getItems().size(), is(2));
         assertThat(updatedAssessment.getItems().get(0).getId(),is(assessment.getItems().get(0).getId()));
         assertThat(updatedAssessment.getItems().get(0).getAssociatedBloomLevels(),is(List.of(BloomLevel.REMEMBER)));
-        assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("test"));
+        assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("abc"));
 
         final ContentEntity newContentEntity = contentRepository.findById(updatedAssessment.getId()).orElseThrow();
         assertThat(newContentEntity, is(instanceOf(AssessmentEntity.class)));
@@ -143,9 +143,9 @@ class MutationUpdateAssessmentTest {
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillPoints(), is(3));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.UNDERSTAND, SkillType.REMEMBER)));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(7));
-        assertThat(assessmentEntity.getItems().size(), is(1));
+        assertThat(assessmentEntity.getItems().size(), is(2));
         assertThat(assessmentEntity.getItems().get(0).getId(),is(assessment.getItems().get(0).getId()));
         assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(),is(List.of(BloomLevel.REMEMBER)));
-        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("name"));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("abc"));
     }
 }
