@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content_items","content"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content_items", "content"})
 class MutationUpdateAssessmentTest {
 
     @Autowired
@@ -44,7 +44,7 @@ class MutationUpdateAssessmentTest {
     @Transactional
     @Commit
     void testUpdateAssessment(final GraphQlTester graphQlTester) {
-        AssessmentEntity ass=TestData.dummyAssessmentEntityBuilderWithItems(courseId).build();
+        AssessmentEntity ass = TestData.dummyAssessmentEntityBuilderWithItems(courseId).build();
         final ContentEntity contentEntity = contentRepository.save(
                 TestData.dummyAssessmentEntityBuilderWithItems(courseId).build());
         final UUID newChapterId = UUID.randomUUID();
@@ -102,12 +102,12 @@ class MutationUpdateAssessmentTest {
                     
                 }
                 """;
-        AssessmentEntity assessment=(AssessmentEntity) contentEntity;
+        AssessmentEntity assessment = (AssessmentEntity) contentEntity;
         final FlashcardSetAssessment updatedAssessment = graphQlTester.document(query)
                 .variable("assessmentId", contentEntity.getId())
                 .variable("chapterId", newChapterId)
-                .variable("itemId",assessment.getItems().get(0).getId())
-                .variable("skillId",assessment.getItems().get(0).getAssociatedSkills().get(0).getId())
+                .variable("itemId", assessment.getItems().get(0).getId())
+                .variable("skillId", assessment.getItems().get(0).getAssociatedSkills().get(0).getId())
                 .execute()
                 .path("mutateContent.updateAssessment").entity(FlashcardSetAssessment.class).get();
         // check that returned assessment is correct
@@ -123,9 +123,9 @@ class MutationUpdateAssessmentTest {
         assertThat(updatedAssessment.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.UNDERSTAND, SkillType.REMEMBER)));
         assertThat(updatedAssessment.getAssessmentMetadata().getInitialLearningInterval(), is(7));
         assertThat(updatedAssessment.getItems().size(), is(2));
-        assertThat(updatedAssessment.getItems().get(0).getId(),is(assessment.getItems().get(0).getId()));
-        assertThat(updatedAssessment.getItems().get(0).getAssociatedBloomLevels(),is(List.of(BloomLevel.REMEMBER)));
-        assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("abc"));
+        assertThat(updatedAssessment.getItems().get(0).getId(), is(assessment.getItems().get(0).getId()));
+        assertThat(updatedAssessment.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
+        assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("abc"));
 
         final ContentEntity newContentEntity = contentRepository.findById(updatedAssessment.getId()).orElseThrow();
         assertThat(newContentEntity, is(instanceOf(AssessmentEntity.class)));
@@ -144,8 +144,8 @@ class MutationUpdateAssessmentTest {
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.UNDERSTAND, SkillType.REMEMBER)));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(7));
         assertThat(assessmentEntity.getItems().size(), is(2));
-        assertThat(assessmentEntity.getItems().get(0).getId(),is(assessment.getItems().get(0).getId()));
-        assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(),is(List.of(BloomLevel.REMEMBER)));
-        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("abc"));
+        assertThat(assessmentEntity.getItems().get(0).getId(), is(assessment.getItems().get(0).getId()));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("abc"));
     }
 }
