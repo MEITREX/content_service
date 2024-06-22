@@ -67,11 +67,11 @@ class MutationCreateStageTest {
                 .variable("input", stageInput).execute()
                 .path("mutateSection.createStage")
                 .entity(Stage.class)
-                .satisfies( stage -> {
-            assertEquals(0, stage.getPosition());
-            assertTrue(stage.getRequiredContents().isEmpty());
-            assertTrue(stage.getOptionalContents().isEmpty());
-            assertNotNull(stage.getId());
-        });
+                .satisfies(stage -> {
+                    assertEquals(0, stage.getPosition());
+                    assertTrue(stage.getRequiredContents().isEmpty());
+                    assertTrue(stage.getOptionalContents().isEmpty());
+                    assertNotNull(stage.getId());
+                });
     }
 }

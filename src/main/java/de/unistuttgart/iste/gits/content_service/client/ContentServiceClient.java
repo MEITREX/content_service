@@ -165,13 +165,13 @@ public class ContentServiceClient {
                                                   final AssessmentMetadata assessmentMetadata,
                                                   final UUID id,
                                                   final UserProgressData progressDataForUser) {
-        List<Item>items=new ArrayList<>();
+        List<Item> items = new ArrayList<>();
         switch (metadata.getType()) {
             case FLASHCARDS -> {
-                return new FlashcardSetAssessment(assessmentMetadata, id, metadata, progressDataForUser,items);
+                return new FlashcardSetAssessment(assessmentMetadata, id, metadata, progressDataForUser, items);
             }
             case QUIZ -> {
-                return new QuizAssessment(assessmentMetadata, id, metadata, progressDataForUser,items);
+                return new QuizAssessment(assessmentMetadata, id, metadata, progressDataForUser, items);
             }
             case MEDIA -> {
                 return new MediaContent(id, metadata, progressDataForUser);

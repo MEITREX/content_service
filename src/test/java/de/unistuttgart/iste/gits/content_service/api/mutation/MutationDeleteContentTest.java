@@ -71,14 +71,15 @@ class MutationDeleteContentTest {
     @Transactional
     @Commit
     void testDeleteExistingContent(final GraphQlTester graphQlTester) {
-        ArrayList<ItemEntity>entities=new ArrayList<>();
+        ArrayList<ItemEntity> entities = new ArrayList<>();
         entities.add(dummyItemEntity());
         ContentEntity contentEntity = contentRepository.save(TestData.dummyAssessmentEntityBuilder(courseId)
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder(courseId)
                         .tags(new HashSet<>(Set.of("Tag", "Tag2")))
                         .build())
                 .items(entities)
-                .build());;
+                .build());
+        ;
         contentEntity = contentRepository.save(contentEntity);
 
         final UserProgressDataEntity progress1 = UserProgressDataEntity.builder()
@@ -113,8 +114,8 @@ class MutationDeleteContentTest {
         // test that user progress is deleted
         assertThat(userProgressRepository.count(), is(0L));
 
-        assertThat(skillRepository.count(),is(0L));
-        assertThat(itemRepository.count(),is(0L));
+        assertThat(skillRepository.count(), is(0L));
+        assertThat(itemRepository.count(), is(0L));
 
         verify(topicPublisher).notifyContentChanges(List.of(contentEntity.getId()), CrudOperation.DELETE);
 

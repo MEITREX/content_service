@@ -16,14 +16,14 @@ import java.util.UUID;
  * Like {@link QueryByCourseIdTest} but without the {@link InjectCurrentUserHeader} to test the internal variant of the query
  */
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content_items","content"})
+@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content_items", "content"})
 class QueryByChapterIdInternalTest {
 
     @Autowired
     private ContentRepository contentRepository;
 
     /**
-     * Test for the internal variant of the query 
+     * Test for the internal variant of the query
      */
     @Test
     void testQueryByChapterId(final GraphQlTester graphQlTester) {

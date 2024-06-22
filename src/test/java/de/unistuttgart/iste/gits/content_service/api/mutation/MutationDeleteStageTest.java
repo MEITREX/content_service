@@ -32,7 +32,7 @@ class MutationDeleteStageTest {
     private final LoggedInUser loggedInUser = userWithMembershipInCourseWithId(courseId, UserRoleInCourse.ADMINISTRATOR);
 
     @Test
-    void testStageDeletion(final GraphQlTester tester){
+    void testStageDeletion(final GraphQlTester tester) {
         // fill database
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")

@@ -24,16 +24,16 @@ public class TestData {
     }
 
     public static AssessmentEntity.AssessmentEntityBuilder<?, ?> dummyAssessmentEntityBuilderWithItems(final UUID courseId) {
-        SkillEntity skillEntity=new SkillEntity();
+        SkillEntity skillEntity = new SkillEntity();
         skillEntity.setSkillName("Test");
-        ItemEntity item=new ItemEntity();
-        ArrayList<SkillEntity>skills=new ArrayList<>();
+        ItemEntity item = new ItemEntity();
+        ArrayList<SkillEntity> skills = new ArrayList<>();
         skills.add(skillEntity);
         item.setAssociatedSkills(skills);
-        ArrayList<BloomLevel>levels=new ArrayList<>();
+        ArrayList<BloomLevel> levels = new ArrayList<>();
         levels.add(BloomLevel.UNDERSTAND);
         item.setAssociatedBloomLevels(levels);
-        ArrayList<ItemEntity>items=new ArrayList<>();
+        ArrayList<ItemEntity> items = new ArrayList<>();
         items.add(item);
         return AssessmentEntity.builder()
                 .metadata(dummyContentMetadataEmbeddableBuilder(courseId)
@@ -49,13 +49,14 @@ public class TestData {
                 .skillTypes(List.of(SkillType.REMEMBER))
                 .initialLearningInterval(1);
     }
-    public  static ItemEntity dummyItemEntity(){
-        SkillEntity skillEntity=new SkillEntity();
+
+    public static ItemEntity dummyItemEntity() {
+        SkillEntity skillEntity = new SkillEntity();
         skillEntity.setSkillName("Test");
-        ItemEntity item=new ItemEntity();
-        ArrayList<SkillEntity>skills=new ArrayList<>();
+        ItemEntity item = new ItemEntity();
+        ArrayList<SkillEntity> skills = new ArrayList<>();
         item.setAssociatedSkills(skills);
-        ArrayList<BloomLevel>levels=new ArrayList<>();
+        ArrayList<BloomLevel> levels = new ArrayList<>();
         levels.add(BloomLevel.UNDERSTAND);
         item.setAssociatedBloomLevels(levels);
         return item;
@@ -124,16 +125,16 @@ public class TestData {
     }
 
     public static AssessmentEntity assessmentEntityWithItems(final UUID courseId, final UUID chapterId) {
-        SkillEntity skillEntity=new SkillEntity();
+        SkillEntity skillEntity = new SkillEntity();
         skillEntity.setSkillName("Test");
-        ItemEntity item=new ItemEntity();
-        ArrayList<SkillEntity>skills=new ArrayList<>();
+        ItemEntity item = new ItemEntity();
+        ArrayList<SkillEntity> skills = new ArrayList<>();
         skills.add(skillEntity);
         item.setAssociatedSkills(skills);
-        ArrayList<BloomLevel>levels=new ArrayList<>();
+        ArrayList<BloomLevel> levels = new ArrayList<>();
         levels.add(BloomLevel.UNDERSTAND);
         item.setAssociatedBloomLevels(levels);
-        ArrayList<ItemEntity>items=new ArrayList<>();
+        ArrayList<ItemEntity> items = new ArrayList<>();
         items.add(item);
         return dummyAssessmentEntityBuilder(courseId)
                 .metadata(dummyContentMetadataEmbeddableBuilder(courseId)

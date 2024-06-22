@@ -27,7 +27,7 @@ class MutationDeleteSectionTest {
     private final LoggedInUser loggedInUser = userWithMembershipInCourseWithId(courseId, UserRoleInCourse.ADMINISTRATOR);
 
     @Test
-    void testSectionDeletion(final GraphQlTester tester){
+    void testSectionDeletion(final GraphQlTester tester) {
         SectionEntity sectionEntity = SectionEntity.builder()
                 .name("Test Section")
                 .chapterId(UUID.randomUUID())

@@ -60,9 +60,10 @@ public class SubscriptionController {
 
         });
     }
-    @Topic(name="item-changed",pubsubName = "meitrex")
-    @PostMapping(path="/content-service/item-changed-pubsub")
-    public Mono<Void> onItemChanged(@RequestBody final CloudEvent<ItemChangeEvent> cloudEvent){
+
+    @Topic(name = "item-changed", pubsubName = "meitrex")
+    @PostMapping(path = "/content-service/item-changed-pubsub")
+    public Mono<Void> onItemChanged(@RequestBody final CloudEvent<ItemChangeEvent> cloudEvent) {
         return Mono.fromRunnable(() -> {
             try {
                 if (cloudEvent.getData().getOperation() != CrudOperation.DELETE)

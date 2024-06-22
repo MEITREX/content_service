@@ -25,7 +25,7 @@ public class UserProgressDataEntity {
     private UUID contentId;
 
     @ElementCollection
-    @SQLOrder( "timestamp DESC")
+    @SQLOrder("timestamp DESC")
     @Builder.Default
     private List<ProgressLogItemEmbeddable> progressLog = new ArrayList<>();
 

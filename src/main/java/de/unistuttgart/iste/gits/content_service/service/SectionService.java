@@ -141,9 +141,10 @@ public class SectionService {
 
     /**
      * Gets all sections for multiple chapters.
+     *
      * @param chapterIds The ids of the chapters to get the sections for.
      * @return A list of lists of sections. The outer list contains sublists which each contain the sections
-     *         for one chapter.
+     * for one chapter.
      */
     public List<List<Section>> getSectionsByChapterIds(List<UUID> chapterIds) {
         // get a list containing all sections for the given chapters, but not divided by chapter yet
@@ -155,6 +156,7 @@ public class SectionService {
 
     /**
      * Gets a Section by its id.
+     *
      * @param sectionId The id of the Section to get.
      * @return The Section with the given id.
      */

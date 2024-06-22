@@ -21,8 +21,8 @@ public class ItemEntity {
     private UUID id;
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @Builder.Default
-    private List<SkillEntity> associatedSkills= new ArrayList<>();
+    private List<SkillEntity> associatedSkills = new ArrayList<>();
     @Column(name = "associated_bloom_levels", nullable = false)
     @Builder.Default
-    private List<BloomLevel> associatedBloomLevels=new ArrayList<>();
+    private List<BloomLevel> associatedBloomLevels = new ArrayList<>();
 }

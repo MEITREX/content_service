@@ -100,34 +100,35 @@ public class UserProgressDataService {
         userProgressDataRepository.save(userProgressDataEntity);
 
         final Content content = contentService.getContentsById(List.of(contentProgressedEvent.getContentId())).get(0);
-        List<ItemResponse>itemResponses=new ArrayList<>();
-        if(contentProgressedEvent.getResponses()!=null){
-           itemResponses=createItemResponsesList(contentProgressedEvent);
+        List<ItemResponse> itemResponses = new ArrayList<>();
+        if (contentProgressedEvent.getResponses() != null) {
+            itemResponses = createItemResponsesList(contentProgressedEvent);
         }
- 
-        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content,itemResponses));
+
+        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content, itemResponses));
     }
 
     /**
      * adds the item specific information to the responses
+     *
      * @param event the event from the Quiz Service
      * @return list with all responses from the event and for each response the added item information
      */
-    private List<ItemResponse>createItemResponsesList(final ContentProgressedEvent event){
-        List<Response>responses=event.getResponses();
-        List<ItemResponse>itemResponses=new ArrayList<ItemResponse>();
-        for(Response response:responses){
+    private List<ItemResponse> createItemResponsesList(final ContentProgressedEvent event) {
+        List<Response> responses = event.getResponses();
+        List<ItemResponse> itemResponses = new ArrayList<ItemResponse>();
+        for (Response response : responses) {
             ItemEntity item = itemRepository.findById(response.getItemId()).get();
-            List<SkillEntity>skillEntities=item.getAssociatedSkills();
-            List<UUID>skillIds=new ArrayList<>();
-            for(SkillEntity skillEntity:skillEntities){
+            List<SkillEntity> skillEntities = item.getAssociatedSkills();
+            List<UUID> skillIds = new ArrayList<>();
+            for (SkillEntity skillEntity : skillEntities) {
                 skillIds.add(skillEntity.getId());
             }
-            List<LevelOfBloomsTaxonomy>bloomLevelsForEvent=new ArrayList<LevelOfBloomsTaxonomy>();
-            for(BloomLevel level:item.getAssociatedBloomLevels()){
+            List<LevelOfBloomsTaxonomy> bloomLevelsForEvent = new ArrayList<LevelOfBloomsTaxonomy>();
+            for (BloomLevel level : item.getAssociatedBloomLevels()) {
                 bloomLevelsForEvent.add(mapBloomsTaxonomy(level));
             }
-            ItemResponse itemResponse=new ItemResponse().builder()
+            ItemResponse itemResponse = new ItemResponse().builder()
                     .itemId(response.getItemId())
                     .response(response.getResponse())
                     .skillIds(skillIds)
@@ -137,6 +138,7 @@ public class UserProgressDataService {
         }
         return itemResponses;
     }
+
     private UserProgressUpdatedEvent createUserProgressUpdatedEvent(final ContentProgressedEvent event,
                                                                     final Content content,
                                                                     final List<ItemResponse> itemResponses) {
@@ -153,14 +155,14 @@ public class UserProgressDataService {
                 .build();
     }
 
-    private LevelOfBloomsTaxonomy mapBloomsTaxonomy(BloomLevel bloomLevel){
+    private LevelOfBloomsTaxonomy mapBloomsTaxonomy(BloomLevel bloomLevel) {
         return switch (bloomLevel) {
             case UNDERSTAND -> LevelOfBloomsTaxonomy.UNDERSTAND;
             case REMEMBER -> LevelOfBloomsTaxonomy.REMEMBER;
             case APPLY -> LevelOfBloomsTaxonomy.APPLY;
             case ANALYZE -> LevelOfBloomsTaxonomy.ANALYZE;
-            case EVALUATE ->LevelOfBloomsTaxonomy.EVALUATE;
-            case CREATE ->LevelOfBloomsTaxonomy.CREATE;
+            case EVALUATE -> LevelOfBloomsTaxonomy.EVALUATE;
+            case CREATE -> LevelOfBloomsTaxonomy.CREATE;
         };
     }
 
@@ -190,10 +192,10 @@ public class UserProgressDataService {
         if (userProgressUpdatedEvent.isSuccess()) {
             final int hintsUsedCapped = Math.min(userProgressUpdatedEvent.getHintsUsed(), 10);
             newLearningInterval = userProgressDataEntity.getLearningInterval() *
-                                  (1 + userProgressUpdatedEvent.getCorrectness() - hintsUsedCapped * 0.1);
+                    (1 + userProgressUpdatedEvent.getCorrectness() - hintsUsedCapped * 0.1);
         } else {
             newLearningInterval = userProgressDataEntity.getLearningInterval()
-                                  * (0.5 * userProgressUpdatedEvent.getCorrectness());
+                    * (0.5 * userProgressUpdatedEvent.getCorrectness());
         }
 
         return (int) Math.floor(Math.max(1, newLearningInterval));

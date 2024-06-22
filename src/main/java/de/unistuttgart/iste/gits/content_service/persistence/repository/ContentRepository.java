@@ -37,6 +37,7 @@ public interface ContentRepository extends MeitrexRepository<ContentEntity, UUID
 
     @Query("select assessment.items from Assessment assessment where assessment.metadata.chapterId = :chapterId")
     List<ItemEntity> findItemsByChapterId(@Param("chapterId") UUID chapterId);
+
     @Query("select assessment.items from Assessment assessment where assessment.metadata.courseId = :courseId")
     List<ItemEntity> findItemsByCourseId(@Param("courseId") UUID courseId);
 }

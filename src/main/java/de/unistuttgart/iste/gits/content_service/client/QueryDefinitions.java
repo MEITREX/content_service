@@ -48,7 +48,7 @@ public class QueryDefinitions {
                 }
             }
                
-            
+                        
             """;
 
     public static final String CONTENTS_BY_COURSE_IDS_QUERY = CONTENTS_FRAGMENT + """

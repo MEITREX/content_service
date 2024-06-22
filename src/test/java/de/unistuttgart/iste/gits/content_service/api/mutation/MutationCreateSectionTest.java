@@ -45,7 +45,7 @@ class MutationCreateSectionTest {
                 .entity(Section.class).satisfies(workPath -> {
                     assertNotNull(workPath.getId());
                     assertEquals(input.getName(), workPath.getName());
-                    assertEquals(input.getChapterId() ,workPath.getChapterId());
+                    assertEquals(input.getChapterId(), workPath.getChapterId());
                     assertTrue(workPath.getStages().isEmpty());
                 });
 

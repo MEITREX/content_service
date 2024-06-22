@@ -30,7 +30,7 @@ class MutationUpdateSectionTest {
     private final LoggedInUser loggedInUser = userWithMembershipInCourseWithId(courseId, UserRoleInCourse.ADMINISTRATOR);
 
     @Test
-    void testSectionUpdate(final GraphQlTester tester){
+    void testSectionUpdate(final GraphQlTester tester) {
 
         // fill database
         SectionEntity sectionEntity = SectionEntity.builder()
@@ -68,7 +68,7 @@ class MutationUpdateSectionTest {
                 .path("mutateSection.updateSectionName")
                 .entity(Section.class)
                 .satisfies(section -> {
-                          assertEquals(finalSectionEntity.getId(), section.getId());
+                    assertEquals(finalSectionEntity.getId(), section.getId());
                     assertEquals(finalSectionEntity.getChapterId(), section.getChapterId());
                     assertEquals(newName, section.getName());
                     assertTrue(section.getStages().isEmpty());

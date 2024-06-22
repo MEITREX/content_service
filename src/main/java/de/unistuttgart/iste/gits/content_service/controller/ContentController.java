@@ -175,7 +175,7 @@ public class ContentController {
 
     @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "progressByChapterIds")
     public List<CompositeProgressInformation> internalProgressByChapterIds(@Argument final List<UUID> chapterIds,
-                                                                   @ContextValue final LoggedInUser currentUser) {
+                                                                           @ContextValue final LoggedInUser currentUser) {
         return userProgressDataService.getProgressByChapterIdsForUser(chapterIds, currentUser.getId());
     }
 
@@ -186,13 +186,13 @@ public class ContentController {
     }
 
 
-    @QueryMapping(name=INTERNAL_NOAUTH_PREFIX+"achievableSkillsByCourseIds")
-    public List<List<SkillEntity>>internalAchievableSkillsByCourseIds(@Argument final List<UUID>courseIds){
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "achievableSkillsByCourseIds")
+    public List<List<SkillEntity>> internalAchievableSkillsByCourseIds(@Argument final List<UUID> courseIds) {
         return contentService.getSkillsByCourseIds(courseIds);
     }
 
-    @QueryMapping(name=INTERNAL_NOAUTH_PREFIX+"achievableSkillsByChapterIds")
-    public List<List<SkillEntity>>interalAchievableSkillsByChapterIds(@Argument final List<UUID>chapterIds){
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "achievableSkillsByChapterIds")
+    public List<List<SkillEntity>> interalAchievableSkillsByChapterIds(@Argument final List<UUID> chapterIds) {
         return contentService.getSkillsByChapterIds(chapterIds);
     }
 

@@ -22,5 +22,5 @@ public class AssessmentEntity extends ContentEntity {
     private AssessmentMetadataEmbeddable assessmentMetadata = new AssessmentMetadataEmbeddable();
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<ItemEntity> items= new ArrayList<>();
+    private List<ItemEntity> items = new ArrayList<>();
 }

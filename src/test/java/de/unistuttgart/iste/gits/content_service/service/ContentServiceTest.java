@@ -38,10 +38,10 @@ class ContentServiceTest {
     private final UserProgressDataRepository userProgressDataRepository = Mockito.mock(UserProgressDataRepository.class);
     private final ItemRepository itemRepository = Mockito.mock(ItemRepository.class);
     private final SkillRepository skillRepository = Mockito.mock(SkillRepository.class);
-    private final AssessmentRepository assessmentRepository=Mockito.mock(AssessmentRepository.class);
+    private final AssessmentRepository assessmentRepository = Mockito.mock(AssessmentRepository.class);
 
     private final ContentService contentService = new ContentService(contentRepository, sectionRepository, userProgressDataRepository,
-            stageService, contentMapper, contentValidator, itemRepository,skillRepository,assessmentRepository ,mockPublisher);
+            stageService, contentMapper, contentValidator, itemRepository, skillRepository, assessmentRepository, mockPublisher);
 
 
     @Test
@@ -92,7 +92,7 @@ class ContentServiceTest {
     }
 
     @Test
-    void testFaultyCascadeContentDeletion(){
+    void testFaultyCascadeContentDeletion() {
         final ChapterChangeEvent wrongOperatorDto = ChapterChangeEvent.builder()
                 .chapterIds(List.of(UUID.randomUUID()))
                 .operation(CrudOperation.CREATE)
@@ -208,7 +208,6 @@ class ContentServiceTest {
 
         // execute method under test
         final List<List<Content>> result = contentService.getContentWithNoSection(chapterIds);
-
 
 
         // compare expected vs actual outcome

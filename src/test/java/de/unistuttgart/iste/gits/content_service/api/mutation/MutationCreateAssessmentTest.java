@@ -23,7 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @GraphQlApiTest
-@TablesToDelete({"content_tags","content_items", "content"})
+@TablesToDelete({"content_tags", "content_items", "content"})
 class MutationCreateAssessmentTest {
 
     @Autowired
@@ -110,8 +110,8 @@ class MutationCreateAssessmentTest {
         assertThat(createdAssessment.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.REMEMBER)));
         assertThat(createdAssessment.getAssessmentMetadata().getInitialLearningInterval(), is(2));
         assertThat(createdAssessment.getItems().size(), is(1));
-        assertThat(createdAssessment.getItems().get(0).getAssociatedBloomLevels(),is(List.of(BloomLevel.REMEMBER)));
-        assertThat(createdAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("Test"));
+        assertThat(createdAssessment.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
+        assertThat(createdAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("Test"));
         final ContentEntity contentEntity = contentRepository.findById(createdAssessment.getId()).orElseThrow();
         assertThat(contentEntity, is(instanceOf(AssessmentEntity.class)));
 
@@ -129,8 +129,8 @@ class MutationCreateAssessmentTest {
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.REMEMBER)));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(2));
         assertThat(assessmentEntity.getItems().size(), is(1));
-        assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(),is(List.of(BloomLevel.REMEMBER)));
-        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(),is("Test"));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("Test"));
 
     }
 

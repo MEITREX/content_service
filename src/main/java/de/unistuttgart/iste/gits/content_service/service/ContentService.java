@@ -227,15 +227,14 @@ public class ContentService {
         final ContentEntity oldContentEntity = requireContentExisting(contentId);
         ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
-        AssessmentEntity assessment=(AssessmentEntity) updatedContentEntity;
-        List<ItemEntity>items=new ArrayList<>();
-        for(ItemEntity item:assessment.getItems()) {
-            List<SkillEntity>skills=new ArrayList<>();
-            for(SkillEntity skill:item.getAssociatedSkills()){
-                if(skill.getId()!=null){
+        AssessmentEntity assessment = (AssessmentEntity) updatedContentEntity;
+        List<ItemEntity> items = new ArrayList<>();
+        for (ItemEntity item : assessment.getItems()) {
+            List<SkillEntity> skills = new ArrayList<>();
+            for (SkillEntity skill : item.getAssociatedSkills()) {
+                if (skill.getId() != null) {
                     skills.add(skillRepository.findById(skill.getId()).get());
-                }
-                else {
+                } else {
                     skills.add(skillRepository.save(skill));
                 }
             }
@@ -325,7 +324,7 @@ public class ContentService {
         userProgressDataRepository.deleteByContentId(contentEntity.getId());
         // remove content from sections
         stageService.deleteContentLinksFromStages(contentEntity);
-        if(contentEntity instanceof AssessmentEntity){
+        if (contentEntity instanceof AssessmentEntity) {
             deleteRelatedSkillsIfNecessary(contentEntity);
         }
         contentRepository.delete(contentEntity);
@@ -399,11 +398,12 @@ public class ContentService {
      * An assessment consists of items. Each item has at least one skill.
      * Checks each skill, if there is an item of another assessment, which belongs to this item.
      * If not, the skill is deleted.
+     *
      * @param contentEntity assessment to delete
      */
-    private void deleteRelatedSkillsIfNecessary(ContentEntity contentEntity){
-        AssessmentEntity assessment= (AssessmentEntity) contentEntity;
-        if(assessment.getItems()!=null) {
+    private void deleteRelatedSkillsIfNecessary(ContentEntity contentEntity) {
+        AssessmentEntity assessment = (AssessmentEntity) contentEntity;
+        if (assessment.getItems() != null) {
             for (ItemEntity item : assessment.getItems()) {
                 for (SkillEntity skill : item.getAssociatedSkills()) {
                     deleteSkillWhenNoOtherAssessmentUsesTheSkill(contentEntity, skill.getId());
@@ -412,11 +412,12 @@ public class ContentService {
         }
 
     }
-    private void deleteSkillWhenNoOtherAssessmentUsesTheSkill(ContentEntity contentEntity,UUID skillId){
-        List<ItemEntity>itemsForSkill=itemRepository.findByAssociatedSkills_Id(skillId);
-        for(ItemEntity itemForSkill:itemsForSkill){
-            ContentEntity entity=assessmentRepository.findByItems_Id(itemForSkill.getId());
-            if(entity.getId()!=contentEntity.getId()){
+
+    private void deleteSkillWhenNoOtherAssessmentUsesTheSkill(ContentEntity contentEntity, UUID skillId) {
+        List<ItemEntity> itemsForSkill = itemRepository.findByAssociatedSkills_Id(skillId);
+        for (ItemEntity itemForSkill : itemsForSkill) {
+            ContentEntity entity = assessmentRepository.findByItems_Id(itemForSkill.getId());
+            if (entity.getId() != contentEntity.getId()) {
                 return;
             }
         }
@@ -425,35 +426,38 @@ public class ContentService {
 
     /**
      * returns the skills of the assessments of the given chapters
+     *
      * @param chapterIds ids of the chapters
      * @return skill for the given chapters
      */
 
-    public List<List<SkillEntity>> getSkillsByChapterIds(List<UUID> chapterIds){
-        List<List<SkillEntity>>skillLists=new ArrayList<>();
-        for(UUID chapterId:chapterIds) {
-            List<ItemEntity>items = contentRepository.findItemsByChapterId(chapterId);
-            HashSet<SkillEntity> skillSet=new HashSet<SkillEntity>();
-            for(ItemEntity item:items){
-                List<SkillEntity>skills=item.getAssociatedSkills();
+    public List<List<SkillEntity>> getSkillsByChapterIds(List<UUID> chapterIds) {
+        List<List<SkillEntity>> skillLists = new ArrayList<>();
+        for (UUID chapterId : chapterIds) {
+            List<ItemEntity> items = contentRepository.findItemsByChapterId(chapterId);
+            HashSet<SkillEntity> skillSet = new HashSet<SkillEntity>();
+            for (ItemEntity item : items) {
+                List<SkillEntity> skills = item.getAssociatedSkills();
                 skillSet.addAll(skills);
             }
             skillLists.add(skillSet.stream().toList());
         }
-       return skillLists;
+        return skillLists;
     }
+
     /**
      * returns the skills of the assessments of the given courses
+     *
      * @param courseIds ids of the courses
      * @return skill for the given courses
      */
-    public List<List<SkillEntity>> getSkillsByCourseIds(List<UUID> courseIds){
-        List<List<SkillEntity>>skillLists=new ArrayList<>();
-        for(UUID courseId:courseIds) {
-            List<ItemEntity>items = contentRepository.findItemsByCourseId(courseId);
-            HashSet<SkillEntity> skillSet=new HashSet<SkillEntity>();
-            for(ItemEntity item:items){
-                List<SkillEntity>skills=item.getAssociatedSkills();
+    public List<List<SkillEntity>> getSkillsByCourseIds(List<UUID> courseIds) {
+        List<List<SkillEntity>> skillLists = new ArrayList<>();
+        for (UUID courseId : courseIds) {
+            List<ItemEntity> items = contentRepository.findItemsByCourseId(courseId);
+            HashSet<SkillEntity> skillSet = new HashSet<SkillEntity>();
+            for (ItemEntity item : items) {
+                List<SkillEntity> skills = item.getAssociatedSkills();
                 skillSet.addAll(skills);
             }
             skillLists.add(skillSet.stream().toList());
@@ -463,22 +467,23 @@ public class ContentService {
 
     /**
      * deletes a given item
+     *
      * @param itemId id of the item to delete
      */
-    public void deleteItem(UUID itemId){
+    public void deleteItem(UUID itemId) {
         Optional<ItemEntity> itemEntity = itemRepository.findById(itemId);
-        if(itemEntity.isPresent()){
-            ItemEntity item=itemEntity.get();
-            for(SkillEntity skill:item.getAssociatedSkills()) {
-                deleteSkillWhenNoOtherItemUsesTheSkill(itemId,skill.getId());
+        if (itemEntity.isPresent()) {
+            ItemEntity item = itemEntity.get();
+            for (SkillEntity skill : item.getAssociatedSkills()) {
+                deleteSkillWhenNoOtherItemUsesTheSkill(itemId, skill.getId());
             }
             itemRepository.delete(item);
         }
     }
 
-    private void deleteSkillWhenNoOtherItemUsesTheSkill(UUID itemId,UUID skillId){
-        List<ItemEntity>itemsForSkill=itemRepository.findByAssociatedSkills_Id(skillId);
-        if(itemsForSkill.size()==1&&itemsForSkill.get(0).getId()==itemId){
+    private void deleteSkillWhenNoOtherItemUsesTheSkill(UUID itemId, UUID skillId) {
+        List<ItemEntity> itemsForSkill = itemRepository.findByAssociatedSkills_Id(skillId);
+        if (itemsForSkill.size() == 1 && itemsForSkill.get(0).getId() == itemId) {
             skillRepository.deleteById(skillId);
         }
     }
