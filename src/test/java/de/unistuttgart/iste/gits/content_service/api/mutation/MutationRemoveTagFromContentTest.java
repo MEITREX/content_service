@@ -22,7 +22,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content"})
 class MutationRemoveTagFromContentTest {
 
     @Autowired

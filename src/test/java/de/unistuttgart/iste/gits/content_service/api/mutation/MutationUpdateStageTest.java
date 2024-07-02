@@ -18,7 +18,6 @@ import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMem
 import static de.unistuttgart.iste.gits.content_service.TestData.buildContentEntity;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content"})
 class MutationUpdateStageTest {
 
     @Autowired

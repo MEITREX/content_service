@@ -22,7 +22,6 @@ import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMem
 import static org.springframework.test.util.AssertionErrors.assertEquals;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content_items", "content"})
 class QueryGetContentWithNoSectionTest {
 
     @Autowired

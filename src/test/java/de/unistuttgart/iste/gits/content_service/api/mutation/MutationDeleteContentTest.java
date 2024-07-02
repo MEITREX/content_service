@@ -33,7 +33,6 @@ import static org.mockito.Mockito.verify;
 
 @ContextConfiguration(classes = MockTestPublisherConfiguration.class)
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "user_progress_data", "section", "stage", "content"})
 class MutationDeleteContentTest {
 
     @Autowired

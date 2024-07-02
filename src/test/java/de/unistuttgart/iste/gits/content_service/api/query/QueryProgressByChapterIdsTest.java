@@ -20,7 +20,6 @@ import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMem
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "user_progress_data_progress_log", "user_progress_data", "content"})
 class QueryProgressByChapterIdsTest {
 
     private static final String QUERY_USER_PROGRESS_BY_CHAPTER_IDS = """ 
