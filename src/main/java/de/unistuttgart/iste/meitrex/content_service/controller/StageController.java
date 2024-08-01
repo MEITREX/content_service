@@ -1,8 +1,8 @@
 package de.unistuttgart.iste.meitrex.content_service.controller;
 
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.gits.content_service.service.StageService;
-import de.unistuttgart.iste.gits.content_service.service.UserProgressDataService;
+import de.unistuttgart.iste.meitrex.content_service.service.StageService;
+import de.unistuttgart.iste.meitrex.content_service.service.UserProgressDataService;
 import de.unistuttgart.iste.meitrex.generated.dto.CreateStageInput;
 import de.unistuttgart.iste.meitrex.generated.dto.SectionMutation;
 import de.unistuttgart.iste.meitrex.generated.dto.Stage;

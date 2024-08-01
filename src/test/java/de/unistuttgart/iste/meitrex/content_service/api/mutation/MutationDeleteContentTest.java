@@ -5,11 +5,10 @@ import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
 import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.gits.content_service.TestData;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
-import de.unistuttgart.iste.meitrex.generated.dto.BloomLevel;
-import de.unistuttgart.iste.meitrex.generated.dto.Item;
+import de.unistuttgart.iste.meitrex.content_service.TestData;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
+import java.util.ArrayList;
 
 import jakarta.transaction.Transactional;
 import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
@@ -20,13 +19,10 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 
-import static de.unistuttgart.iste.gits.content_service.TestData.dummyItemEntity;
+import static de.unistuttgart.iste.meitrex.content_service.TestData.dummyItemEntity;
 
 import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static graphql.Assert.assertFalse;

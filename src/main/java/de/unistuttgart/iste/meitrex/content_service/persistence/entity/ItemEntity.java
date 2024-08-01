@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.gits.content_service.persistence.entity;
+package de.unistuttgart.iste.meitrex.content_service.persistence.entity;
 
 import de.unistuttgart.iste.meitrex.generated.dto.BloomLevel;
 import jakarta.persistence.*;

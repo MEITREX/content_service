@@ -1,6 +1,6 @@
-package de.unistuttgart.iste.gits.content_service.persistence.repository;
+package de.unistuttgart.iste.meitrex.content_service.persistence.repository;
 
-import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
 import de.unistuttgart.iste.meitrex.common.persistence.MeitrexRepository;
 
 import java.util.UUID;
