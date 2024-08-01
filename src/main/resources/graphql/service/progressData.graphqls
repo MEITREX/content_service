@@ -65,4 +65,22 @@ type ProgressLogItem {
     Can be null for contents that do not measure completion time.
     """
     timeToComplete: Int
+    """
+    !OPTIONAL
+    the items the user has completed and the students' performance on these items
+    Can be null as some contents don't contains items for assessments
+    """
+    progressPerItem:ItemProgress!
+}
+
+type ItemProgress{
+    """
+    the id of the corresponding item
+    """
+    itemId:UUID!
+    """
+    the correctness of the users response.
+    Value between 0 and 1 representing the user's correctness on the content item.
+    """
+    responseCorrectness: Float!
 }

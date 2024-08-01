@@ -4,10 +4,10 @@ import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.meitrex.common.testutil.InjectCurrentUserHeader;
 import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.MediaContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.CompositeProgressInformation;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,6 @@ import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMem
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "user_progress_data_progress_log", "user_progress_data", "content"})
 class QueryProgressByChapterIdsTest {
 
     private static final String QUERY_USER_PROGRESS_BY_CHAPTER_IDS = """ 

@@ -1,17 +1,12 @@
 package de.unistuttgart.iste.meitrex.content_service.api.query;
 
-import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.meitrex.common.testutil.InjectCurrentUserHeader;
-import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+
+import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.MediaContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.StageEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
 import de.unistuttgart.iste.meitrex.generated.dto.Content;
 import de.unistuttgart.iste.meitrex.generated.dto.MediaContent;
 import jakarta.transaction.Transactional;
@@ -31,7 +26,6 @@ import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMem
 import static org.springframework.test.util.AssertionErrors.assertEquals;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data_progress_log", "user_progress_data", "content"})
 class QueryGetContentWithNoSectionTest {
 
     @Autowired

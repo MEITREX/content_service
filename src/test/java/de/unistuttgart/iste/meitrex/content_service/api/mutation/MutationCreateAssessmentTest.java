@@ -1,16 +1,11 @@
 package de.unistuttgart.iste.meitrex.content_service.api.mutation;
 
-
-import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.meitrex.common.testutil.InjectCurrentUserHeader;
-import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.generated.dto.ContentType;
-import de.unistuttgart.iste.meitrex.generated.dto.FlashcardSetAssessment;
-import de.unistuttgart.iste.meitrex.generated.dto.SkillType;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +22,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content"})
 class MutationCreateAssessmentTest {
 
     @Autowired
@@ -63,7 +57,13 @@ class MutationCreateAssessmentTest {
                             skillPoints: 1
                             skillTypes: [REMEMBER]
                             initialLearningInterval: 2
-                        }
+                        },
+                        items:[
+                                {
+                                  associatedSkills:[{skillName:"Test"}]
+                                  associatedBloomLevels:[REMEMBER]
+                                
+                            }],
                     }) {
                         id
                         metadata {
@@ -73,6 +73,12 @@ class MutationCreateAssessmentTest {
                             type
                             chapterId
                             rewardPoints
+                        }
+                        items{
+                            associatedSkills{
+                              skillName
+                            }
+                            associatedBloomLevels
                         }
                         assessmentMetadata {
                             skillPoints
@@ -101,7 +107,9 @@ class MutationCreateAssessmentTest {
         assertThat(createdAssessment.getAssessmentMetadata().getSkillPoints(), is(1));
         assertThat(createdAssessment.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.REMEMBER)));
         assertThat(createdAssessment.getAssessmentMetadata().getInitialLearningInterval(), is(2));
-
+        assertThat(createdAssessment.getItems().size(), is(1));
+        assertThat(createdAssessment.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
+        assertThat(createdAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("Test"));
         final ContentEntity contentEntity = contentRepository.findById(createdAssessment.getId()).orElseThrow();
         assertThat(contentEntity, is(instanceOf(AssessmentEntity.class)));
 
@@ -118,6 +126,9 @@ class MutationCreateAssessmentTest {
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillPoints(), is(1));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.REMEMBER)));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(2));
+        assertThat(assessmentEntity.getItems().size(), is(1));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("Test"));
 
     }
 
@@ -139,6 +150,11 @@ class MutationCreateAssessmentTest {
                             rewardPoints: 1
                             tagNames: ["tag1", "tag2"]
                         }
+                        items:
+                            [{
+                                associatedSkills:[{skillName:"name"}]
+                               associatedBloomLevels:[CREATE]
+                            }]
                         assessmentMetadata: {
                             skillPoints: 1
                             skillTypes: [REMEMBER]

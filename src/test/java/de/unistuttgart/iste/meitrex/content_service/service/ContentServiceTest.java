@@ -5,19 +5,13 @@ import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
 import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.meitrex.common.testutil.MockTestPublisherConfiguration;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentMetadataEmbeddable;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.StageEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
-import de.unistuttgart.iste.meitrex.content_service.validation.ContentValidator;
-import de.unistuttgart.iste.meitrex.generated.dto.Content;
-import de.unistuttgart.iste.meitrex.generated.dto.ContentType;
-import de.unistuttgart.iste.meitrex.generated.dto.SkillType;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
@@ -43,9 +37,12 @@ class ContentServiceTest {
     private final ContentValidator contentValidator = Mockito.spy(ContentValidator.class);
     private final TopicPublisher mockPublisher = Mockito.mock(TopicPublisher.class);
     private final UserProgressDataRepository userProgressDataRepository = Mockito.mock(UserProgressDataRepository.class);
+    private final ItemRepository itemRepository = Mockito.mock(ItemRepository.class);
+    private final SkillRepository skillRepository = Mockito.mock(SkillRepository.class);
+    private final AssessmentRepository assessmentRepository = Mockito.mock(AssessmentRepository.class);
 
     private final ContentService contentService = new ContentService(contentRepository, sectionRepository, userProgressDataRepository,
-            stageService, contentMapper, contentValidator, mockPublisher);
+            stageService, contentMapper, contentValidator, itemRepository, skillRepository, assessmentRepository, mockPublisher);
 
 
     @Test
@@ -96,7 +93,7 @@ class ContentServiceTest {
     }
 
     @Test
-    void testFaultyCascadeContentDeletion(){
+    void testFaultyCascadeContentDeletion() {
         final ChapterChangeEvent wrongOperatorDto = ChapterChangeEvent.builder()
                 .chapterIds(List.of(UUID.randomUUID()))
                 .operation(CrudOperation.CREATE)
@@ -213,8 +210,6 @@ class ContentServiceTest {
         // execute method under test
         final List<List<Content>> result = contentService.getContentWithNoSection(chapterIds);
 
-        System.out.println(mediaContentEntities);
-        System.out.println(mediaContentEntities);
 
         // compare expected vs actual outcome
         assertEquals(unlinkedContentForChapter1, result.get(0));

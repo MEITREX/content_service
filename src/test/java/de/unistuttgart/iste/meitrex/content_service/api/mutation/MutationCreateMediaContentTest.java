@@ -1,13 +1,11 @@
 package de.unistuttgart.iste.meitrex.content_service.api.mutation;
 
-import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.meitrex.common.testutil.InjectCurrentUserHeader;
-import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.MediaContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.MediaContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.ContentType;
 import de.unistuttgart.iste.meitrex.generated.dto.MediaContent;
 import jakarta.transaction.Transactional;
@@ -24,7 +22,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content"})
 class MutationCreateMediaContentTest {
 
     @Autowired

@@ -1,12 +1,10 @@
 package de.unistuttgart.iste.meitrex.content_service.api.mutation;
 
-import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.meitrex.common.testutil.InjectCurrentUserHeader;
-import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.CreateSectionInput;
 import de.unistuttgart.iste.meitrex.generated.dto.Section;
 import jakarta.transaction.Transactional;
@@ -22,7 +20,6 @@ import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMem
 import static org.junit.jupiter.api.Assertions.*;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content"})
 class MutationCreateSectionTest {
 
     @Autowired
@@ -47,7 +44,7 @@ class MutationCreateSectionTest {
                 .entity(Section.class).satisfies(workPath -> {
                     assertNotNull(workPath.getId());
                     assertEquals(input.getName(), workPath.getName());
-                    assertEquals(input.getChapterId() ,workPath.getChapterId());
+                    assertEquals(input.getChapterId(), workPath.getChapterId());
                     assertTrue(workPath.getStages().isEmpty());
                 });
 

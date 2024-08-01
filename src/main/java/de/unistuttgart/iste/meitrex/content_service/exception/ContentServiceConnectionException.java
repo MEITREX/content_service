@@ -10,6 +10,7 @@ import java.util.List;
 public class ContentServiceConnectionException extends Exception {
 
     private final String message;
+
     public ContentServiceConnectionException(final String message) {
         super(message);
         this.message = message;

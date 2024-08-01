@@ -1,17 +1,15 @@
 package de.unistuttgart.iste.meitrex.content_service.api.mutation;
 
-import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.meitrex.common.testutil.InjectCurrentUserHeader;
-import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.generated.dto.ContentType;
-import de.unistuttgart.iste.meitrex.generated.dto.FlashcardSetAssessment;
-import de.unistuttgart.iste.meitrex.generated.dto.SkillType;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SkillEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
+
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +25,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "content"})
 class MutationUpdateAssessmentTest {
 
     @Autowired
@@ -47,12 +44,12 @@ class MutationUpdateAssessmentTest {
     @Transactional
     @Commit
     void testUpdateAssessment(final GraphQlTester graphQlTester) {
+        AssessmentEntity ass = TestData.dummyAssessmentEntityBuilderWithItems(courseId).build();
         final ContentEntity contentEntity = contentRepository.save(
-                TestData.dummyAssessmentEntityBuilder(courseId).build());
+                TestData.dummyAssessmentEntityBuilderWithItems(courseId).build());
         final UUID newChapterId = UUID.randomUUID();
-
         final String query = """
-                mutation($assessmentId: UUID!, $chapterId: UUID!) {
+                mutation($assessmentId: UUID!, $chapterId: UUID!,$itemId:UUID!,$skillId:UUID!) {
                     mutateContent(contentId: $assessmentId){
                         updateAssessment(input: {
                             metadata: {
@@ -67,6 +64,17 @@ class MutationUpdateAssessmentTest {
                                 skillTypes: [UNDERSTAND, REMEMBER]
                                 initialLearningInterval: 7
                             },
+                             items:[
+                                    {
+                                      id:$itemId
+                                      associatedSkills:[{skillName:"abc"}]
+                                      associatedBloomLevels:[REMEMBER]
+                            },{
+                                      id:null
+                                      associatedSkills:[{skillName:"name",id:$skillId}]
+                                      associatedBloomLevels:[REMEMBER]
+                            }
+                            ]
                     }) {
                         id
                         metadata {
@@ -76,6 +84,13 @@ class MutationUpdateAssessmentTest {
                             type
                             chapterId
                             rewardPoints
+                        }
+                        items{
+                                id                       
+                                associatedSkills{
+                                    skillName
+                                }
+                                associatedBloomLevels
                         }
                         assessmentMetadata {
                             skillPoints
@@ -87,13 +102,14 @@ class MutationUpdateAssessmentTest {
                     
                 }
                 """;
-
+        AssessmentEntity assessment = (AssessmentEntity) contentEntity;
         final FlashcardSetAssessment updatedAssessment = graphQlTester.document(query)
                 .variable("assessmentId", contentEntity.getId())
                 .variable("chapterId", newChapterId)
+                .variable("itemId", assessment.getItems().get(0).getId())
+                .variable("skillId", assessment.getItems().get(0).getAssociatedSkills().get(0).getId())
                 .execute()
                 .path("mutateContent.updateAssessment").entity(FlashcardSetAssessment.class).get();
-
         // check that returned assessment is correct
         assertThat(updatedAssessment.getId(), is(notNullValue()));
         assertThat(updatedAssessment.getMetadata().getName(), is("newName"));
@@ -106,6 +122,10 @@ class MutationUpdateAssessmentTest {
         assertThat(updatedAssessment.getAssessmentMetadata().getSkillPoints(), is(3));
         assertThat(updatedAssessment.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.UNDERSTAND, SkillType.REMEMBER)));
         assertThat(updatedAssessment.getAssessmentMetadata().getInitialLearningInterval(), is(7));
+        assertThat(updatedAssessment.getItems().size(), is(2));
+        assertThat(updatedAssessment.getItems().get(0).getId(), is(assessment.getItems().get(0).getId()));
+        assertThat(updatedAssessment.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
+        assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("abc"));
 
         final ContentEntity newContentEntity = contentRepository.findById(updatedAssessment.getId()).orElseThrow();
         assertThat(newContentEntity, is(instanceOf(AssessmentEntity.class)));
@@ -123,5 +143,9 @@ class MutationUpdateAssessmentTest {
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillPoints(), is(3));
         assertThat(assessmentEntity.getAssessmentMetadata().getSkillTypes(), is(List.of(SkillType.UNDERSTAND, SkillType.REMEMBER)));
         assertThat(assessmentEntity.getAssessmentMetadata().getInitialLearningInterval(), is(7));
+        assertThat(assessmentEntity.getItems().size(), is(2));
+        assertThat(assessmentEntity.getItems().get(0).getId(), is(assessment.getItems().get(0).getId()));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("abc"));
     }
 }

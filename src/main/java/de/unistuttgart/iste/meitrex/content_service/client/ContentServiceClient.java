@@ -1,6 +1,11 @@
 package de.unistuttgart.iste.meitrex.content_service.client;
 
+<<<<<<< HEAD:src/main/java/de/unistuttgart/iste/gits/content_service/client/ContentServiceClient.java
+import de.unistuttgart.iste.gits.content_service.exception.ContentServiceConnectionException;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ItemEntity;
+=======
 import de.unistuttgart.iste.meitrex.content_service.exception.ContentServiceConnectionException;
+>>>>>>> main:src/main/java/de/unistuttgart/iste/meitrex/content_service/client/ContentServiceClient.java
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.Converter;
@@ -167,12 +172,13 @@ public class ContentServiceClient {
                                                   final AssessmentMetadata assessmentMetadata,
                                                   final UUID id,
                                                   final UserProgressData progressDataForUser) {
+        List<Item> items = new ArrayList<>();
         switch (metadata.getType()) {
             case FLASHCARDS -> {
-                return new FlashcardSetAssessment(assessmentMetadata, id, metadata, progressDataForUser);
+                return new FlashcardSetAssessment(assessmentMetadata, id, metadata, progressDataForUser, items);
             }
             case QUIZ -> {
-                return new QuizAssessment(assessmentMetadata, id, metadata, progressDataForUser);
+                return new QuizAssessment(assessmentMetadata, id, metadata, progressDataForUser, items);
             }
             case MEDIA -> {
                 return new MediaContent(id, metadata, progressDataForUser);

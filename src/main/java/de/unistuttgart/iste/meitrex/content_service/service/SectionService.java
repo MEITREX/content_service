@@ -2,10 +2,10 @@ package de.unistuttgart.iste.meitrex.content_service.service;
 
 import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.StageEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.SectionMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.CreateSectionInput;
 import de.unistuttgart.iste.meitrex.generated.dto.Section;
 import jakarta.persistence.EntityNotFoundException;
@@ -144,9 +144,10 @@ public class SectionService {
 
     /**
      * Gets all sections for multiple chapters.
+     *
      * @param chapterIds The ids of the chapters to get the sections for.
      * @return A list of lists of sections. The outer list contains sublists which each contain the sections
-     *         for one chapter.
+     * for one chapter.
      */
     public List<List<Section>> getSectionsByChapterIds(List<UUID> chapterIds) {
         // get a list containing all sections for the given chapters, but not divided by chapter yet
@@ -158,6 +159,7 @@ public class SectionService {
 
     /**
      * Gets a Section by its id.
+     *
      * @param sectionId The id of the Section to get.
      * @return The Section with the given id.
      */

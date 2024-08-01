@@ -1,18 +1,10 @@
 package de.unistuttgart.iste.meitrex.content_service.service;
 
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentMetadataEmbeddable;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.StageEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.StageMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.meitrex.generated.dto.ContentType;
-import de.unistuttgart.iste.meitrex.generated.dto.CreateStageInput;
-import de.unistuttgart.iste.meitrex.generated.dto.Stage;
-import de.unistuttgart.iste.meitrex.generated.dto.UpdateStageInput;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -149,7 +141,7 @@ class StageServiceTest {
         final UUID stageId = UUID.randomUUID();
 
         final List<ContentEntity> expectedReqContents = List.of(
-                buildContentEntity(chapterId) ,
+                buildContentEntity(chapterId),
                 buildContentEntity(chapterId));
         final List<ContentEntity> expectedOptContents = List.of(
                 buildContentEntity(chapterId),
@@ -213,7 +205,7 @@ class StageServiceTest {
     }
 
     @Test
-    void updateStageMissingStageTest(){
+    void updateStageMissingStageTest() {
         //invalid Stage ID
         final UpdateStageInput input = UpdateStageInput.builder()
                 .setId(UUID.randomUUID())
@@ -230,7 +222,7 @@ class StageServiceTest {
     }
 
     @Test
-    void updateStageInvalidSectionTest(){
+    void updateStageInvalidSectionTest() {
         //invalid Section ID
         final UpdateStageInput input = UpdateStageInput.builder()
                 .setId(UUID.randomUUID())
@@ -254,7 +246,7 @@ class StageServiceTest {
     }
 
     @Test
-    void updateStageMixedChapterIds(){
+    void updateStageMixedChapterIds() {
         // content with wrong chapter ID
         //init data
         final UUID chapterId = UUID.randomUUID();
@@ -262,7 +254,7 @@ class StageServiceTest {
         final UUID stageId = UUID.randomUUID();
 
         final List<ContentEntity> expectedReqContents = List.of(
-                buildContentEntity(chapterId) ,
+                buildContentEntity(chapterId),
                 buildContentEntity(chapterId));
         final List<ContentEntity> expectedOptContents = List.of(
                 buildContentEntity(chapterId),
@@ -284,7 +276,6 @@ class StageServiceTest {
                 .requiredContents(Set.copyOf(expectedReqContents))
                 .optionalContents(Set.of(expectedOptContents.get(0)))
                 .build();
-
 
 
         final SectionEntity sectionEntity = SectionEntity.builder()
@@ -361,7 +352,7 @@ class StageServiceTest {
     }
 
     @Test
-    void deleteStageInvalidIdTest(){
+    void deleteStageInvalidIdTest() {
 
         //mock database
         when(stageRepository.existsById(any())).thenReturn(false);
@@ -371,7 +362,7 @@ class StageServiceTest {
         assertThrows(EntityNotFoundException.class, () -> stageService.deleteStage(uuid));
     }
 
-    private ContentEntity buildContentEntity(final UUID chapterId){
+    private ContentEntity buildContentEntity(final UUID chapterId) {
         return ContentEntity.builder()
                 .id(UUID.randomUUID())
                 .metadata(
@@ -385,7 +376,7 @@ class StageServiceTest {
                 ).build();
     }
 
-    private StageEntity buildStageEntity (final UUID sectionId, final int pos){
+    private StageEntity buildStageEntity(final UUID sectionId, final int pos) {
         return StageEntity.builder()
                 .id(UUID.randomUUID())
                 .sectionId(sectionId)

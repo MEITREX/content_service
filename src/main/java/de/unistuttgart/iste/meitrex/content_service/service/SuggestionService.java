@@ -47,11 +47,11 @@ public class SuggestionService {
      *
      * @param requiredContents required contents which should be taken into account for the suggestion
      * @param optionalContents optional contents which should be taken into account for the suggestion
-     * @param userId     the ID of the user for which suggestions should be created.
-     * @param amount     the amount of suggestions to create.
-     * @param skillTypes the skill types of the suggestions to create. If the list is empty, all skill types are
-     *                   considered. If the list is not empty, only the given skill types are considered and
-     *                   media contents are ignored.
+     * @param userId           the ID of the user for which suggestions should be created.
+     * @param amount           the amount of suggestions to create.
+     * @param skillTypes       the skill types of the suggestions to create. If the list is empty, all skill types are
+     *                         considered. If the list is not empty, only the given skill types are considered and
+     *                         media contents are ignored.
      * @return the created suggestions.
      */
     public List<Suggestion> createSuggestions(final List<Content> requiredContents,
@@ -72,12 +72,13 @@ public class SuggestionService {
     /**
      * Method which for a given user fetches the required contents which are currently available to the user to work
      * on in the given chapters.
+     *
      * @param chapterIds the chapters to get the available required contents for
-     * @param userId the user to get the available required contents for
+     * @param userId     the user to get the available required contents for
      * @return a list of the available required contents
      */
     public List<Content> getAvailableRequiredContentsOfChaptersForUser(final List<UUID> chapterIds,
-                                                                         final UUID userId) {
+                                                                       final UUID userId) {
         final List<Stage> availableStages = sectionService.getSectionsByChapterIds(chapterIds)
                 .stream()
                 .flatMap(Collection::stream)
@@ -89,12 +90,13 @@ public class SuggestionService {
 
     /**
      * Method which for a given user fetches the optional contents which are currently available to the user to work
+     *
      * @param chapterIds the chapters to get the available optional contents for
-     * @param userId the user to get the available optional contents for
+     * @param userId     the user to get the available optional contents for
      * @return a list of the available optional contents
      */
     public List<Content> getAvailableOptionalContentsOfChaptersForUser(final List<UUID> chapterIds,
-                                                                         final UUID userId) {
+                                                                       final UUID userId) {
         final List<Stage> availableStages = sectionService.getSectionsByChapterIds(chapterIds)
                 .stream()
                 .flatMap(Collection::stream)

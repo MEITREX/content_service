@@ -1,15 +1,9 @@
 package de.unistuttgart.iste.meitrex.content_service.service;
 
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.StageEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.StageMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.meitrex.generated.dto.CreateStageInput;
-import de.unistuttgart.iste.meitrex.generated.dto.Stage;
-import de.unistuttgart.iste.meitrex.generated.dto.UpdateStageInput;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.StageMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

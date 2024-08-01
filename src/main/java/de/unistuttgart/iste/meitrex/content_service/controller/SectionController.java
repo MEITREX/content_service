@@ -2,10 +2,8 @@ package de.unistuttgart.iste.meitrex.content_service.controller;
 
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.service.SectionService;
-import de.unistuttgart.iste.meitrex.generated.dto.CreateSectionInput;
-import de.unistuttgart.iste.meitrex.generated.dto.Section;
-import de.unistuttgart.iste.meitrex.generated.dto.SectionMutation;
+import de.unistuttgart.iste.gits.content_service.service.SectionService;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.data.method.annotation.*;

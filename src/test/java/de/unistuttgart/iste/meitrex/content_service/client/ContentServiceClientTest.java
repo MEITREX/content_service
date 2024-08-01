@@ -1,13 +1,12 @@
 package de.unistuttgart.iste.meitrex.content_service.client;
 
 import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.generated.dto.Content;
-import de.unistuttgart.iste.meitrex.generated.dto.ContentMetadata;
-import de.unistuttgart.iste.meitrex.generated.dto.ContentType;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

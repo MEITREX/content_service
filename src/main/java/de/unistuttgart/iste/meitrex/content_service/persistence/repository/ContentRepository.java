@@ -1,7 +1,10 @@
 package de.unistuttgart.iste.meitrex.content_service.persistence.repository;
 
 import de.unistuttgart.iste.meitrex.common.persistence.MeitrexRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.ItemEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SkillEntity;
 import de.unistuttgart.iste.meitrex.generated.dto.SkillType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,4 +33,12 @@ public interface ContentRepository extends MeitrexRepository<ContentEntity, UUID
      */
     @Query("select assessment.assessmentMetadata.skillTypes from Assessment assessment where assessment.metadata.chapterId = :chapterId")
     List<List<SkillType>> findSkillTypesByChapterId(@Param("chapterId") UUID chapterId);
+
+
+    @Query("select assessment.items from Assessment assessment where assessment.metadata.chapterId = :chapterId")
+    List<ItemEntity> findItemsByChapterId(@Param("chapterId") UUID chapterId);
+
+    @Query("select assessment.items from Assessment assessment where assessment.metadata.courseId = :courseId")
+    List<ItemEntity> findItemsByCourseId(@Param("courseId") UUID courseId);
 }
+

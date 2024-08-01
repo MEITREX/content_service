@@ -1,12 +1,10 @@
 package de.unistuttgart.iste.meitrex.content_service.api.mutation;
 
-import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.meitrex.common.testutil.InjectCurrentUserHeader;
-import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.CreateStageInput;
 import de.unistuttgart.iste.meitrex.generated.dto.Stage;
 import org.junit.jupiter.api.Test;
@@ -22,7 +20,6 @@ import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMem
 import static org.junit.jupiter.api.Assertions.*;
 
 @GraphQlApiTest
-@TablesToDelete({"stage_required_contents", "stage_optional_contents", "stage", "section", "content_tags", "user_progress_data", "content"})
 class MutationCreateStageTest {
 
     @Autowired
@@ -72,11 +69,11 @@ class MutationCreateStageTest {
                 .variable("input", stageInput).execute()
                 .path("mutateSection.createStage")
                 .entity(Stage.class)
-                .satisfies( stage -> {
-            assertEquals(0, stage.getPosition());
-            assertTrue(stage.getRequiredContents().isEmpty());
-            assertTrue(stage.getOptionalContents().isEmpty());
-            assertNotNull(stage.getId());
-        });
+                .satisfies(stage -> {
+                    assertEquals(0, stage.getPosition());
+                    assertTrue(stage.getRequiredContents().isEmpty());
+                    assertTrue(stage.getOptionalContents().isEmpty());
+                    assertNotNull(stage.getId());
+                });
     }
 }

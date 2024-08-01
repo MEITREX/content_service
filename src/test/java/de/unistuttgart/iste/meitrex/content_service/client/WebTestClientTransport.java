@@ -20,41 +20,42 @@ import java.util.Map;
 
 public class WebTestClientTransport implements GraphQlTransport {
 
-	private static final ParameterizedTypeReference<Map<String, Object>> MAP_TYPE =
-			new ParameterizedTypeReference<Map<String, Object>>() {};
+    private static final ParameterizedTypeReference<Map<String, Object>> MAP_TYPE =
+            new ParameterizedTypeReference<Map<String, Object>>() {
+            };
 
 
-	private final WebTestClient webTestClient;
+    private final WebTestClient webTestClient;
 
 
-	WebTestClientTransport(WebTestClient webTestClient) {
-		Assert.notNull(webTestClient, "WebTestClient is required");
-		this.webTestClient = webTestClient;
-	}
+    WebTestClientTransport(WebTestClient webTestClient) {
+        Assert.notNull(webTestClient, "WebTestClient is required");
+        this.webTestClient = webTestClient;
+    }
 
 
-	@Override
-	public Mono<GraphQlResponse> execute(GraphQlRequest request) {
+    @Override
+    public Mono<GraphQlResponse> execute(GraphQlRequest request) {
 
-		Map<String, Object> responseMap = this.webTestClient.post()
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.bodyValue(request.toMap())
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-				.expectBody(MAP_TYPE)
-				.returnResult()
-				.getResponseBody();
+        Map<String, Object> responseMap = this.webTestClient.post()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .bodyValue(request.toMap())
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody(MAP_TYPE)
+                .returnResult()
+                .getResponseBody();
 
-		responseMap = (responseMap != null ? responseMap : Collections.emptyMap());
-		GraphQlResponse response = GraphQlTransport.createResponse(responseMap);
-		return Mono.just(response);
-	}
+        responseMap = (responseMap != null ? responseMap : Collections.emptyMap());
+        GraphQlResponse response = GraphQlTransport.createResponse(responseMap);
+        return Mono.just(response);
+    }
 
-	@Override
-	public Flux<GraphQlResponse> executeSubscription(GraphQlRequest request) {
-		throw new UnsupportedOperationException("Subscriptions not supported over HTTP");
-	}
+    @Override
+    public Flux<GraphQlResponse> executeSubscription(GraphQlRequest request) {
+        throw new UnsupportedOperationException("Subscriptions not supported over HTTP");
+    }
 
 }

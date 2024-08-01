@@ -2,22 +2,17 @@ package de.unistuttgart.iste.meitrex.content_service.api.mutation;
 
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
-import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
-import de.unistuttgart.iste.meitrex.common.testutil.InjectCurrentUserHeader;
-import de.unistuttgart.iste.meitrex.common.testutil.MockTestPublisherConfiguration;
-import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser.UserRoleInCourse;
-import de.unistuttgart.iste.meitrex.content_service.TestData;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.StageEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.UserProgressDataEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.gits.content_service.TestData;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.meitrex.generated.dto.BloomLevel;
+import de.unistuttgart.iste.meitrex.generated.dto.Item;
+
 import jakarta.transaction.Transactional;
+import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +25,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+
+import static de.unistuttgart.iste.gits.content_service.TestData.dummyItemEntity;
+
 import static de.unistuttgart.iste.meitrex.common.testutil.TestUsers.userWithMembershipInCourseWithId;
 import static graphql.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -41,7 +39,6 @@ import static org.mockito.Mockito.verify;
 
 @ContextConfiguration(classes = MockTestPublisherConfiguration.class)
 @GraphQlApiTest
-@TablesToDelete({"content_tags", "user_progress_data", "section", "stage", "content"})
 class MutationDeleteContentTest {
 
     @Autowired
@@ -52,6 +49,10 @@ class MutationDeleteContentTest {
     private StageRepository stageRepository;
     @Autowired
     private SectionRepository sectionRepository;
+    @Autowired
+    private ItemRepository itemRepository;
+    @Autowired
+    private SkillRepository skillRepository;
 
     private final UUID courseId = UUID.randomUUID();
 
@@ -75,11 +76,15 @@ class MutationDeleteContentTest {
     @Transactional
     @Commit
     void testDeleteExistingContent(final GraphQlTester graphQlTester) {
+        ArrayList<ItemEntity> entities = new ArrayList<>();
+        entities.add(dummyItemEntity());
         ContentEntity contentEntity = contentRepository.save(TestData.dummyAssessmentEntityBuilder(courseId)
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder(courseId)
                         .tags(new HashSet<>(Set.of("Tag", "Tag2")))
                         .build())
+                .items(entities)
                 .build());
+        ;
         contentEntity = contentRepository.save(contentEntity);
 
         final UserProgressDataEntity progress1 = UserProgressDataEntity.builder()
@@ -113,6 +118,9 @@ class MutationDeleteContentTest {
 
         // test that user progress is deleted
         assertThat(userProgressRepository.count(), is(0L));
+
+        assertThat(skillRepository.count(), is(0L));
+        assertThat(itemRepository.count(), is(0L));
 
         verify(topicPublisher).notifyContentChanges(List.of(contentEntity.getId()), CrudOperation.DELETE);
 

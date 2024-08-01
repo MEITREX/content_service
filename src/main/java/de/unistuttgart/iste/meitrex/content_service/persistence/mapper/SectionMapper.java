@@ -1,6 +1,6 @@
 package de.unistuttgart.iste.meitrex.content_service.persistence.mapper;
 
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
 import de.unistuttgart.iste.meitrex.generated.dto.Section;
 import de.unistuttgart.iste.meitrex.generated.dto.Stage;
 import lombok.RequiredArgsConstructor;

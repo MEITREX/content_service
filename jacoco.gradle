@@ -12,4 +12,6 @@ jacocoTestReport {
         html.required.set(true)
         html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
     }
+
 }
+

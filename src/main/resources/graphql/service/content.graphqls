@@ -95,6 +95,10 @@ interface Assessment implements Content {
     Progress data of the specified user.
     """
     progressDataForUser(userId: UUID!): UserProgressData!
+    """
+    the items that belong to the Assessment
+    """
+    items:[Item!]!
 }
 
 type AssessmentMetadata {
@@ -142,6 +146,11 @@ type FlashcardSetAssessment implements Assessment & Content {
     Progress data of the specified user.
     """
     progressDataForUser(userId: UUID!): UserProgressData!
+
+    """
+    the items that belong to the Flashcard
+    """
+    items:[Item!]!
 }
 
 """
@@ -170,6 +179,42 @@ type QuizAssessment implements Assessment & Content {
     Progress data of the specified user.
     """
     progressDataForUser(userId: UUID!): UserProgressData!
+    """
+    the items that belong to the Quiz
+    """
+    items:[Item!]!
+}
+"""
+An item is a part of an assessment. Based on students' performances on items the SkillLevel Service estimates a students knowledge.
+An item is something like a question in a quiz, a flashcard of a flashcard set.
+"""
+type Item{
+    """
+    the id of the item
+    """
+    id:UUID!
+    """
+    The skills or the competencies the item belongs to.
+    """
+    associatedSkills:[Skill!]!
+    """
+    The Level of Blooms Taxonomy the item belongs to
+    """
+    associatedBloomLevels:[BloomLevel!]!
+}
+"""
+a skill or compentency.
+Something like loops or data structures.
+"""
+type Skill{
+    """
+    the id of a skill
+    """
+    id:UUID!
+    """
+    the name of the skill
+    """
+    skillName:String!
 }
 
 # add more types here
@@ -181,7 +226,7 @@ enum SkillType {
     REMEMBER
     UNDERSTAND
     APPLY
-    ANALYSE
+    ANALYZE
 }
 
 # for filtering

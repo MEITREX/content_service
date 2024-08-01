@@ -5,14 +5,10 @@ import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
 import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.StageEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
-import de.unistuttgart.iste.meitrex.content_service.validation.ContentValidator;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.*;
+import de.unistuttgart.iste.gits.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -38,6 +34,12 @@ public class ContentService {
     private final StageService stageService;
     private final ContentMapper contentMapper;
     private final ContentValidator contentValidator;
+
+    private final ItemRepository itemRepository;
+
+    private final SkillRepository skillRepository;
+
+    private final AssessmentRepository assessmentRepository;
     private final TopicPublisher topicPublisher;
 
     /**
@@ -225,7 +227,21 @@ public class ContentService {
         final ContentEntity oldContentEntity = requireContentExisting(contentId);
         ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
-
+        AssessmentEntity assessment = (AssessmentEntity) updatedContentEntity;
+        List<ItemEntity> items = new ArrayList<>();
+        for (ItemEntity item : assessment.getItems()) {
+            List<SkillEntity> skills = new ArrayList<>();
+            for (SkillEntity skill : item.getAssociatedSkills()) {
+                if (skill.getId() != null) {
+                    skills.add(skillRepository.findById(skill.getId()).get());
+                } else {
+                    skills.add(skillRepository.save(skill));
+                }
+            }
+            item.setAssociatedSkills(skills);
+            itemRepository.save(item);
+            items.add(item);
+        }
         updatedContentEntity = updateContent(oldContentEntity, updatedContentEntity);
         return contentMapper.assessmentEntityToDto(updatedContentEntity);
     }
@@ -240,7 +256,6 @@ public class ContentService {
     private <T extends ContentEntity> T createContent(T contentEntity, final UUID courseId) {
         contentEntity.getMetadata().setCourseId(courseId);
         contentEntity = contentRepository.save(contentEntity);
-
         return contentEntity;
     }
 
@@ -255,7 +270,6 @@ public class ContentService {
     private <T extends ContentEntity> T updateContent(final T oldContentEntity, T updatedContentEntity) {
         updatedContentEntity.getMetadata().setCourseId(oldContentEntity.getMetadata().getCourseId());
         updatedContentEntity = contentRepository.save(updatedContentEntity);
-
         // if the content is assigned to a different chapter course Links need to be potentially updated and therefore
         // an Update request is sent to the resource services
         if (!oldContentEntity.getMetadata().getChapterId().equals(updatedContentEntity.getMetadata().getChapterId())) {
@@ -310,7 +324,9 @@ public class ContentService {
         userProgressDataRepository.deleteByContentId(contentEntity.getId());
         // remove content from sections
         stageService.deleteContentLinksFromStages(contentEntity);
-
+        if (contentEntity instanceof AssessmentEntity) {
+            deleteRelatedSkillsIfNecessary(contentEntity);
+        }
         contentRepository.delete(contentEntity);
 
         return contentEntity.getId();
@@ -376,6 +392,100 @@ public class ContentService {
                 .toList();
 
         return groupIntoSubLists(contentsWithNoSection, chapterIds, content -> content.getMetadata().getChapterId());
+    }
+
+    /**
+     * An assessment consists of items. Each item has at least one skill.
+     * Checks each skill, if there is an item of another assessment, which belongs to this item.
+     * If not, the skill is deleted.
+     *
+     * @param contentEntity assessment to delete
+     */
+    private void deleteRelatedSkillsIfNecessary(ContentEntity contentEntity) {
+        AssessmentEntity assessment = (AssessmentEntity) contentEntity;
+        if (assessment.getItems() != null) {
+            for (ItemEntity item : assessment.getItems()) {
+                for (SkillEntity skill : item.getAssociatedSkills()) {
+                    deleteSkillWhenNoOtherAssessmentUsesTheSkill(contentEntity, skill.getId());
+                }
+            }
+        }
+
+    }
+
+    private void deleteSkillWhenNoOtherAssessmentUsesTheSkill(ContentEntity contentEntity, UUID skillId) {
+        List<ItemEntity> itemsForSkill = itemRepository.findByAssociatedSkills_Id(skillId);
+        for (ItemEntity itemForSkill : itemsForSkill) {
+            ContentEntity entity = assessmentRepository.findByItems_Id(itemForSkill.getId());
+            if (entity.getId() != contentEntity.getId()) {
+                return;
+            }
+        }
+        skillRepository.deleteById(skillId);
+    }
+
+    /**
+     * returns the skills of the assessments of the given chapters
+     *
+     * @param chapterIds ids of the chapters
+     * @return skill for the given chapters
+     */
+
+    public List<List<SkillEntity>> getSkillsByChapterIds(List<UUID> chapterIds) {
+        List<List<SkillEntity>> skillLists = new ArrayList<>();
+        for (UUID chapterId : chapterIds) {
+            List<ItemEntity> items = contentRepository.findItemsByChapterId(chapterId);
+            HashSet<SkillEntity> skillSet = new HashSet<SkillEntity>();
+            for (ItemEntity item : items) {
+                List<SkillEntity> skills = item.getAssociatedSkills();
+                skillSet.addAll(skills);
+            }
+            skillLists.add(skillSet.stream().toList());
+        }
+        return skillLists;
+    }
+
+    /**
+     * returns the skills of the assessments of the given courses
+     *
+     * @param courseIds ids of the courses
+     * @return skill for the given courses
+     */
+    public List<List<SkillEntity>> getSkillsByCourseIds(List<UUID> courseIds) {
+        List<List<SkillEntity>> skillLists = new ArrayList<>();
+        for (UUID courseId : courseIds) {
+            List<ItemEntity> items = contentRepository.findItemsByCourseId(courseId);
+            HashSet<SkillEntity> skillSet = new HashSet<SkillEntity>();
+            for (ItemEntity item : items) {
+                List<SkillEntity> skills = item.getAssociatedSkills();
+                skillSet.addAll(skills);
+            }
+            skillLists.add(skillSet.stream().toList());
+        }
+        return skillLists;
+    }
+
+    /**
+     * deletes a given item
+     *
+     * @param itemId id of the item to delete
+     */
+    public void deleteItem(UUID itemId) {
+        Optional<ItemEntity> itemEntity = itemRepository.findById(itemId);
+        if (itemEntity.isPresent()) {
+            ItemEntity item = itemEntity.get();
+            for (SkillEntity skill : item.getAssociatedSkills()) {
+                deleteSkillWhenNoOtherItemUsesTheSkill(itemId, skill.getId());
+            }
+            itemRepository.delete(item);
+        }
+    }
+
+    private void deleteSkillWhenNoOtherItemUsesTheSkill(UUID itemId, UUID skillId) {
+        List<ItemEntity> itemsForSkill = itemRepository.findByAssociatedSkills_Id(skillId);
+        if (itemsForSkill.size() == 1 && itemsForSkill.get(0).getId() == itemId) {
+            skillRepository.deleteById(skillId);
+        }
     }
 
 }

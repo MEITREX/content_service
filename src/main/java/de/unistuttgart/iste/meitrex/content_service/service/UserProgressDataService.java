@@ -1,17 +1,12 @@
 package de.unistuttgart.iste.meitrex.content_service.service;
 
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
-import de.unistuttgart.iste.meitrex.common.event.ContentProgressedEvent;
-import de.unistuttgart.iste.meitrex.common.event.UserProgressUpdatedEvent;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.UserProgressDataEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
-import de.unistuttgart.iste.meitrex.generated.dto.CompositeProgressInformation;
-import de.unistuttgart.iste.meitrex.generated.dto.Content;
-import de.unistuttgart.iste.meitrex.generated.dto.Stage;
-import de.unistuttgart.iste.meitrex.generated.dto.UserProgressData;
+import de.unistuttgart.iste.meitrex.common.event.*;
+import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
+import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.ItemRepository;
+import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +26,8 @@ public class UserProgressDataService {
     private final UserProgressDataRepository userProgressDataRepository;
     private final ContentService contentService;
     private final UserProgressDataMapper userProgressDataMapper;
+
+    private final ItemRepository itemRepository;
     private final TopicPublisher topicPublisher;
 
     /**
@@ -105,11 +102,48 @@ public class UserProgressDataService {
         userProgressDataRepository.save(userProgressDataEntity);
 
         final Content content = contentService.getContentsById(List.of(contentProgressedEvent.getContentId())).get(0);
-        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content));
+        List<ItemResponse> itemResponses = new ArrayList<>();
+        if (contentProgressedEvent.getResponses() != null) {
+            itemResponses = createItemResponsesList(contentProgressedEvent);
+        }
+
+        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content, itemResponses));
+    }
+
+    /**
+     * adds the item specific information to the responses
+     *
+     * @param event the event from the Quiz Service
+     * @return list with all responses from the event and for each response the added item information
+     */
+    private List<ItemResponse> createItemResponsesList(final ContentProgressedEvent event) {
+        List<Response> responses = event.getResponses();
+        List<ItemResponse> itemResponses = new ArrayList<ItemResponse>();
+        for (Response response : responses) {
+            ItemEntity item = itemRepository.findById(response.getItemId()).get();
+            List<SkillEntity> skillEntities = item.getAssociatedSkills();
+            List<UUID> skillIds = new ArrayList<>();
+            for (SkillEntity skillEntity : skillEntities) {
+                skillIds.add(skillEntity.getId());
+            }
+            List<LevelOfBloomsTaxonomy> bloomLevelsForEvent = new ArrayList<LevelOfBloomsTaxonomy>();
+            for (BloomLevel level : item.getAssociatedBloomLevels()) {
+                bloomLevelsForEvent.add(mapBloomsTaxonomy(level));
+            }
+            ItemResponse itemResponse = new ItemResponse().builder()
+                    .itemId(response.getItemId())
+                    .response(response.getResponse())
+                    .skillIds(skillIds)
+                    .levelsOfBloomsTaxonomy(bloomLevelsForEvent)
+                    .build();
+            itemResponses.add(itemResponse);
+        }
+        return itemResponses;
     }
 
     private UserProgressUpdatedEvent createUserProgressUpdatedEvent(final ContentProgressedEvent event,
-                                                                    final Content content) {
+                                                                    final Content content,
+                                                                    final List<ItemResponse> itemResponses) {
         return UserProgressUpdatedEvent.builder()
                 .userId(event.getUserId())
                 .contentId(event.getContentId())
@@ -119,7 +153,19 @@ public class UserProgressDataService {
                 .correctness(event.getCorrectness())
                 .hintsUsed(event.getHintsUsed())
                 .timeToComplete(event.getTimeToComplete())
+                .responses(itemResponses)
                 .build();
+    }
+
+    private LevelOfBloomsTaxonomy mapBloomsTaxonomy(BloomLevel bloomLevel) {
+        return switch (bloomLevel) {
+            case UNDERSTAND -> LevelOfBloomsTaxonomy.UNDERSTAND;
+            case REMEMBER -> LevelOfBloomsTaxonomy.REMEMBER;
+            case APPLY -> LevelOfBloomsTaxonomy.APPLY;
+            case ANALYZE -> LevelOfBloomsTaxonomy.ANALYZE;
+            case EVALUATE -> LevelOfBloomsTaxonomy.EVALUATE;
+            case CREATE -> LevelOfBloomsTaxonomy.CREATE;
+        };
     }
 
     /**
@@ -148,10 +194,10 @@ public class UserProgressDataService {
         if (userProgressUpdatedEvent.isSuccess()) {
             final int hintsUsedCapped = Math.min(userProgressUpdatedEvent.getHintsUsed(), 10);
             newLearningInterval = userProgressDataEntity.getLearningInterval() *
-                                  (1 + userProgressUpdatedEvent.getCorrectness() - hintsUsedCapped * 0.1);
+                    (1 + userProgressUpdatedEvent.getCorrectness() - hintsUsedCapped * 0.1);
         } else {
             newLearningInterval = userProgressDataEntity.getLearningInterval()
-                                  * (0.5 * userProgressUpdatedEvent.getCorrectness());
+                    * (0.5 * userProgressUpdatedEvent.getCorrectness());
         }
 
         return (int) Math.floor(Math.max(1, newLearningInterval));

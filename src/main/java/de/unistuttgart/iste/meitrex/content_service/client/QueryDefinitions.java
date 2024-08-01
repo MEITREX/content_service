@@ -22,6 +22,13 @@ public class QueryDefinitions {
                          skillPoints
                          initialLearningInterval
                      }
+                     items{
+                        id
+                        associatedSkills{
+                            skillName
+                        }
+                        associatedBloomLevels
+                     }
                  }
                 progressDataForUser(userId: $userId) {
                     userId
@@ -41,7 +48,7 @@ public class QueryDefinitions {
                 }
             }
                
-            
+                        
             """;
 
     public static final String CONTENTS_BY_COURSE_IDS_QUERY = CONTENTS_FRAGMENT + """

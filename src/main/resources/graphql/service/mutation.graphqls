@@ -131,6 +131,10 @@ input CreateAssessmentInput {
     Assessment metadata
     """
     assessmentMetadata: AssessmentMetadataInput!
+    """
+    items of the new assessments
+    """
+    items: [ItemInput!]
 }
 
 input UpdateAssessmentInput {
@@ -142,6 +146,10 @@ input UpdateAssessmentInput {
     Assessment metadata
     """
     assessmentMetadata: AssessmentMetadataInput!
+    """
+    items of the new assessments
+    """
+    items: [ItemInput!]
 }
 
 input CreateContentMetadataInput {
@@ -213,6 +221,39 @@ input AssessmentMetadataInput {
     initialLearningInterval: Int @PositiveOrZero
 }
 
+
+input ItemInput{
+    """
+    the id of the item
+    """
+    id:UUID
+    """
+    The skills or the competencies the item belongs to.
+    """
+    associatedSkills:[SkillInput!]!
+    """
+    The Level of Blooms Taxonomy the item belongs to
+    """
+    associatedBloomLevels:[BloomLevel!]!
+
+}
+
+
+
+input SkillInput{
+    """
+    the id of a skill. Field is optional, because not all required skills may exist, if a new item is created. If the id is empty a new skill,
+    will be created
+    """
+    id:UUID
+    """
+    the name of the skill
+    """
+    skillName:String!
+
+}
+
+
 input CreateSectionInput {
     """
     Chapter Section will belong to
@@ -254,4 +295,3 @@ input UpdateStageInput{
     """
     optionalContents: [UUID!]!
 }
-
