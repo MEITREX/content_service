@@ -2,10 +2,10 @@ package de.unistuttgart.iste.meitrex.content_service.service;
 
 import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.SectionEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.StageEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.mapper.SectionMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.SectionEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.StageEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.SectionMapper;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.CreateSectionInput;
 import de.unistuttgart.iste.meitrex.generated.dto.Section;
 import jakarta.persistence.EntityNotFoundException;

@@ -1,8 +1,6 @@
 package de.unistuttgart.iste.meitrex.content_service.persistence.entity;
 
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -22,6 +20,7 @@ public class AssessmentEntity extends ContentEntity {
     @Embedded
     @Builder.Default
     private AssessmentMetadataEmbeddable assessmentMetadata = new AssessmentMetadataEmbeddable();
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ItemEntity> items = new ArrayList<>();

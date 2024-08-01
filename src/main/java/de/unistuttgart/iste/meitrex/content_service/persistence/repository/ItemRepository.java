@@ -1,7 +1,7 @@
-package de.unistuttgart.iste.gits.content_service.persistence.repository;
+package de.unistuttgart.iste.meitrex.content_service.persistence.repository;
 
 
-import de.unistuttgart.iste.gits.content_service.persistence.entity.ItemEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ItemEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

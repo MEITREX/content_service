@@ -2,9 +2,9 @@ package de.unistuttgart.iste.meitrex.content_service.api.mutation;
 
 import de.unistuttgart.iste.meitrex.common.testutil.*;
 import de.unistuttgart.iste.meitrex.common.user_handling.LoggedInUser;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.AssessmentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ContentRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;

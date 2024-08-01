@@ -2,10 +2,10 @@ package de.unistuttgart.iste.meitrex.content_service.service;
 
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.*;
-import de.unistuttgart.iste.gits.content_service.persistence.entity.*;
-import de.unistuttgart.iste.gits.content_service.persistence.mapper.UserProgressDataMapper;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.ItemRepository;
-import de.unistuttgart.iste.gits.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ItemRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
