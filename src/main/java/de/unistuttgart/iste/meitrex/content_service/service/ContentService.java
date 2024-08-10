@@ -256,6 +256,9 @@ public class ContentService {
     private <T extends ContentEntity> T createContent(T contentEntity, final UUID courseId) {
         contentEntity.getMetadata().setCourseId(courseId);
         contentEntity = contentRepository.save(contentEntity);
+
+        topicPublisher.notifyContentChanges(List.of(contentEntity.getId()), CrudOperation.CREATE);
+
         return contentEntity;
     }
 
