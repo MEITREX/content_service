@@ -1,18 +1,18 @@
-version: "3"
 services:
-  database-content:
-    image: postgres:alpine
+  database:
+    image: pgvector/pgvector:pg16
     restart: always
     expose:
-      - 4032
+      - 5432
     ports:
-      - "4032:5432"
+      - "5432:5432"
     volumes:
-      - contentdata:/var/lib/postgresql/data
+      - dbdata:/var/lib/postgresql/data
+      - ./../content_service/pg-init-scripts:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=content-service
+      - POSTGRES_CREATE_DB_CONTENT_SERVICE=content_service
   app-content:
     build:
       context: ./../content_service/ # necessary because otherwise docker-compose overrides the context when merging multiple docker-compose.yml files
@@ -26,9 +26,9 @@ services:
       - "4000:4000"
       - "4001:4001"
     depends_on:
-      - database-content
+      - database
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database-content:5432/content-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/content_service
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
   dapr-content:
@@ -51,7 +51,7 @@ services:
     expose:
       - "6379"
 volumes:
-  contentdata:
+  dbdata:
   testdata:
 networks:
   default:
