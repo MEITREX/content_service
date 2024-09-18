@@ -223,6 +223,8 @@ type Skill{
 Type of the assessment
 """
 enum SkillType {
+    CREATE
+    EVALUATE
     REMEMBER
     UNDERSTAND
     APPLY
