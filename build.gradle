@@ -122,6 +122,7 @@ dependencies {
 	implementation 'com.graphql-java:graphql-java-extended-validation:22.0'
 	implementation 'io.dapr:dapr-sdk:1.9.0' // Dapr's core SDK with all features, except Actors.
 	implementation 'io.dapr:dapr-sdk-springboot:1.9.0' // Dapr's SDK integration with SpringBoot
+	implementation 'org.apache.commons:commons-lang3:3.17.0'
 	testImplementation 'junit:junit:4.13.1'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
