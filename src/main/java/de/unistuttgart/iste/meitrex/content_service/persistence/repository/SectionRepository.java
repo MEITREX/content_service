@@ -19,4 +19,10 @@ public interface SectionRepository extends JpaRepository<SectionEntity, UUID> {
 
     @Query("SELECT MAX(s.position) FROM Section s WHERE s.chapterId = :chapterId")
     Optional<Integer> findHighestPositionByChapterId(@Param("chapterId") UUID chapterId);
+
+    @Query("SELECT s FROM Section s WHERE :stageId IN (SELECT stage.id FROM s.stages stage)")
+    Optional<SectionEntity> findSectionEntityByContainedStageId(@Param("stageId") UUID stageId);
+
+    @Query("select section from Section section where section.courseId in (:courseIds)")
+    List<SectionEntity> findByCourseIdIn(@Param("courseIds") List<UUID> courseIds);
 }

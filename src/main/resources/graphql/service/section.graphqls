@@ -63,4 +63,10 @@ type Stage {
     Percentage of Progress made to optional Content
     """
     optionalContentsProgress: Float!
+
+    """
+    For the current user, returns true if this stage could be worked on by the user (i.e. it is not locked), false
+    if stage is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    isAvailableToBeWorkedOn: Boolean!
 }

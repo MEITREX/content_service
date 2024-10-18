@@ -138,12 +138,18 @@ public class ContentServiceClient {
             final ContentMetadata metadata = getMetadata(contentField);
             final UUID id = getId(contentField);
             final UserProgressData progressDataForUser = getProgressDataForUser(contentField);
+            final boolean isAvailableToBeWorkedOn = getIsAvailableToBeWorkedOn(contentField);
 
             AssessmentMetadata assessmentMetadata = null;
             if (contentField.containsKey("assessmentMetadata")) {
                 assessmentMetadata = getAssessmentMetadata(contentField);
             }
-            retrievedContents.add(convertToCorrespondingContent(metadata, assessmentMetadata, id, progressDataForUser));
+            retrievedContents.add(convertToCorrespondingContent(
+                    metadata,
+                    assessmentMetadata,
+                    id,
+                    progressDataForUser,
+                    isAvailableToBeWorkedOn));
         }
         return retrievedContents;
     }
@@ -154,6 +160,10 @@ public class ContentServiceClient {
 
     private UserProgressData getProgressDataForUser(final Map<String, Object> contentField) {
         return modelMapper.map(contentField.get("progressDataForUser"), UserProgressData.class);
+    }
+
+    private boolean getIsAvailableToBeWorkedOn(final Map<String, Object> contentField) {
+        return (boolean)contentField.get("isAvailableToBeWorkedOn");
     }
 
     private UUID getId(final Map<String, Object> contentField) {
@@ -167,17 +177,30 @@ public class ContentServiceClient {
     private Content convertToCorrespondingContent(final ContentMetadata metadata,
                                                   final AssessmentMetadata assessmentMetadata,
                                                   final UUID id,
-                                                  final UserProgressData progressDataForUser) {
+                                                  final UserProgressData progressDataForUser,
+                                                  final boolean isAvailableToBeWorkedOn) {
         List<Item> items = new ArrayList<>();
         switch (metadata.getType()) {
             case FLASHCARDS -> {
-                return new FlashcardSetAssessment(assessmentMetadata, id, metadata, progressDataForUser, items);
+                return new FlashcardSetAssessment(
+                        assessmentMetadata,
+                        id,
+                        metadata,
+                        progressDataForUser,
+                        items,
+                        isAvailableToBeWorkedOn);
             }
             case QUIZ -> {
-                return new QuizAssessment(assessmentMetadata, id, metadata, progressDataForUser, items);
+                return new QuizAssessment(
+                        assessmentMetadata,
+                        id,
+                        metadata,
+                        progressDataForUser,
+                        items,
+                        isAvailableToBeWorkedOn);
             }
             case MEDIA -> {
-                return new MediaContent(id, metadata, progressDataForUser);
+                return new MediaContent(id, metadata, progressDataForUser, isAvailableToBeWorkedOn);
             }
             default -> throw new IllegalArgumentException("Unknown assessment type: " + metadata.getType());
         }

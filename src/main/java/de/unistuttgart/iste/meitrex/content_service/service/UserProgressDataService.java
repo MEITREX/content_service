@@ -3,8 +3,12 @@ package de.unistuttgart.iste.meitrex.content_service.service;
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
+import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.StageMapper;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ItemRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
@@ -12,9 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static de.unistuttgart.iste.meitrex.common.util.MeitrexCollectionUtils.countAsInt;
 
@@ -25,10 +27,16 @@ public class UserProgressDataService {
 
     private final UserProgressDataRepository userProgressDataRepository;
     private final ContentService contentService;
+    private final SectionService sectionService;
+    private final StageService stageService;
     private final UserProgressDataMapper userProgressDataMapper;
 
     private final ItemRepository itemRepository;
     private final TopicPublisher topicPublisher;
+    private final SectionRepository sectionRepository;
+    private final StageRepository stageRepository;
+    private final StageMapper stageMapper;
+    private final ContentMapper contentMapper;
 
     /**
      * Returns the user progress data for the given user and content.
@@ -130,7 +138,7 @@ public class UserProgressDataService {
             for (BloomLevel level : item.getAssociatedBloomLevels()) {
                 bloomLevelsForEvent.add(mapBloomsTaxonomy(level));
             }
-            ItemResponse itemResponse = new ItemResponse().builder()
+            ItemResponse itemResponse = ItemResponse.builder()
                     .itemId(response.getItemId())
                     .response(response.getResponse())
                     .skillIds(skillIds)
@@ -253,6 +261,68 @@ public class UserProgressDataService {
         }
 
         return chapterProgressItems;
+    }
+
+    public boolean isStageAvailableToBeWorkedOn(final UUID stageId, final UUID userId) {
+        final Optional<Section> section = sectionService.findSectionOfStage(stageId);
+
+        // this should never happen, but let's return true in that case
+        if(section.isEmpty())
+            return true;
+
+        final Optional<Integer> thisStagePosition = section.get().getStages().stream()
+                .filter(x -> x.getId() == stageId)
+                .findAny()
+                .map(Stage::getPosition);
+
+        // this should never happen, but let's return true in that case
+        if(thisStagePosition.isEmpty())
+            return true;
+
+        final Optional<Stage> previousStage = section.get().getStages().stream()
+                .filter(stage -> stage.getPosition() < thisStagePosition.get())
+                .max(Comparator.comparing(Stage::getPosition));
+
+        // if this is the first stage in the section, obviously the user is allowed to work on it in any case
+        if(previousStage.isEmpty())
+            return true;
+
+        // otherwise, check if the user has completed the required contents in the previous stage
+        double progress = getStageProgressForUser(previousStage.get(), userId, true);
+
+        return progress >= 100.0;
+    }
+
+    public boolean isContentAvailableToBeWorkedOn(final UUID contentId, final UUID userId) {
+        Optional<Stage> stage = stageService.findStageOfContent(contentId);
+
+        // if content isn't part of a stage it can always be worked on
+        if(stage.isEmpty())
+            return true;
+
+        // otherwise check if the stage can be worked on by the user
+        return isStageAvailableToBeWorkedOn(stage.get().getId(), userId);
+    }
+
+    public List<Content> getContentsAvailableToBeWorkedOnByUserForCourseIds(final UUID userId, List<UUID> courseIds) {
+        List<SectionEntity> sectionEntities = sectionRepository.findByCourseIdIn(courseIds);
+
+        List<Content> results = new ArrayList<>();
+        for(SectionEntity sectionEntity : sectionEntities) {
+            for (StageEntity stageEntity : sectionEntity.getStages().stream()
+                    .sorted(Comparator.comparing(StageEntity::getPosition)).toList()) {
+
+                // add the contents of this stage to our results list
+                results.addAll(stageEntity.getRequiredContents().stream().map(contentMapper::entityToDto).toList());
+                results.addAll(stageEntity.getOptionalContents().stream().map(contentMapper::entityToDto).toList());
+
+                // if required contents of this stage haven't been completed, this is the last stage the user has
+                // access to in this section
+                if(getStageProgressForUser(stageMapper.entityToDto(stageEntity), userId, true) < 100.0)
+                    break;
+            }
+        }
+        return results;
     }
 
     private static CompositeProgressInformation createProgressInformation(final List<Content> contentList, final int numCompletedContent) {

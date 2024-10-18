@@ -12,10 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static de.unistuttgart.iste.meitrex.common.util.MeitrexCollectionUtils.groupIntoSubLists;
 
@@ -165,6 +162,18 @@ public class SectionService {
      */
     public Section getSectionById(final UUID sectionId) {
         return sectionMapper.entityToDto(sectionRepository.getReferenceById(sectionId));
+    }
+
+    /**
+     * Gets a section by providing the ID of any stage which is contained in this section.
+     * @param containedStageId ID of any stage which is contained in this section.
+     * @return Returns an optional containing the parent section if a stage with the given ID could be found, or an
+     * empty optional otherwise.
+     */
+    public Optional<Section> findSectionOfStage(final UUID containedStageId) {
+        Optional<SectionEntity> sectionEntity = sectionRepository.findSectionEntityByContainedStageId(containedStageId);
+
+        return sectionEntity.map(sectionMapper::entityToDto);
     }
 
     /**
