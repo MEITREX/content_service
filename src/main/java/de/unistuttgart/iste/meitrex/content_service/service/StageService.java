@@ -8,10 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -136,6 +133,31 @@ public class StageService {
         stageRepository.saveAll(stageEntities);
     }
 
+    /**
+     * Finds the stage the content with the specified ID is part of. Returns empty optional if content is not part
+     * of any stage or content with specified ID does not exist.
+     * @param contentId The ID of the content.
+     * @return Returns an Optional containing the Stage the content belongs to, or an empty optional if the content
+     * does not belong to any stage or if no content with the given ID exists.
+     */
+    public Optional<Stage> findStageOfContent(UUID contentId) {
+        Optional<ContentEntity> content = contentRepository.findById(contentId);
+
+        if(content.isEmpty())
+            return Optional.empty();
+
+        List<StageEntity> stages = stageRepository
+                .findAllByRequiredContentsContainingOrOptionalContentsContaining(content.get(), content.get());
+
+        if(stages.isEmpty())
+            return Optional.empty();
+
+        // content can only be part of one stage max
+        if(stages.size() > 1)
+            throw new RuntimeException("Content is part of more than one stage. This should not be possible!");
+
+        return Optional.of(stageMapper.entityToDto(stages.getFirst()));
+    }
 
     /**
      * Checks if a Stage exists.

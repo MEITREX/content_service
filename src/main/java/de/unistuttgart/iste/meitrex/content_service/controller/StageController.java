@@ -49,4 +49,8 @@ public class StageController {
         return userProgressDataService.getStageProgressForUser(stage, currentUser.getId(), false);
     }
 
+    @SchemaMapping(field = "isAvailableToBeWorkedOn")
+    public boolean isAvailableToBeWorkedOn(final Stage stage, @ContextValue final LoggedInUser currentUser) {
+        return userProgressDataService.isStageAvailableToBeWorkedOn(stage.getId(), currentUser.getId());
+    }
 }

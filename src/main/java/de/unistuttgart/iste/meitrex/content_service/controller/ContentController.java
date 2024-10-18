@@ -196,6 +196,13 @@ public class ContentController {
         return contentService.getSkillsByChapterIds(chapterIds);
     }
 
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentsAvailableToBeWorkedOnByUserForCourses")
+    public List<Content> internalContentsAvailableToBeWorkedOnByUserForCourses(@Argument final List<UUID> courseIds,
+                                                                               @ContextValue final LoggedInUser currentUser) {
+        return userProgressDataService.getContentsAvailableToBeWorkedOnByUserForCourseIds(currentUser.getId(),
+                                                                                          courseIds);
+    }
+
     /**
      * Abstract Resolver for all Content Types to avoid code duplication
      */
@@ -208,6 +215,11 @@ public class ContentController {
         @SchemaMapping(field = "progressDataForUser")
         public UserProgressData progressDataForUser(final T content, @Argument final UUID userId) {
             return userProgressDataService.getUserProgressData(userId, content.getId());
+        }
+
+        @SchemaMapping(field = "isAvailableToBeWorkedOn")
+        public boolean isAvailableToBeWorkedOn(final T content, @ContextValue final LoggedInUser currentUser) {
+            return userProgressDataService.isContentAvailableToBeWorkedOn(content.getId(), currentUser.getId());
         }
     }
 
