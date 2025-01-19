@@ -250,6 +250,14 @@ input SkillInput{
     the name of the skill
     """
     skillName:String!
+    """
+    the category of the skill
+    """
+    skillCategory:String!
+    """
+    whether the skill is a custom-created by the user and no IEEE skill
+    """
+    isCustomSkill:Boolean!
 
 }
 

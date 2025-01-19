@@ -21,4 +21,8 @@ public class SkillEntity {
     private UUID id;
     @Column(name = "skill_name", nullable = false)
     private String skillName;
+    @Column(name = "skill_category", nullable = false)
+    private String skillCategory;
+    @Column(name = "is_custom_skill", nullable = false)
+    private boolean isCustomSkill;
 }

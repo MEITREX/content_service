@@ -231,7 +231,7 @@ type Item{
 a skill or compentency.
 Something like loops or data structures.
 """
-type Skill{
+type Skill {
     """
     the id of a skill
     """
@@ -240,6 +240,14 @@ type Skill{
     the name of the skill
     """
     skillName:String!
+    """
+    the category of the skill
+    """
+    skillCategory:String!
+    """
+    whether the skill is a custom-created by the user and no IEEE skill
+    """
+    isCustomSkill:Boolean!
 }
 
 # add more types here
