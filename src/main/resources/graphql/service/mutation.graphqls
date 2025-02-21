@@ -134,7 +134,7 @@ input CreateAssessmentInput {
     """
     items of the new assessments
     """
-    items: [ItemInput!]
+    items: [CreateItemInput!]
 }
 
 input UpdateAssessmentInput {
@@ -224,7 +224,7 @@ input AssessmentMetadataInput {
 
 input ItemInput{
     """
-    the id of the item
+    might be empty if a new item is created
     """
     id:UUID
     """
@@ -235,10 +235,11 @@ input ItemInput{
     The Level of Blooms Taxonomy the item belongs to
     """
     associatedBloomLevels:[BloomLevel!]!
-
 }
-
-
+input CreateItemInput {
+    associatedSkills: [CreateSkillInput!]!
+    associatedBloomLevels: [BloomLevel!]!
+}
 
 input SkillInput{
     """
@@ -258,7 +259,11 @@ input SkillInput{
     whether the skill is a custom-created by the user and no IEEE skill
     """
     isCustomSkill:Boolean!
-
+}
+input CreateSkillInput {
+    skillName: String!
+    skillCategory: String!
+    isCustomSkill: Boolean
 }
 
 
