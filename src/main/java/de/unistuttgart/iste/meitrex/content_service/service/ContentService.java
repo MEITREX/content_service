@@ -227,9 +227,13 @@ public class ContentService {
         final ContentEntity oldContentEntity = requireContentExisting(contentId);
         ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
-        AssessmentEntity assessment = (AssessmentEntity) updatedContentEntity;
+        AssessmentEntity updatedAssessment = (AssessmentEntity) updatedContentEntity;
         List<ItemEntity> items = new ArrayList<>();
-        for (ItemEntity item : assessment.getItems()) {
+        if(updatedAssessment.getItems() == null){
+            AssessmentEntity oldAssessment = (AssessmentEntity) oldContentEntity;
+            updatedAssessment.setItems(oldAssessment.getItems());
+        }
+        for (ItemEntity item : updatedAssessment.getItems()) {
             List<SkillEntity> skills = new ArrayList<>();
             for (SkillEntity skill : item.getAssociatedSkills()) {
                 if (skill.getId() != null) {
