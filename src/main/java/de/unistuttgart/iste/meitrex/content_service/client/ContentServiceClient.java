@@ -163,7 +163,7 @@ public class ContentServiceClient {
     }
 
     private boolean getIsAvailableToBeWorkedOn(final Map<String, Object> contentField) {
-        return (boolean)contentField.get("isAvailableToBeWorkedOn");
+        return Boolean.TRUE.equals(contentField.get("isAvailableToBeWorkedOn"));
     }
 
     private UUID getId(final Map<String, Object> contentField) {
@@ -192,6 +192,16 @@ public class ContentServiceClient {
             }
             case QUIZ -> {
                 return new QuizAssessment(
+                        assessmentMetadata,
+                        id,
+                        metadata,
+                        progressDataForUser,
+                        items,
+                        isAvailableToBeWorkedOn);
+            }
+            case ASSIGNMENT ->
+            {
+                return new  AssignmentAssessment(
                         assessmentMetadata,
                         id,
                         metadata,
