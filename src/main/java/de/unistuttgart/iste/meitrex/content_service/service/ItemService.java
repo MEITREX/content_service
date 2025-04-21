@@ -16,12 +16,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class ItemService {
-    private static final Logger log = LoggerFactory.getLogger(ItemService.class);
     private final ItemRepository itemRepository;
     private final ItemMapper itemMapper;
 
     public List<Item> getItemsById(final List<UUID> ids) {
-        var items = itemRepository.findAllByIds(ids);
+        var items = itemRepository.findAllByIdPreservingOrder(ids);
         return items.stream().map(itemMapper::entityToDto).toList();
     }
 }

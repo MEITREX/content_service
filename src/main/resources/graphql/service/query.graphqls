@@ -116,7 +116,7 @@ type Query {
 
     _internal_noauth_contentsAvailableToBeWorkedOnByUserForCourses(courseIds: [UUID!]!): [Content!]!
 
-    items(ids: [UUID!]!): [Item!]!
+    _internal_noauth_items(ids: [UUID!]!): [Item!]!
 
 }
 

@@ -17,9 +17,8 @@ import java.util.UUID;
 public class ItemController {
     private final ItemService itemService;
 
-    @QueryMapping(name = "items")
+    @QueryMapping(name = ContentController.INTERNAL_NOAUTH_PREFIX + "items")
     public List<Item> itemsById(@Argument final List<UUID> ids) {
         return itemService.getItemsById(ids);
-
     }
 }

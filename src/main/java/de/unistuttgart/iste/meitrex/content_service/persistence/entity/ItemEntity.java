@@ -1,5 +1,6 @@
 package de.unistuttgart.iste.meitrex.content_service.persistence.entity;
 
+import de.unistuttgart.iste.meitrex.common.persistence.IWithId;
 import de.unistuttgart.iste.meitrex.generated.dto.BloomLevel;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemEntity {
+public class ItemEntity implements IWithId<UUID> {
     @Column(name = "item_id", nullable = false)
     @Id
     @GeneratedValue
