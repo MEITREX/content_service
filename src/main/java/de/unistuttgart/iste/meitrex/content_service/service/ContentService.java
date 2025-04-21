@@ -227,9 +227,13 @@ public class ContentService {
         final ContentEntity oldContentEntity = requireContentExisting(contentId);
         ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
-        AssessmentEntity assessment = (AssessmentEntity) updatedContentEntity;
+        AssessmentEntity updatedAssessment = (AssessmentEntity) updatedContentEntity;
         List<ItemEntity> items = new ArrayList<>();
-        for (ItemEntity item : assessment.getItems()) {
+        if(updatedAssessment.getItems() == null){
+            AssessmentEntity oldAssessment = (AssessmentEntity) oldContentEntity;
+            updatedAssessment.setItems(oldAssessment.getItems());
+        }
+        for (ItemEntity item : updatedAssessment.getItems()) {
             List<SkillEntity> skills = new ArrayList<>();
             for (SkillEntity skill : item.getAssociatedSkills()) {
                 if (skill.getId() != null) {
@@ -480,7 +484,9 @@ public class ContentService {
             for (SkillEntity skill : item.getAssociatedSkills()) {
                 deleteSkillWhenNoOtherItemUsesTheSkill(itemId, skill.getId());
             }
+            removeItemFromAssessment(itemId);
             itemRepository.delete(item);
+            System.out.println("Item with id " + itemId + " deleted.");
         }
     }
 
@@ -489,6 +495,22 @@ public class ContentService {
         if (itemsForSkill.size() == 1 && itemsForSkill.get(0).getId() == itemId) {
             skillRepository.deleteById(skillId);
         }
+    }
+
+    public void removeItemFromAssessment(UUID itemId) {
+        // Lade die AssessmentEntity
+        AssessmentEntity assessmentEntity = assessmentRepository.findByItems_Id(itemId);
+        if (assessmentEntity == null) {
+            throw new EntityNotFoundException("Assessment with item id " + itemId + " not found");
+        }
+
+        // Entferne das Item aus der Liste
+        List<ItemEntity> items = assessmentEntity.getItems();
+        items.removeIf(item -> item.getId().equals(itemId));
+        assessmentEntity.setItems(items);
+    
+        // Speichere die Änderungen an der AssessmentEntity
+        assessmentRepository.save(assessmentEntity);
     }
 
 }

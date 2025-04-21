@@ -116,6 +116,8 @@ type Query {
 
     _internal_noauth_contentsAvailableToBeWorkedOnByUserForCourses(courseIds: [UUID!]!): [Content!]!
 
+    _internal_noauth_items(ids: [UUID!]!): [Item!]!
+
 }
 
 type ContentPayload {
