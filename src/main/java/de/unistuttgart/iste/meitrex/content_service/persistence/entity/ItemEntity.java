@@ -20,7 +20,7 @@ public class ItemEntity implements IWithId<UUID> {
     @Id
     @GeneratedValue
     private UUID id;
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     private List<SkillEntity> associatedSkills = new ArrayList<>();
     @Column(name = "associated_bloom_levels", nullable = false)
