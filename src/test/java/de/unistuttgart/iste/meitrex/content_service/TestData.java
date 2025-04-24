@@ -28,6 +28,8 @@ public class TestData {
     public static AssessmentEntity.AssessmentEntityBuilder<?, ?> dummyAssessmentEntityBuilderWithItems(final UUID courseId) {
         SkillEntity skillEntity = new SkillEntity();
         skillEntity.setSkillName("Test");
+        skillEntity.setSkillCategory("Test Category");
+        skillEntity.setCustomSkill(true);
         ItemEntity item = new ItemEntity();
         ArrayList<SkillEntity> skills = new ArrayList<>();
         skills.add(skillEntity);
@@ -55,6 +57,8 @@ public class TestData {
     public static ItemEntity dummyItemEntity() {
         SkillEntity skillEntity = new SkillEntity();
         skillEntity.setSkillName("Test");
+        skillEntity.setSkillCategory("Test Category");
+        skillEntity.setCustomSkill(true);
         ItemEntity item = new ItemEntity();
         ArrayList<SkillEntity> skills = new ArrayList<>();
         item.setAssociatedSkills(skills);
@@ -129,6 +133,8 @@ public class TestData {
     public static AssessmentEntity assessmentEntityWithItems(final UUID courseId, final UUID chapterId) {
         SkillEntity skillEntity = new SkillEntity();
         skillEntity.setSkillName("Test");
+        skillEntity.setSkillCategory("Test Category");
+        skillEntity.setCustomSkill(true);
         ItemEntity item = new ItemEntity();
         ArrayList<SkillEntity> skills = new ArrayList<>();
         skills.add(skillEntity);

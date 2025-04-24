@@ -60,7 +60,7 @@ class MutationCreateAssessmentTest {
                         },
                         items:[
                                 {
-                                  associatedSkills:[{skillName:"Test"}]
+                                  associatedSkills:[{skillName:"Test",skillCategory:"Test Category",isCustomSkill: true}]
                                   associatedBloomLevels:[REMEMBER]
                                 
                             }],
@@ -77,6 +77,8 @@ class MutationCreateAssessmentTest {
                         items{
                             associatedSkills{
                               skillName
+                              skillCategory
+                              isCustomSkill
                             }
                             associatedBloomLevels
                         }
@@ -110,6 +112,8 @@ class MutationCreateAssessmentTest {
         assertThat(createdAssessment.getItems().size(), is(1));
         assertThat(createdAssessment.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
         assertThat(createdAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("Test"));
+        assertThat(createdAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillCategory(), is("Test Category"));
+        assertThat(createdAssessment.getItems().get(0).getAssociatedSkills().get(0).getIsCustomSkill(), is(true));
         final ContentEntity contentEntity = contentRepository.findById(createdAssessment.getId()).orElseThrow();
         assertThat(contentEntity, is(instanceOf(AssessmentEntity.class)));
 
@@ -129,6 +133,8 @@ class MutationCreateAssessmentTest {
         assertThat(assessmentEntity.getItems().size(), is(1));
         assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
         assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("Test"));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillCategory(), is("Test Category"));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getIsCustomSkill(), is(true));
 
     }
 
@@ -152,7 +158,7 @@ class MutationCreateAssessmentTest {
                         }
                         items:
                             [{
-                                associatedSkills:[{skillName:"name"}]
+                               associatedSkills:[{skillName:"name",skillCategory:"category",isCustomSkill:false}]
                                associatedBloomLevels:[CREATE]
                             }]
                         assessmentMetadata: {

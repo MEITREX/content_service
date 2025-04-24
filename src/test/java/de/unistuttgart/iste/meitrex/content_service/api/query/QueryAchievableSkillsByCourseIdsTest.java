@@ -41,6 +41,8 @@ public class QueryAchievableSkillsByCourseIdsTest {
                    _internal_noauth_achievableSkillsByCourseIds(courseIds: [$courseId]){
                        id
                        skillName
+                       skillCategory
+                       isCustomSkill
                    }
                 }
                 """;
