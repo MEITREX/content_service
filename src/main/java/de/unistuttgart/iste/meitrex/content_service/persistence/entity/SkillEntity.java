@@ -25,4 +25,8 @@ public class SkillEntity {
     private String skillCategory;
     @Column(name = "is_custom_skill", nullable = false)
     private boolean isCustomSkill;
+
+    public boolean getIsCustomSkill() {
+        return isCustomSkill;
+    }
 }

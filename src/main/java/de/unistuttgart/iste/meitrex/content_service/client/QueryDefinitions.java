@@ -26,6 +26,8 @@ public class QueryDefinitions {
                         id
                         associatedSkills{
                             skillName
+                            skillCategory
+                            isCustomSkill
                         }
                         associatedBloomLevels
                      }
