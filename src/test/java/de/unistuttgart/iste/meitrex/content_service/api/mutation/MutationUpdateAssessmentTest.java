@@ -67,11 +67,11 @@ class MutationUpdateAssessmentTest {
                              items:[
                                     {
                                       id:$itemId
-                                      associatedSkills:[{skillName:"abc"}]
+                                      associatedSkills:[{skillName:"abc",skillCategory:"abc-category",isCustomSkill:true}]
                                       associatedBloomLevels:[REMEMBER]
                             },{
                                       id:null
-                                      associatedSkills:[{skillName:"name",id:$skillId}]
+                                      associatedSkills:[{skillName:"name",skillCategory:"category",isCustomSkill:false, id:$skillId}]
                                       associatedBloomLevels:[REMEMBER]
                             }
                             ]
@@ -89,6 +89,8 @@ class MutationUpdateAssessmentTest {
                                 id                       
                                 associatedSkills{
                                     skillName
+                                    skillCategory
+                                    isCustomSkill
                                 }
                                 associatedBloomLevels
                         }
@@ -126,6 +128,8 @@ class MutationUpdateAssessmentTest {
         assertThat(updatedAssessment.getItems().get(0).getId(), is(assessment.getItems().get(0).getId()));
         assertThat(updatedAssessment.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
         assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("abc"));
+        assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getSkillCategory(), is("abc-category"));
+        assertThat(updatedAssessment.getItems().get(0).getAssociatedSkills().get(0).getIsCustomSkill(), is(true));
 
         final ContentEntity newContentEntity = contentRepository.findById(updatedAssessment.getId()).orElseThrow();
         assertThat(newContentEntity, is(instanceOf(AssessmentEntity.class)));
@@ -147,5 +151,7 @@ class MutationUpdateAssessmentTest {
         assertThat(assessmentEntity.getItems().get(0).getId(), is(assessment.getItems().get(0).getId()));
         assertThat(assessmentEntity.getItems().get(0).getAssociatedBloomLevels(), is(List.of(BloomLevel.REMEMBER)));
         assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillName(), is("abc"));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getSkillCategory(), is("abc-category"));
+        assertThat(assessmentEntity.getItems().get(0).getAssociatedSkills().get(0).getIsCustomSkill(), is(true));
     }
 }
