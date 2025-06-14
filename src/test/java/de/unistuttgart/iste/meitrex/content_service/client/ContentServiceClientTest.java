@@ -86,6 +86,27 @@ class ContentServiceClientTest {
         assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ));
     }
 
+    @Test
+    void testQueryContentsByIds() throws Exception {
+        final ContentServiceClient contentServiceClient = new ContentServiceClient(graphQlClient);
+        final UUID courseId = UUID.randomUUID();
+        final UUID chapterId = UUID.randomUUID();
+        final UUID userId = UUID.randomUUID();
+
+        ContentEntity content1 = contentRepository.save(createMediaContentForChapter(courseId, chapterId));
+        ContentEntity content2 = contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.FLASHCARDS));
+        ContentEntity content3 = contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.QUIZ));
+
+        final List<Content> actualContents = contentServiceClient.queryContentsByIds(userId, List.of(content1.getId(), content2.getId(), content3.getId()));
+        System.out.println(actualContents.toString());
+        assertThat(actualContents, hasSize(3));
+
+        // we just check the types here exemplary, other fields are tested in the API tests
+        final var types = actualContents.stream().map(Content::getMetadata).map(ContentMetadata::getType).toList();
+
+        assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ));
+    }
+
     private ContentEntity createMediaContentForChapter(final UUID courseId, final UUID chapterId) {
         return TestData.dummyMediaContentEntityBuilder(courseId)
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder(courseId)

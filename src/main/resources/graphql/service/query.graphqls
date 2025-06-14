@@ -15,6 +15,14 @@ type Query {
 
     """
     Get contents by ids. Throws an error if any of the ids are not found.
+    ⚠️ This query is only accessible internally in the system and allows the caller to fetch contents without
+    any permissions check and should not be called without any validation of the caller's permissions. ⚠️
+    """
+    _internal_noauth_contentsByIds(contentIds: [UUID!]!): [Content!]!
+
+
+    """
+    Get contents by ids. Throws an error if any of the ids are not found.
     🔒 The user must have access to the courses containing the contents with the given ids to access their contents,
     otherwise an error is thrown.
     """

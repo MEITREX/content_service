@@ -49,8 +49,8 @@ public class QueryDefinitions {
                     }
                 }
             }
-               
-                        
+            
+            
             """;
 
     public static final String CONTENTS_BY_COURSE_IDS_QUERY = CONTENTS_FRAGMENT + """
@@ -69,7 +69,18 @@ public class QueryDefinitions {
             }
             """;
 
+    public static final String CONTENTS_BY_CONTENT_IDS_QUERY = CONTENTS_FRAGMENT + """
+            query($contentIds: [UUID!]!, $userId: UUID!) {
+                _internal_noauth_contentsByIds(contentIds: $contentIds) {
+                    ...ContentFragment
+                }
+            }
+            """;
+
     public static final String CONTENTS_BY_COURSE_ID_QUERY_NAME = "_internal_noauth_contentsByCourseIds";
 
     public static final String CONTENTS_BY_CHAPTER_ID_QUERY_NAME = "_internal_noauth_contentsByChapterIds";
+
+    public static final String CONTENTS_BY_CONTENT_IDS_QUERY_NAME = "_internal_noauth_contentsByIds";
+
 }

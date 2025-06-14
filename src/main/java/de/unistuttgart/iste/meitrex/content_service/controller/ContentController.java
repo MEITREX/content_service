@@ -54,6 +54,12 @@ public class ContentController {
         return contentService.getContentsByCourseIds(courseIds);
     }
 
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentsByIds")
+    public List<Content> contentById(@Argument final List<UUID> contentIds) {
+        return contentService.getContentsById(contentIds);
+    }
+
+
     @QueryMapping
     public List<Content> findContentsByIds(@Argument final List<UUID> ids,
                                            @ContextValue final LoggedInUser currentUser) {
