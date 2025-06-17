@@ -100,7 +100,7 @@ public class ContentServiceClient {
 
         try {
             return graphQlClient.document(QueryDefinitions.CONTENTS_BY_CONTENT_IDS_QUERY)
-                    .variable("contentIds", contentIds)
+                    .variable("ids", contentIds)
                     .variable("userId", userId)
                     .execute()
                     .handle((ClientGraphQlResponse result, SynchronousSink<List<Content>> sink)

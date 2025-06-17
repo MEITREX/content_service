@@ -41,6 +41,11 @@ public class ContentController {
         return contents;
     }
 
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentsByIds")
+    public List<Content> contentById(@Argument final List<UUID> ids) {
+        return contentService.getContentsById(ids);
+    }
+
     @QueryMapping
     public List<List<Content>> contentsByCourseIds(@Argument final List<UUID> courseIds,
                                                    @ContextValue final LoggedInUser currentUser) {
@@ -52,11 +57,6 @@ public class ContentController {
     @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentsByCourseIds")
     public List<List<Content>> internalNoAuthContentsByCourseIds(@Argument final List<UUID> courseIds) {
         return contentService.getContentsByCourseIds(courseIds);
-    }
-
-    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentsByIds")
-    public List<Content> contentById(@Argument final List<UUID> contentIds) {
-        return contentService.getContentsById(contentIds);
     }
 
 

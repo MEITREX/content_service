@@ -18,7 +18,7 @@ type Query {
     ⚠️ This query is only accessible internally in the system and allows the caller to fetch contents without
     any permissions check and should not be called without any validation of the caller's permissions. ⚠️
     """
-    _internal_noauth_contentsByIds(contentIds: [UUID!]!): [Content!]!
+    _internal_noauth_contentsByIds(ids: [UUID!]!): [Content!]!
 
 
     """

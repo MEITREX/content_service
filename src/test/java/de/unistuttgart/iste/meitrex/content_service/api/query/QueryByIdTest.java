@@ -186,4 +186,126 @@ class QueryByIdTest {
                 );
     }
 
+    /**
+     * Given valid ids
+     * When the contentsByIds query is called
+     * Then the contents are returned in the same order as the ids
+     */
+    @Test
+    void getByIdOrderIsConsistentInternalNoauth(final GraphQlTester graphQlTester) {
+        final List<ContentEntity> contentEntities = List.of(
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build()),
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build()),
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build())
+        );
+
+        final List<UUID> ids = contentEntities.stream()
+                .map(ContentEntity::getId)
+                .toList();
+
+        final String query = """
+                query($ids: [UUID!]!) {
+                    _internal_noauth_contentsByIds(ids: $ids) {
+                        id
+                    }
+                }
+                """;
+
+        graphQlTester.document(query)
+                .variable("ids", ids)
+                .execute()
+                .path("_internal_noauth_contentsByIds[*].id")
+                .entityList(UUID.class)
+                .containsExactly(ids.toArray(UUID[]::new));
+
+        // test the order is correct
+        final List<UUID> idsReordered = List.of(ids.get(2), ids.get(0), ids.get(1));
+
+        graphQlTester.document(query)
+                .variable("ids", idsReordered)
+                .execute()
+                .path("_internal_noauth_contentsByIds[*].id")
+                .entityList(UUID.class)
+                .containsExactly(idsReordered.toArray(UUID[]::new));
+    }
+
+    /**
+     * Given valid ids
+     * When the findContentsByIds query is called
+     * Then the contents are returned in the same order as the ids
+     */
+    @Test
+    void findByIdOrderIsConsistentInternalNoauth(final GraphQlTester graphQlTester) {
+        final List<ContentEntity> contentEntities = List.of(
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build()),
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build()),
+                contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build())
+        );
+
+        final List<UUID> ids = contentEntities.stream()
+                .map(ContentEntity::getId)
+                .toList();
+
+        final String query = """
+                query($ids: [UUID!]!) {
+                    _internal_noauth_contentsByIds(ids: $ids) {
+                        id
+                    }
+                }
+                """;
+
+        graphQlTester.document(query)
+                .variable("ids", ids)
+                .execute()
+                .path("_internal_noauth_contentsByIds[*].id")
+                .entityList(UUID.class)
+                .containsExactly(ids.toArray(UUID[]::new));
+
+        // test the order is correct
+        final List<UUID> idsReordered = List.of(ids.get(2), ids.get(0), ids.get(1));
+
+        graphQlTester.document(query)
+                .variable("ids", idsReordered)
+                .execute()
+                .path("_internal_noauth_contentsByIds[*].id")
+                .entityList(UUID.class)
+                .containsExactly(idsReordered.toArray(UUID[]::new));
+    }
+
+    /**
+     * Given some ids of non-existing contents
+     * When the contentsByIds query is called
+     * Then an error is returned containing the ids of the non-existing contents
+     */
+    @Test
+    void getByNonExistingIdsInternalNoauth(final GraphQlTester graphQlTester) {
+        final ContentEntity existingContentEntity = contentRepository.save(TestData.dummyMediaContentEntityBuilder(courseId).build());
+
+        final List<UUID> ids = List.of(
+                existingContentEntity.getId(),
+                UUID.randomUUID(),
+                UUID.randomUUID()
+        );
+
+        final String query = """
+                query($ids: [UUID!]!) {
+                    _internal_noauth_contentsByIds(ids: $ids) {
+                        id
+                    }
+                }
+                """;
+
+        graphQlTester.document(query)
+                .variable("ids", ids)
+                .execute()
+                .errors()
+                .satisfy(errors -> {
+                    assertThat(errors, hasSize(1));
+                    final String errorMessage = errors.get(0).getMessage();
+                    assertThat(errorMessage, containsStringIgnoringCase(ids.get(1).toString()));
+                    assertThat(errorMessage, containsStringIgnoringCase(ids.get(2).toString()));
+                    assertThat(errorMessage, containsStringIgnoringCase("not found"));
+                });
+    }
+
 }
