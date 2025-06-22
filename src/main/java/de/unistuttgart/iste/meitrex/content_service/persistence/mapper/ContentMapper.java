@@ -75,6 +75,8 @@ public class ContentMapper {
             result = modelMapper.map(contentEntity, FlashcardSetAssessment.class);
         } else if (contentEntity.getMetadata().getType() == ContentType.QUIZ) {
             result = modelMapper.map(contentEntity, QuizAssessment.class);
+        } else if (contentEntity.getMetadata().getType() == ContentType.ASSIGNMENT){
+            result = modelMapper.map(contentEntity, AssignmentAssessment.class);
         } else {
             // put other assessment types here
             throw new IllegalStateException("Unsupported content type for assessment: " + contentEntity.getMetadata().getType());

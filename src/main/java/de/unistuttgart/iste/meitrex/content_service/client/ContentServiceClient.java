@@ -199,6 +199,16 @@ public class ContentServiceClient {
                         items,
                         isAvailableToBeWorkedOn);
             }
+            case ASSIGNMENT ->
+            {
+                return new  AssignmentAssessment(
+                        assessmentMetadata,
+                        id,
+                        metadata,
+                        progressDataForUser,
+                        items,
+                        isAvailableToBeWorkedOn);
+            }
             case MEDIA -> {
                 return new MediaContent(id, metadata, progressDataForUser, isAvailableToBeWorkedOn);
             }

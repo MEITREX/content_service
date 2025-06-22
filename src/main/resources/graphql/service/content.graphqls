@@ -209,6 +209,44 @@ type QuizAssessment implements Assessment & Content {
     """
     isAvailableToBeWorkedOn: Boolean!
 }
+
+"""
+An assignment, assignment related fields are stored in the assignment service.
+"""
+type AssignmentAssessment implements Assessment & Content {
+    # inherited fields
+    """
+    Assessment metadata
+    """
+    assessmentMetadata: AssessmentMetadata!
+    """
+    ID of the content
+    """
+    id: UUID!
+    """
+    Metadata of the content
+    """
+    metadata: ContentMetadata!
+
+    """
+    Progress data of the content for the current user.
+    """
+    userProgressData: UserProgressData!
+    """
+    Progress data of the specified user.
+    """
+    progressDataForUser(userId: UUID!): UserProgressData!
+    """
+    the items that belong to the Assignment
+    """
+    items:[Item!]!
+    """
+    For the current user, returns true if this content could be worked on by the user (i.e. it is not locked), false
+    if content is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    isAvailableToBeWorkedOn: Boolean!
+}
+
 """
 An item is a part of an assessment. Based on students' performances on items the SkillLevel Service estimates a students knowledge.
 An item is something like a question in a quiz, a flashcard of a flashcard set.
@@ -272,5 +310,6 @@ enum ContentType {
     MEDIA
     FLASHCARDS
     QUIZ
+    ASSIGNMENT
     # add more types here
 }

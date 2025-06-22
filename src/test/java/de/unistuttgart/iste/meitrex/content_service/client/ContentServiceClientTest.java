@@ -5,7 +5,6 @@ import de.unistuttgart.iste.meitrex.content_service.TestData;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
-import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,15 +53,16 @@ class ContentServiceClientTest {
         contentRepository.save(createMediaContentForChapter(courseId, chapterId));
         contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.FLASHCARDS));
         contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.QUIZ));
+        contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.ASSIGNMENT));
 
         final List<Content> actualContents = contentServiceClient.queryContentsOfChapter(userId, chapterId);
 
-        assertThat(actualContents, hasSize(3));
+        assertThat(actualContents, hasSize(4));
 
         // we just check the types here exemplary, other fields are tested in the API tests
         final var types = actualContents.stream().map(Content::getMetadata).map(ContentMetadata::getType).toList();
 
-        assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ));
+        assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ, ContentType.ASSIGNMENT));
     }
 
     @Test
@@ -75,15 +75,16 @@ class ContentServiceClientTest {
         contentRepository.save(createMediaContentForChapter(courseId, chapterId));
         contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.FLASHCARDS));
         contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.QUIZ));
+        contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.ASSIGNMENT));
 
         final List<Content> actualContents = contentServiceClient.queryContentsOfCourse(userId, courseId);
 
-        assertThat(actualContents, hasSize(3));
+        assertThat(actualContents, hasSize(4));
 
         // we just check the types here exemplary, other fields are tested in the API tests
         final var types = actualContents.stream().map(Content::getMetadata).map(ContentMetadata::getType).toList();
 
-        assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ));
+        assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ, ContentType.ASSIGNMENT));
     }
 
     private ContentEntity createMediaContentForChapter(final UUID courseId, final UUID chapterId) {
