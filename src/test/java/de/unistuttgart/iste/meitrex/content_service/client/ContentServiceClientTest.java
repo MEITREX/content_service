@@ -11,10 +11,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.graphql.client.ClientGraphQlResponse;
+import org.springframework.graphql.client.ClientResponseField;
 import org.springframework.graphql.client.GraphQlClient;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.client.MockMvcWebTestClient;
 import org.springframework.web.context.WebApplicationContext;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.UUID;
@@ -136,6 +139,33 @@ class ContentServiceClientTest {
         assertThrows(ContentServiceConnectionException.class, () -> {
             contentServiceClient.queryContentIdsOfCourse(courseId);
         });
+    }
+
+    @Test
+    void testQueryContentIdsOfCourse_throwsExceptionWhenResponseInvalid() {
+        UUID courseId = UUID.randomUUID();
+        GraphQlClient mockClient = Mockito.mock(GraphQlClient.class);
+        GraphQlClient.RequestSpec requestSpecMock = Mockito.mock(GraphQlClient.RequestSpec.class);
+        ClientGraphQlResponse clientResponseMock = Mockito.mock(ClientGraphQlResponse.class);
+        final ContentServiceClient contentServiceClient = new ContentServiceClient(mockClient);
+        ClientResponseField fieldMock = Mockito.mock(ClientResponseField.class);
+
+        // Mock graphQlClient and response
+        when(mockClient.document(Mockito.anyString()))
+                .thenReturn(requestSpecMock);
+        when(requestSpecMock.variable(Mockito.anyString(), Mockito.any()))
+                .thenReturn(requestSpecMock);
+        when(requestSpecMock.execute())
+                .thenReturn(Mono.just(clientResponseMock));
+
+        when(clientResponseMock.field(Mockito.anyString() + "[0]"))
+                .thenReturn(fieldMock);
+
+        when(fieldMock.getValue())
+                .thenReturn(null);
+
+        assertThrows(ContentServiceConnectionException.class,
+                () -> contentServiceClient.queryContentIdsOfCourse(courseId));
     }
 
     private ContentEntity createMediaContentForChapter(final UUID courseId, final UUID chapterId) {

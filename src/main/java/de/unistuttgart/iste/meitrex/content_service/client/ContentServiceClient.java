@@ -1,7 +1,6 @@
 package de.unistuttgart.iste.meitrex.content_service.client;
 
 import de.unistuttgart.iste.meitrex.content_service.exception.ContentServiceConnectionException;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ItemEntity;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.Converter;
@@ -15,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Client for the content service, allowing to query contents with user progress data.
@@ -186,18 +184,20 @@ public class ContentServiceClient {
         return retrievedContents;
     }
 
-    private List<UUID> convertResponseToListOfUUIDs(final ClientGraphQlResponse result, final String queryName) {
+    private List<UUID> convertResponseToListOfUUIDs(final ClientGraphQlResponse result, final String queryName)
+            throws ContentServiceConnectionException {
         // Extract the list of id maps from the response
         final List<Map<String, String>> contentIdMaps = result.field(queryName + "[0]").getValue();
 
         if (contentIdMaps == null) {
-            throw new RuntimeException("Missing field in response for query: " + queryName);
+            throw new ContentServiceConnectionException(
+                    "Error while fetching contents from content service: Missing field in response.");
         }
 
         // Convert each map to UUID by reading the "id" field
         return contentIdMaps.stream()
                 .map(map -> UUID.fromString(map.get("id")))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private AssessmentMetadata getAssessmentMetadata(final Map<String, Object> contentField) {
