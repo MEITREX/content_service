@@ -87,6 +87,22 @@ class ContentServiceClientTest {
         assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ, ContentType.ASSIGNMENT));
     }
 
+    @Test
+    void testQueryContentIdsOfCourse() throws Exception {
+        final ContentServiceClient contentServiceClient = new ContentServiceClient(graphQlClient);
+        final UUID courseId = UUID.randomUUID();
+        final UUID chapterId = UUID.randomUUID();
+
+        contentRepository.save(createMediaContentForChapter(courseId, chapterId));
+        contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.FLASHCARDS));
+        contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.QUIZ));
+        contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.ASSIGNMENT));
+
+        final List<UUID> actualContents = contentServiceClient.queryContentIdsOfCourse(courseId);
+
+        assertThat(actualContents, hasSize(4));
+    }
+
     private ContentEntity createMediaContentForChapter(final UUID courseId, final UUID chapterId) {
         return TestData.dummyMediaContentEntityBuilder(courseId)
                 .metadata(TestData.dummyContentMetadataEmbeddableBuilder(courseId)
