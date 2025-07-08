@@ -69,6 +69,14 @@ public class QueryDefinitions {
             }
             """;
 
+    public static final String CONTENT_IDS_BY_COURSE_IDS_QUERY = """
+            query($courseIds: [UUID!]!) {
+                _internal_noauth_contentsByCourseIds(courseIds: $courseIds) {
+                    id
+                }
+            }
+            """;
+
     public static final String CONTENTS_BY_COURSE_ID_QUERY_NAME = "_internal_noauth_contentsByCourseIds";
 
     public static final String CONTENTS_BY_CHAPTER_ID_QUERY_NAME = "_internal_noauth_contentsByChapterIds";
