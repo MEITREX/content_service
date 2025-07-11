@@ -65,6 +65,13 @@ type Query {
     _internal_noauth_progressByChapterIds(chapterIds: [UUID!]!): [CompositeProgressInformation!]!
 
     """
+    Retrieve progress for a given chapter of the given user
+    ⚠️ This query is only accessible internally in the system and allows the caller to fetch chapter progress without
+    any permissions check and should not be called without any validation of the caller's permissions. ⚠️
+    """
+    _internal_noauth_progressByChapterId(chapterId: UUID!, userId: UUID!): CompositeProgressInformation!
+
+    """
     Generates user specific suggestions for multiple chapters.
 
     Only content that the user can access will be considered.

@@ -98,19 +98,33 @@ public class ContentServiceClient {
     public List<Content> queryContentsByIds(final UUID userId, final List<UUID> contentIds) throws ContentServiceConnectionException {
         log.info("Querying content with ids {}", contentIds);
 
-        try {
-            return graphQlClient.document(QueryDefinitions.CONTENTS_BY_CONTENT_IDS_QUERY)
-                    .variable("ids", contentIds)
-                    .variable("userId", userId)
-                    .execute()
-                    .handle((ClientGraphQlResponse result, SynchronousSink<List<Content>> sink)
+
+        return graphQlClient.document(QueryDefinitions.CONTENTS_BY_CONTENT_IDS_QUERY)
+                .variable("ids", contentIds)
+                .variable("userId", userId)
+                .execute()
+                .handle((ClientGraphQlResponse result, SynchronousSink<List<Content>> sink)
                             -> handleContentServiceResponseContent(result, sink, QueryDefinitions.CONTENTS_BY_CONTENT_IDS_QUERY_NAME))
-                    .retry(RETRY_COUNT)
-                    .block();
-        } catch (final RuntimeException e) {
-            unwrapContentServiceConnectionException(e);
-        }
-        return List.of();
+                .retry(RETRY_COUNT)
+                .block();
+    }
+
+    /**
+     * Queries the content service for the progress of the given chapter.
+     *
+     * @param userId    the id of the user for which to query the progress data
+     * @param chapterId the id of the chapter
+     * @return List of content with the given ids
+     * @throws ContentServiceConnectionException if the connection to the content
+     *                                           service fails or any other error occurs
+     */
+    public CompositeProgressInformation queryProgressByChapterId(final UUID userId, final UUID chapterId) throws ContentServiceConnectionException {
+        log.info("Querying chapter progress with for chapter with the id {}", chapterId);
+        return graphQlClient.document(QueryDefinitions.PROGRESS_BY_CHAPTER_ID)
+                .variable("chapterId", chapterId)
+                .variable("userId", userId)
+                .retrieveSync(QueryDefinitions.PROGRESS_BY_CHAPTER_ID_QUERY_NAME)
+                .toEntity(CompositeProgressInformation.class);
     }
 
     private static void unwrapContentServiceConnectionException(final RuntimeException e) throws ContentServiceConnectionException {

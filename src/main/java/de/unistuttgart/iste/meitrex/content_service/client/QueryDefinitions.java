@@ -77,10 +77,21 @@ public class QueryDefinitions {
             }
             """;
 
+    public static final String PROGRESS_BY_CHAPTER_ID = """
+            query($chapterId: UUID!, $userId: UUID!) {
+                _internal_noauth_progressByChapterId(chapterId: $chapterId, userId: $userId) {
+                    completedContents
+                    totalContents
+                    progress
+                }
+            }
+            """;
+
     public static final String CONTENTS_BY_COURSE_ID_QUERY_NAME = "_internal_noauth_contentsByCourseIds";
 
     public static final String CONTENTS_BY_CHAPTER_ID_QUERY_NAME = "_internal_noauth_contentsByChapterIds";
 
     public static final String CONTENTS_BY_CONTENT_IDS_QUERY_NAME = "_internal_noauth_contentsByIds";
 
+    public static final String PROGRESS_BY_CHAPTER_ID_QUERY_NAME = "_internal_noauth_progressByChapterId";
 }

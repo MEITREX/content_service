@@ -4,9 +4,12 @@ import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.meitrex.content_service.TestData;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.MediaContentEntity;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
+import io.dapr.actors.runtime.ActorStateManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import java.util.UUID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * This class is used to test the ContentServiceClient.
@@ -35,6 +39,9 @@ class ContentServiceClientTest {
 
     @Autowired
     private ContentRepository contentRepository;
+
+    @Autowired
+    private UserProgressDataRepository userProgressDataRepository;
 
     @BeforeEach
     void setUp() {
@@ -105,6 +112,25 @@ class ContentServiceClientTest {
         final var types = actualContents.stream().map(Content::getMetadata).map(ContentMetadata::getType).toList();
 
         assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ));
+    }
+
+    @Test
+    void testQueryProgressByContentId() throws Exception {
+        final ContentServiceClient contentServiceClient = new ContentServiceClient(graphQlClient);
+        UUID userId = UUID.randomUUID();
+        UUID chapterId = UUID.randomUUID();
+        MediaContentEntity mediaContentEntity = contentRepository.save(TestData.buildContentEntity(chapterId));
+        MediaContentEntity mediaContentEntity1 = contentRepository.save(TestData.buildContentEntity(chapterId));
+
+        userProgressDataRepository.save(TestData.buildDummyUserProgressData(true, userId, mediaContentEntity.getId()));
+        userProgressDataRepository.save(TestData.buildDummyUserProgressData(false, userId, mediaContentEntity1.getId()));
+        final CompositeProgressInformation actualProgress = contentServiceClient.queryProgressByChapterId(userId, chapterId);
+        System.out.println(actualProgress.toString());
+
+        // we just check the types here exemplary, other fields are tested in the API tests
+        assertEquals(50.0, actualProgress.getProgress());
+        assertEquals(1, actualProgress.getCompletedContents());
+        assertEquals(2, actualProgress.getTotalContents());
     }
 
     private ContentEntity createMediaContentForChapter(final UUID courseId, final UUID chapterId) {

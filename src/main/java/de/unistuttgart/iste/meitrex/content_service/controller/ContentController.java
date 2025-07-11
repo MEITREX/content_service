@@ -185,6 +185,11 @@ public class ContentController {
         return userProgressDataService.getProgressByChapterIdsForUser(chapterIds, currentUser.getId());
     }
 
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "progressByChapterId")
+    public CompositeProgressInformation internalProgressByChapterId(@Argument final UUID chapterId, @Argument final UUID userId) {
+        return userProgressDataService.getProgressByChapterIdForUser(chapterId, userId);
+    }
+
 
     @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentWithNoSectionByChapterIds")
     public List<List<Content>> contentWithNoSectionByChapterIds(@Argument final List<UUID> chapterIds) {
