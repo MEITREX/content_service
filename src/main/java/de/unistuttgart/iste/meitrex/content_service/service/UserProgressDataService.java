@@ -263,6 +263,22 @@ public class UserProgressDataService {
         return chapterProgressItems;
     }
 
+    /**
+     * Method that calculated the progress of content for an individual user for each Chapter.
+     * The returned list of CompositeProgressInformation is sorted in the same order as the chapterIds list.
+     *
+     * @param chapterId  chapterId for which the progress has to be evaluated
+     * @param userId     the ID of the user for whom progress is evaluated
+     * @return Progress for each chapter, containing a percentage of progress, absolut number of content and completed content
+     */
+    public CompositeProgressInformation getProgressByChapterIdForUser(final UUID chapterId, final UUID userId) {
+        final List<Content> contentsByChapterIds = contentService.getContentsByChapterId(chapterId);
+
+        final int numCompletedContent = countNumCompletedContent(userId, contentsByChapterIds);
+
+        return createProgressInformation(contentsByChapterIds, numCompletedContent);
+    }
+
     public boolean isStageAvailableToBeWorkedOn(final UUID stageId, final UUID userId) {
         final Optional<Section> section = sectionService.findSectionOfStage(stageId);
 

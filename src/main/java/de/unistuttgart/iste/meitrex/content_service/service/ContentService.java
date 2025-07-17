@@ -133,6 +133,19 @@ public class ContentService {
     }
 
     /**
+     * Returns a list of lists of contents for the given chapter id.
+     *
+     * @param chapterId id of the chapter to get the contents for
+     * @return a list of lists of contents. The order of the lists will match the order of the given chapter ids.
+     */
+    public List<Content> getContentsByChapterId(final UUID chapterId) {
+        return contentRepository.findByChapterIdIn(List.of(chapterId))
+                .stream()
+                .map(contentMapper::entityToDto)
+                .toList();
+    }
+
+    /**
      * creates Link between Content Entity and Tag
      *
      * @param id      content ID

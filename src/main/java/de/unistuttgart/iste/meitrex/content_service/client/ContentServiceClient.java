@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.meitrex.content_service.client;
 
 import de.unistuttgart.iste.meitrex.content_service.exception.ContentServiceConnectionException;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ItemEntity;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.Converter;
@@ -58,6 +59,7 @@ public class ContentServiceClient {
         return List.of(); // unreachable
     }
 
+
     /**
      * Queries the content service for all contents of the given course.
      *
@@ -83,6 +85,47 @@ public class ContentServiceClient {
             unwrapContentServiceConnectionException(e);
         }
         return List.of(); // unreachable
+    }
+
+    /**
+     * Queries the content service for all contents of the given chapter.
+     *
+     * @param userId    the id of the user for which to query the progress data
+     * @param contentIds the ids of the content
+     * @return List of content with the given ids
+     * @throws ContentServiceConnectionException if the connection to the content
+     *                                           service fails or any other error occurs
+     */
+    public List<Content> queryContentsByIds(final UUID userId, final List<UUID> contentIds) throws ContentServiceConnectionException {
+        log.info("Querying content with ids {}", contentIds);
+
+
+        return graphQlClient.document(QueryDefinitions.CONTENTS_BY_CONTENT_IDS_QUERY)
+                .variable("ids", contentIds)
+                .variable("userId", userId)
+                .execute()
+                .handle((ClientGraphQlResponse result, SynchronousSink<List<Content>> sink)
+                            -> handleContentServiceResponseContent(result, sink, QueryDefinitions.CONTENTS_BY_CONTENT_IDS_QUERY_NAME))
+                .retry(RETRY_COUNT)
+                .block();
+    }
+
+    /**
+     * Queries the content service for the progress of the given chapter.
+     *
+     * @param userId    the id of the user for which to query the progress data
+     * @param chapterId the id of the chapter
+     * @return List of content with the given ids
+     * @throws ContentServiceConnectionException if the connection to the content
+     *                                           service fails or any other error occurs
+     */
+    public CompositeProgressInformation queryProgressByChapterId(final UUID userId, final UUID chapterId) throws ContentServiceConnectionException {
+        log.info("Querying chapter progress with for chapter with the id {}", chapterId);
+        return graphQlClient.document(QueryDefinitions.PROGRESS_BY_CHAPTER_ID)
+                .variable("chapterId", chapterId)
+                .variable("userId", userId)
+                .retrieveSync(QueryDefinitions.PROGRESS_BY_CHAPTER_ID_QUERY_NAME)
+                .toEntity(CompositeProgressInformation.class);
     }
 
     /**
@@ -123,6 +166,40 @@ public class ContentServiceClient {
         }
         // if the exception is not a ContentServiceConnectionException, we don't know how to handle it
         throw e;
+    }
+
+    private void handleContentServiceResponseContent(final ClientGraphQlResponse result,
+                                                     final SynchronousSink <List<Content>> sink,
+                                                     final String queryName){
+        log.info(result.toString());
+        if (!result.isValid()) {
+            sink.error(new ContentServiceConnectionException(
+                    "Error while fetching contents from content service: Invalid response.",
+                    result.getErrors()));
+            return;
+        }
+        final List<Content> retrievedContents;
+        try {
+            retrievedContents = convertResponseContentToListOfContent(result, queryName);
+        } catch (final ContentServiceConnectionException e) {
+            sink.error(e);
+            return;
+        }
+
+        sink.next(retrievedContents);
+    }
+
+    private List<Content> convertResponseContentToListOfContent(final ClientGraphQlResponse result,
+                                                         final String queryName)
+            throws ContentServiceConnectionException {
+        final List<Map<String, Object>> contentFields = result.field(queryName).getValue();
+
+        if (contentFields == null) {
+            throw new ContentServiceConnectionException(
+                    "Error while fetching contents from content service: Missing field in response.");
+        }
+
+        return createContentObjects(contentFields);
     }
 
     private void handleContentServiceResponse(final ClientGraphQlResponse result,

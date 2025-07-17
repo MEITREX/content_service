@@ -41,6 +41,11 @@ public class ContentController {
         return contents;
     }
 
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentsByIds")
+    public List<Content> contentById(@Argument final List<UUID> ids) {
+        return contentService.getContentsById(ids);
+    }
+
     @QueryMapping
     public List<List<Content>> contentsByCourseIds(@Argument final List<UUID> courseIds,
                                                    @ContextValue final LoggedInUser currentUser) {
@@ -53,6 +58,7 @@ public class ContentController {
     public List<List<Content>> internalNoAuthContentsByCourseIds(@Argument final List<UUID> courseIds) {
         return contentService.getContentsByCourseIds(courseIds);
     }
+
 
     @QueryMapping
     public List<Content> findContentsByIds(@Argument final List<UUID> ids,
@@ -177,6 +183,11 @@ public class ContentController {
     public List<CompositeProgressInformation> internalProgressByChapterIds(@Argument final List<UUID> chapterIds,
                                                                            @ContextValue final LoggedInUser currentUser) {
         return userProgressDataService.getProgressByChapterIdsForUser(chapterIds, currentUser.getId());
+    }
+
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "progressByChapterId")
+    public CompositeProgressInformation internalProgressByChapterId(@Argument final UUID chapterId, @Argument final UUID userId) {
+        return userProgressDataService.getProgressByChapterIdForUser(chapterId, userId);
     }
 
 
