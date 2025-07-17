@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.meitrex.content_service.client;
 
 import de.unistuttgart.iste.meitrex.content_service.exception.ContentServiceConnectionException;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ItemEntity;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.Converter;
@@ -127,6 +128,37 @@ public class ContentServiceClient {
                 .toEntity(CompositeProgressInformation.class);
     }
 
+    /**
+     * Queries the content service for all content Ids of the given course.
+     * @param courseId the id of the course for which to query the contents
+     * @return a list of UUIDs of the contents in the given course
+     * @throws ContentServiceConnectionException if the connection to the content
+     *                                           service fails or any other error occurs
+     */
+    public List<UUID> queryContentIdsOfCourse(final UUID courseId) throws ContentServiceConnectionException {
+        log.info("Querying content Ids of course with id {}", courseId);
+
+        try {
+            return graphQlClient.document(QueryDefinitions.CONTENT_IDS_BY_COURSE_IDS_QUERY)
+                    .variable("courseIds", List.of(courseId))
+                    .execute()
+                    .handle((ClientGraphQlResponse result, SynchronousSink<List<UUID>> sink) -> {
+                        try {
+                            List<UUID> ids = convertResponseToListOfUUIDs(result, QueryDefinitions.CONTENTS_BY_COURSE_ID_QUERY_NAME);
+                            sink.next(ids);
+                            sink.complete();
+                        } catch (Exception e) {
+                            sink.error(e);
+                        }
+                    })
+                    .retry(RETRY_COUNT)
+                    .block();
+        } catch (final RuntimeException e) {
+            unwrapContentServiceConnectionException(e);
+        }
+        return List.of();
+    }
+
     private static void unwrapContentServiceConnectionException(final RuntimeException e) throws ContentServiceConnectionException {
         // block wraps exceptions in a RuntimeException, so we need to unwrap them
         if (e.getCause() instanceof final ContentServiceConnectionException contentServiceConnectionException) {
@@ -229,6 +261,22 @@ public class ContentServiceClient {
         return retrievedContents;
     }
 
+    private List<UUID> convertResponseToListOfUUIDs(final ClientGraphQlResponse result, final String queryName)
+            throws ContentServiceConnectionException {
+        // Extract the list of id maps from the response
+        final List<Map<String, String>> contentIdMaps = result.field(queryName + "[0]").getValue();
+
+        if (contentIdMaps == null) {
+            throw new ContentServiceConnectionException(
+                    "Error while fetching contents from content service: Missing field in response.");
+        }
+
+        // Convert each map to UUID by reading the "id" field
+        return contentIdMaps.stream()
+                .map(map -> UUID.fromString(map.get("id")))
+                .toList();
+    }
+
     private AssessmentMetadata getAssessmentMetadata(final Map<String, Object> contentField) {
         return modelMapper.map(contentField.get("assessmentMetadata"), AssessmentMetadata.class);
     }
@@ -267,6 +315,16 @@ public class ContentServiceClient {
             }
             case QUIZ -> {
                 return new QuizAssessment(
+                        assessmentMetadata,
+                        id,
+                        metadata,
+                        progressDataForUser,
+                        items,
+                        isAvailableToBeWorkedOn);
+            }
+            case ASSIGNMENT ->
+            {
+                return new  AssignmentAssessment(
                         assessmentMetadata,
                         id,
                         metadata,

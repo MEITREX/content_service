@@ -49,8 +49,8 @@ public class QueryDefinitions {
                     }
                 }
             }
-            
-            
+               
+                        
             """;
 
     public static final String CONTENTS_BY_COURSE_IDS_QUERY = CONTENTS_FRAGMENT + """
@@ -83,6 +83,14 @@ public class QueryDefinitions {
                     completedContents
                     totalContents
                     progress
+                }
+            }
+            """;
+
+    public static final String CONTENT_IDS_BY_COURSE_IDS_QUERY = """
+            query($courseIds: [UUID!]!) {
+                _internal_noauth_contentsByCourseIds(courseIds: $courseIds) {
+                    id
                 }
             }
             """;

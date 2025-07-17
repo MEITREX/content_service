@@ -246,6 +246,10 @@ public class ContentController {
     public class QuizAssessmentResolver extends ContentResolver<QuizAssessment> {
     }
 
+    @Controller
+    public class AssignmentAssessmentResolver extends ContentResolver<AssignmentAssessment> {
+    }
+
     private void validateReadAccessToContents(final LoggedInUser currentUser, final List<Content> contents) {
         validateUserHasAccessToCourses(currentUser, UserRoleInCourse.STUDENT,
                 contents.stream().map(content -> content.getMetadata().getCourseId()));
