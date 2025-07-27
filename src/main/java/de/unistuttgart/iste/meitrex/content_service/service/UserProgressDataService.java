@@ -6,10 +6,7 @@ import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.StageMapper;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ItemRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +32,9 @@ public class UserProgressDataService {
     private final TopicPublisher topicPublisher;
     private final SectionRepository sectionRepository;
     private final StageRepository stageRepository;
+    private final MessageSequenceNoEntityRepository messageSequenceNoEntityRepository;
+
+
     private final StageMapper stageMapper;
     private final ContentMapper contentMapper;
 
@@ -105,9 +105,12 @@ public class UserProgressDataService {
 
         final var logItem = userProgressDataMapper.eventToEmbeddable(contentProgressedEvent);
         logItem.setTimestamp(OffsetDateTime.now());
-        userProgressDataEntity.getProgressLog().add(logItem);
+        final List<ProgressLogItemEmbeddable> progressLogList = userProgressDataEntity.getProgressLog();
+        progressLogList.add(logItem);
 
         userProgressDataRepository.save(userProgressDataEntity);
+
+
 
         final Content content = contentService.getContentsById(List.of(contentProgressedEvent.getContentId())).get(0);
         List<ItemResponse> itemResponses = new ArrayList<>();
@@ -115,8 +118,10 @@ public class UserProgressDataService {
             itemResponses = createItemResponsesList(contentProgressedEvent);
         }
 
-        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content, itemResponses));
+        final int attemptCount = progressLogList.size();
+        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content, itemResponses, attemptCount));
     }
+
 
     /**
      * adds the item specific information to the responses
@@ -149,9 +154,15 @@ public class UserProgressDataService {
         return itemResponses;
     }
 
-    private UserProgressUpdatedEvent createUserProgressUpdatedEvent(final ContentProgressedEvent event,
-                                                                    final Content content,
-                                                                    final List<ItemResponse> itemResponses) {
+    private UserProgressUpdatedEvent createUserProgressUpdatedEvent(
+            final ContentProgressedEvent event,
+            final Content content,
+            final List<ItemResponse> itemResponses,
+            final int attemptCount
+    ) {
+        final Long sequenceNo = this.fetchNextMessageSequenceNo();
+
+
         return UserProgressUpdatedEvent.builder()
                 .userId(event.getUserId())
                 .contentId(event.getContentId())
@@ -162,6 +173,8 @@ public class UserProgressDataService {
                 .hintsUsed(event.getHintsUsed())
                 .timeToComplete(event.getTimeToComplete())
                 .responses(itemResponses)
+                .sequenceNo(sequenceNo)
+                .attempt(attemptCount)
                 .build();
     }
 
@@ -371,5 +384,10 @@ public class UserProgressDataService {
                 .toList();
 
         return countAsInt(userProgressDataOfContents, UserProgressData::getIsLearned);
+    }
+
+    private Long fetchNextMessageSequenceNo() {
+        final MessageSequenceNoEntity sequenceNoEntity = this.messageSequenceNoEntityRepository.save(new MessageSequenceNoEntity());
+        return sequenceNoEntity.getSequenceNo();
     }
 }
