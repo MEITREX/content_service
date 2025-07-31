@@ -1,0 +1,193 @@
+From 23fb64949e74bfa0b5217059246293d6c0b060b0 Mon Sep 17 00:00:00 2001
+From: Philipp Kunz <philipp_kunz@outlook.com>
+Date: Sun, 27 Jul 2025 23:35:22 +0200
+Subject: [PATCH] Added sequence no and attempt count to
+ UserProgressUpdatedEvent.
+
+---
+ build.gradle                                  |  2 +-
+ .../entity/MessageSequenceNoEntity.java       | 22 ++++++++++++
+ .../MessageSequenceNoEntityRepository.java    | 12 +++++++
+ .../service/UserProgressDataService.java      | 36 ++++++++++++++-----
+ src/main/resources/application.properties     |  2 +-
+ src/test/resources/application.properties     |  2 +-
+ 6 files changed, 64 insertions(+), 12 deletions(-)
+ create mode 100644 src/main/java/de/unistuttgart/iste/meitrex/content_service/persistence/entity/MessageSequenceNoEntity.java
+ create mode 100644 src/main/java/de/unistuttgart/iste/meitrex/content_service/persistence/repository/MessageSequenceNoEntityRepository.java
+
+diff --git a/build.gradle b/build.gradle
+index 176118a..8b7597f 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -110,7 +110,7 @@ repositories {
+ 
+ dependencies {
+ 
+-	implementation 'de.unistuttgart.iste.meitrex:meitrex-common:1.2.6'
++	implementation 'de.unistuttgart.iste.meitrex:meitrex-common'
+ 	implementation 'com.google.code.findbugs:jsr305:3.0.2' // removes a gradle warning about an unknown annotation
+ 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+ 	implementation 'org.springframework.boot:spring-boot-starter-graphql'
+diff --git a/src/main/java/de/unistuttgart/iste/meitrex/content_service/persistence/entity/MessageSequenceNoEntity.java b/src/main/java/de/unistuttgart/iste/meitrex/content_service/persistence/entity/MessageSequenceNoEntity.java
+new file mode 100644
+index 0000000..82cb0a2
+--- /dev/null
++++ b/src/main/java/de/unistuttgart/iste/meitrex/content_service/persistence/entity/MessageSequenceNoEntity.java
+@@ -0,0 +1,22 @@
++package de.unistuttgart.iste.meitrex.content_service.persistence.entity;
++
++import jakarta.persistence.*;
++import lombok.*;
++import lombok.experimental.SuperBuilder;
++
++
++@Entity(name = "MessageSequenceNoEntity")
++@NoArgsConstructor
++@SuperBuilder
++@Getter
++@Setter
++@EqualsAndHashCode
++@ToString(callSuper = true)
++public class MessageSequenceNoEntity {
++
++    @Id
++    @Column(name="sequence_no")
++    @GeneratedValue
++    private Long sequenceNo;
++
++}
+diff --git a/src/main/java/de/unistuttgart/iste/meitrex/content_service/persistence/repository/MessageSequenceNoEntityRepository.java b/src/main/java/de/unistuttgart/iste/meitrex/content_service/persistence/repository/MessageSequenceNoEntityRepository.java
+new file mode 100644
+index 0000000..896e0c6
+--- /dev/null
++++ b/src/main/java/de/unistuttgart/iste/meitrex/content_service/persistence/repository/MessageSequenceNoEntityRepository.java
+@@ -0,0 +1,12 @@
++package de.unistuttgart.iste.meitrex.content_service.persistence.repository;
++
++import de.unistuttgart.iste.meitrex.common.persistence.MeitrexRepository;
++import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
++import de.unistuttgart.iste.meitrex.content_service.persistence.entity.MessageSequenceNoEntity;
++import org.springframework.data.jpa.repository.JpaRepository;
++
++import java.util.UUID;
++
++public interface MessageSequenceNoEntityRepository extends JpaRepository<MessageSequenceNoEntity, Long> {
++
++}
+diff --git a/src/main/java/de/unistuttgart/iste/meitrex/content_service/service/UserProgressDataService.java b/src/main/java/de/unistuttgart/iste/meitrex/content_service/service/UserProgressDataService.java
+index b3dd837..7796822 100644
+--- a/src/main/java/de/unistuttgart/iste/meitrex/content_service/service/UserProgressDataService.java
++++ b/src/main/java/de/unistuttgart/iste/meitrex/content_service/service/UserProgressDataService.java
+@@ -6,10 +6,7 @@ import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+ import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
+ import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.StageMapper;
+ import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
+-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ItemRepository;
+-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
+-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
+-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
++import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
+ import de.unistuttgart.iste.meitrex.generated.dto.*;
+ import lombok.RequiredArgsConstructor;
+ import lombok.extern.slf4j.Slf4j;
+@@ -35,6 +32,9 @@ public class UserProgressDataService {
+     private final TopicPublisher topicPublisher;
+     private final SectionRepository sectionRepository;
+     private final StageRepository stageRepository;
++    private final MessageSequenceNoEntityRepository messageSequenceNoEntityRepository;
++
++
+     private final StageMapper stageMapper;
+     private final ContentMapper contentMapper;
+ 
+@@ -105,19 +105,24 @@ public class UserProgressDataService {
+ 
+         final var logItem = userProgressDataMapper.eventToEmbeddable(contentProgressedEvent);
+         logItem.setTimestamp(OffsetDateTime.now());
+-        userProgressDataEntity.getProgressLog().add(logItem);
++        final List<ProgressLogItemEmbeddable> progressLogList = userProgressDataEntity.getProgressLog();
++        progressLogList.add(logItem);
+ 
+         userProgressDataRepository.save(userProgressDataEntity);
+ 
++
++
+         final Content content = contentService.getContentsById(List.of(contentProgressedEvent.getContentId())).get(0);
+         List<ItemResponse> itemResponses = new ArrayList<>();
+         if (contentProgressedEvent.getResponses() != null) {
+             itemResponses = createItemResponsesList(contentProgressedEvent);
+         }
+ 
+-        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content, itemResponses));
++        final int attemptCount = progressLogList.size();
++        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content, itemResponses, attemptCount));
+     }
+ 
++
+     /**
+      * adds the item specific information to the responses
+      *
+@@ -149,9 +154,15 @@ public class UserProgressDataService {
+         return itemResponses;
+     }
+ 
+-    private UserProgressUpdatedEvent createUserProgressUpdatedEvent(final ContentProgressedEvent event,
+-                                                                    final Content content,
+-                                                                    final List<ItemResponse> itemResponses) {
++    private UserProgressUpdatedEvent createUserProgressUpdatedEvent(
++            final ContentProgressedEvent event,
++            final Content content,
++            final List<ItemResponse> itemResponses,
++            final int attemptCount
++    ) {
++        final Long sequenceNo = this.fetchNextMessageSequenceNo();
++
++
+         return UserProgressUpdatedEvent.builder()
+                 .userId(event.getUserId())
+                 .contentId(event.getContentId())
+@@ -162,6 +173,8 @@ public class UserProgressDataService {
+                 .hintsUsed(event.getHintsUsed())
+                 .timeToComplete(event.getTimeToComplete())
+                 .responses(itemResponses)
++                .sequenceNo(sequenceNo)
++                .attempt(attemptCount)
+                 .build();
+     }
+ 
+@@ -372,4 +385,9 @@ public class UserProgressDataService {
+ 
+         return countAsInt(userProgressDataOfContents, UserProgressData::getIsLearned);
+     }
++
++    private Long fetchNextMessageSequenceNo() {
++        final MessageSequenceNoEntity sequenceNoEntity = this.messageSequenceNoEntityRepository.save(new MessageSequenceNoEntity());
++        return sequenceNoEntity.getSequenceNo();
++    }
+ }
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+index 8a3aaaf..b2b6b6f 100644
+--- a/src/main/resources/application.properties
++++ b/src/main/resources/application.properties
+@@ -1,5 +1,5 @@
+ # for deployment or when using docker compose = prod, for local development = dev
+-spring.profiles.active=prod
++spring.profiles.active=dev
+ # enable graphiql (graphiql is a web interface for exploring GraphQL)
+ spring.graphql.graphiql.enabled=true
+ spring.graphql.graphiql.path=/graphiql
+diff --git a/src/test/resources/application.properties b/src/test/resources/application.properties
+index 26a2c59..4b39364 100644
+--- a/src/test/resources/application.properties
++++ b/src/test/resources/application.properties
+@@ -1,5 +1,5 @@
+ 
+-spring.datasource.url=jdbc:tc:postgresql:///content-service
++spring.datasource.url=jdbc:tc:postgresql:///content_service
+ spring.datasource.username=root
+ spring.datasource.password=root
+ spring.jpa.hibernate.ddl-auto=create
+\ No newline at end of file
+-- 
+2.43.0
+
