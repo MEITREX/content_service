@@ -10,9 +10,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.data.method.annotation.*;
 import org.springframework.stereotype.Controller;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static de.unistuttgart.iste.meitrex.common.user_handling.UserCourseAccessValidator.validateUserHasAccessToCourse;
@@ -218,19 +221,27 @@ public class ContentController {
      * Abstract Resolver for all Content Types to avoid code duplication
      */
     public abstract class ContentResolver<T extends Content> {
-        @SchemaMapping(field = "userProgressData")
+        @SchemaMapping
         public UserProgressData userProgressData(final T content, @ContextValue final LoggedInUser currentUser) {
             return userProgressDataService.getUserProgressData(currentUser.getId(), content.getId());
         }
 
-        @SchemaMapping(field = "progressDataForUser")
+        @SchemaMapping
         public UserProgressData progressDataForUser(final T content, @Argument final UUID userId) {
             return userProgressDataService.getUserProgressData(userId, content.getId());
         }
 
-        @SchemaMapping(field = "isAvailableToBeWorkedOn")
+        @SchemaMapping
         public boolean isAvailableToBeWorkedOn(final T content, @ContextValue final LoggedInUser currentUser) {
             return userProgressDataService.isContentAvailableToBeWorkedOn(content.getId(), currentUser.getId());
+        }
+
+        @BatchMapping
+        public Map<T, Boolean> required(final List<T> content) {
+            List<UUID> requiredContents = contentService.getRequiredContentsIds(content.stream()
+                    .map(Content::getId)
+                    .toList());
+            return content.stream().collect(Collectors.toMap(x -> x, x -> requiredContents.contains(x.getId())));
         }
     }
 

@@ -21,6 +21,11 @@ interface Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    If this content is part of a stage (of a section), this field indicates whether the content is required to be
+    completed or optional. If the content is not part of a stage, this field is ignored.
+    """
+    required: Boolean
 }
 
 type ContentMetadata {
@@ -52,11 +57,6 @@ type ContentMetadata {
     TagNames this content is tagged with
     """
     tagNames: [String!]!
-    """
-    If this content is part of a stage (of a section), this field indicates whether the content is required to be
-    completed or optional. If the content is not part of a stage, this field is ignored.
-    """
-    required: Boolean
 }
 
 type MediaContent implements Content {
@@ -84,6 +84,11 @@ type MediaContent implements Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    If this content is part of a stage (of a section), this field indicates whether the content is required to be
+    completed or optional. If the content is not part of a stage, this field is ignored.
+    """
+    required: Boolean
 }
 
 interface Assessment implements Content {
@@ -119,6 +124,11 @@ interface Assessment implements Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    If this content is part of a stage (of a section), this field indicates whether the content is required to be
+    completed or optional. If the content is not part of a stage, this field is ignored.
+    """
+    required: Boolean
 }
 
 type AssessmentMetadata {
@@ -138,6 +148,11 @@ type AssessmentMetadata {
     is useful for assessments that are not meant to be repeated.
     """
     initialLearningInterval: Int
+    """
+    If this content is part of a stage (of a section), this field indicates whether the content is required to be
+    completed or optional. If the content is not part of a stage, this field is ignored.
+    """
+    required: Boolean
 }
 
 """
@@ -176,6 +191,11 @@ type FlashcardSetAssessment implements Assessment & Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    If this content is part of a stage (of a section), this field indicates whether the content is required to be
+    completed or optional. If the content is not part of a stage, this field is ignored.
+    """
+    required: Boolean
 }
 
 """
@@ -213,6 +233,11 @@ type QuizAssessment implements Assessment & Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    If this content is part of a stage (of a section), this field indicates whether the content is required to be
+    completed or optional. If the content is not part of a stage, this field is ignored.
+    """
+    required: Boolean
 }
 
 """
@@ -250,6 +275,11 @@ type AssignmentAssessment implements Assessment & Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    If this content is part of a stage (of a section), this field indicates whether the content is required to be
+    completed or optional. If the content is not part of a stage, this field is ignored.
+    """
+    required: Boolean
 }
 
 """

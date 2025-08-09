@@ -299,12 +299,14 @@ input UpdateStageInput{
     id: UUID!
 
     """
-    updated List of UUIDs for content labeled as required in this Stage
+    Updated List of UUIDs for content labeled as required in this Stage. If the content with the given UUID does not
+    exist, or does not exist in the current chapter, or is already added to another stage, that content is ignored.
     """
     requiredContents: [UUID!]!
 
     """
-    updated List of UUIDs for content labeled as optional in this Stage
+    Updated List of UUIDs for content labeled as optional in this Stage. If the content with the given UUID does not
+    exist, or does not exist in the current chapter, or is already added to another stage, that content is ignored.
     """
     optionalContents: [UUID!]!
 }
