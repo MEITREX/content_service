@@ -52,6 +52,11 @@ type ContentMetadata {
     TagNames this content is tagged with
     """
     tagNames: [String!]!
+    """
+    If this content is part of a stage (of a section), this field indicates whether the content is required to be
+    completed or optional. If the content is not part of a stage, this field is ignored.
+    """
+    required: Boolean
 }
 
 type MediaContent implements Content {

@@ -30,9 +30,9 @@ public class StageEntity {
     @Column(nullable = false)
     private int position;
 
-    @ManyToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.PERSIST)
     Set<ContentEntity> requiredContents;
 
-    @ManyToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.PERSIST)
     Set<ContentEntity> optionalContents;
 }
