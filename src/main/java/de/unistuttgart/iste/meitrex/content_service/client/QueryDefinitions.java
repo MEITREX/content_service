@@ -48,7 +48,6 @@ public class QueryDefinitions {
                         timeToComplete
                     }
                 }
-                isAvailableToBeWorkedOn
                 required
             }
             """;
