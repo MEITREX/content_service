@@ -276,10 +276,10 @@ type AssignmentAssessment implements Assessment & Content {
     """
     isAvailableToBeWorkedOn: Boolean!
     """
-    If this content is part of a stage (of a section), this field indicates whether the content is required to be
-    completed or optional. If the content is not part of a stage, this field is ignored.
+    If this content is part of a stage (of a section) and is required to be completed, this field is set to true.
+    If the content is optional or not part of a stage, this field is false.
     """
-    required: Boolean
+    required: Boolean!
 }
 
 """
