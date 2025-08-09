@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.data.method.annotation.*;
 import org.springframework.stereotype.Controller;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;

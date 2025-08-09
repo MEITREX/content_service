@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -21,6 +20,6 @@ public interface StageRepository extends JpaRepository<StageEntity, UUID> {
      */
     @Query("SELECT DISTINCT s FROM Stage s JOIN s.requiredContents rc WHERE rc.id IN :contentIds")
     List<StageEntity> findByRequiredContentIds(@Param("contentIds") List<UUID> contentIds);
-    
+
     List<StageEntity> findAllByRequiredContentsContainingOrOptionalContentsContaining(ContentEntity requiredContentEntity, ContentEntity optionalContentEntity);
 }
