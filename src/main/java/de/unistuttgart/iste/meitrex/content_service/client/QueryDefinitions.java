@@ -48,6 +48,7 @@ public class QueryDefinitions {
                         timeToComplete
                     }
                 }
+                _internal_noauth_isAvailableToBeWorkedOnForUser(userId: $userId)
                 required
             }
             """;

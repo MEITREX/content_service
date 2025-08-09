@@ -237,6 +237,11 @@ public class ContentController {
             return userProgressDataService.isContentAvailableToBeWorkedOn(content.getId(), currentUser.getId());
         }
 
+        @SchemaMapping(field = INTERNAL_NOAUTH_PREFIX + "isAvailableToBeWorkedOnForUser")
+        public boolean isAvailableToBeWorkedOnForUser(final T content, @Argument final UUID userId) {
+            return userProgressDataService.isContentAvailableToBeWorkedOn(content.getId(), userId);
+        }
+
         @BatchMapping
         public Map<T, Boolean> required(final List<T> content) {
             List<UUID> requiredContents = stageService.getRequiredContentsIds(content.stream()

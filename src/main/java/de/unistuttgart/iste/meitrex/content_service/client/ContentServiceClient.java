@@ -288,7 +288,7 @@ public class ContentServiceClient {
     }
 
     private boolean getIsAvailableToBeWorkedOn(final Map<String, Object> contentField) {
-        return Boolean.TRUE.equals(contentField.get("isAvailableToBeWorkedOn"));
+        return Boolean.TRUE.equals(contentField.get("_internal_noauth_isAvailableToBeWorkedOnForUser"));
     }
 
     private boolean getIsRequired(final Map<String, Object> contentField) {
