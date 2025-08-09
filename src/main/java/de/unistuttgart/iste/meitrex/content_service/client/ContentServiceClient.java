@@ -246,6 +246,7 @@ public class ContentServiceClient {
             final UUID id = getId(contentField);
             final UserProgressData progressDataForUser = getProgressDataForUser(contentField);
             final boolean isAvailableToBeWorkedOn = getIsAvailableToBeWorkedOn(contentField);
+            final boolean isRequired = getIsRequired(contentField);
 
             AssessmentMetadata assessmentMetadata = null;
             if (contentField.containsKey("assessmentMetadata")) {
@@ -256,7 +257,8 @@ public class ContentServiceClient {
                     assessmentMetadata,
                     id,
                     progressDataForUser,
-                    isAvailableToBeWorkedOn));
+                    isAvailableToBeWorkedOn,
+                    isRequired));
         }
         return retrievedContents;
     }
@@ -289,6 +291,10 @@ public class ContentServiceClient {
         return Boolean.TRUE.equals(contentField.get("isAvailableToBeWorkedOn"));
     }
 
+    private boolean getIsRequired(final Map<String, Object> contentField) {
+        return Boolean.TRUE.equals(contentField.get("required"));
+    }
+
     private UUID getId(final Map<String, Object> contentField) {
         return UUID.fromString((String) contentField.get("id"));
     }
@@ -301,7 +307,8 @@ public class ContentServiceClient {
                                                   final AssessmentMetadata assessmentMetadata,
                                                   final UUID id,
                                                   final UserProgressData progressDataForUser,
-                                                  final boolean isAvailableToBeWorkedOn) {
+                                                  final boolean isAvailableToBeWorkedOn,
+                                                  final boolean isRequired) {
         List<Item> items = new ArrayList<>();
         switch (metadata.getType()) {
             case FLASHCARDS -> {
@@ -311,7 +318,9 @@ public class ContentServiceClient {
                         metadata,
                         progressDataForUser,
                         items,
-                        isAvailableToBeWorkedOn);
+                        isAvailableToBeWorkedOn,
+                        isRequired
+                );
             }
             case QUIZ -> {
                 return new QuizAssessment(
@@ -320,7 +329,9 @@ public class ContentServiceClient {
                         metadata,
                         progressDataForUser,
                         items,
-                        isAvailableToBeWorkedOn);
+                        isAvailableToBeWorkedOn,
+                        isRequired
+                );
             }
             case ASSIGNMENT ->
             {
@@ -330,10 +341,18 @@ public class ContentServiceClient {
                         metadata,
                         progressDataForUser,
                         items,
-                        isAvailableToBeWorkedOn);
+                        isAvailableToBeWorkedOn,
+                        isRequired
+                );
             }
             case MEDIA -> {
-                return new MediaContent(id, metadata, progressDataForUser, isAvailableToBeWorkedOn);
+                return new MediaContent(
+                        id,
+                        metadata,
+                        progressDataForUser,
+                        isAvailableToBeWorkedOn,
+                        isRequired
+                );
             }
             default -> throw new IllegalArgumentException("Unknown assessment type: " + metadata.getType());
         }

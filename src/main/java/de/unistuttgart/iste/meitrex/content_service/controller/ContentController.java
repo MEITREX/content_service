@@ -33,6 +33,7 @@ public class ContentController {
     private final ContentService contentService;
     private final UserProgressDataService userProgressDataService;
     private final SuggestionService suggestionService;
+    private final StageService stageService;
 
     @QueryMapping
     public List<Content> contentsByIds(@Argument final List<UUID> ids,
@@ -238,7 +239,7 @@ public class ContentController {
 
         @BatchMapping
         public Map<T, Boolean> required(final List<T> content) {
-            List<UUID> requiredContents = contentService.getRequiredContentsIds(content.stream()
+            List<UUID> requiredContents = stageService.getRequiredContentsIds(content.stream()
                     .map(Content::getId)
                     .toList());
             return content.stream().collect(Collectors.toMap(x -> x, x -> requiredContents.contains(x.getId())));

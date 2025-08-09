@@ -181,6 +181,23 @@ public class StageService {
     }
 
     /**
+     * For the given list of content IDs, this method checks if the contents are required contents in any stage. If the
+     * content is required, its ID is added to the result list. Otherwise, i.e. if it is an optional content or not
+     * part of any stage, it is not added to the result list.
+     * @param contentIds the list of content IDs to check
+     * @return a list of content IDs that are required contents in any stage
+     */
+    public List<UUID> getRequiredContentsIds(List<UUID> contentIds) {
+        List<StageEntity> stages = stageRepository.findByRequiredContentIds(contentIds);
+
+        return contentIds.stream()
+                .filter(c -> stages.stream()
+                        .anyMatch(stage -> stage.getRequiredContents().stream()
+                                .anyMatch(content -> content.getId().equals(c))))
+                .toList();
+    }
+
+    /**
      * Checks if a Stage exists.
      *
      * @param uuid The id of the Stage to check.
