@@ -21,6 +21,16 @@ interface Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    For the user with the given id, returns true if this content could be worked on by the user (i.e. it is not locked),
+    false if content is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    _internal_noauth_isAvailableToBeWorkedOnForUser(userId: UUID!): Boolean!
+    """
+    If this content is part of a stage (of a section) and is required to be completed, this field is set to true.
+    If the content is optional or not part of a stage, this field is false.
+    """
+    required: Boolean!
 }
 
 type ContentMetadata {
@@ -79,6 +89,16 @@ type MediaContent implements Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    For the user with the given id, returns true if this content could be worked on by the user (i.e. it is not locked),
+    false if content is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    _internal_noauth_isAvailableToBeWorkedOnForUser(userId: UUID!): Boolean!
+    """
+    If this content is part of a stage (of a section) and is required to be completed, this field is set to true.
+    If the content is optional or not part of a stage, this field is false.
+    """
+    required: Boolean!
 }
 
 interface Assessment implements Content {
@@ -114,6 +134,16 @@ interface Assessment implements Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    For the user with the given id, returns true if this content could be worked on by the user (i.e. it is not locked),
+    false if content is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    _internal_noauth_isAvailableToBeWorkedOnForUser(userId: UUID!): Boolean!
+    """
+    If this content is part of a stage (of a section) and is required to be completed, this field is set to true.
+    If the content is optional or not part of a stage, this field is false.
+    """
+    required: Boolean!
 }
 
 type AssessmentMetadata {
@@ -133,6 +163,11 @@ type AssessmentMetadata {
     is useful for assessments that are not meant to be repeated.
     """
     initialLearningInterval: Int
+    """
+    If this content is part of a stage (of a section) and is required to be completed, this field is set to true.
+    If the content is optional or not part of a stage, this field is false.
+    """
+    required: Boolean!
 }
 
 """
@@ -171,6 +206,16 @@ type FlashcardSetAssessment implements Assessment & Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    For the user with the given id, returns true if this content could be worked on by the user (i.e. it is not locked),
+    false if content is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    _internal_noauth_isAvailableToBeWorkedOnForUser(userId: UUID!): Boolean!
+    """
+    If this content is part of a stage (of a section) and is required to be completed, this field is set to true.
+    If the content is optional or not part of a stage, this field is false.
+    """
+    required: Boolean!
 }
 
 """
@@ -208,6 +253,16 @@ type QuizAssessment implements Assessment & Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    For the user with the given id, returns true if this content could be worked on by the user (i.e. it is not locked),
+    false if content is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    _internal_noauth_isAvailableToBeWorkedOnForUser(userId: UUID!): Boolean!
+    """
+    If this content is part of a stage (of a section) and is required to be completed, this field is set to true.
+    If the content is optional or not part of a stage, this field is false.
+    """
+    required: Boolean!
 }
 
 """
@@ -245,6 +300,16 @@ type AssignmentAssessment implements Assessment & Content {
     if content is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+    """
+    For the user with the given id, returns true if this content could be worked on by the user (i.e. it is not locked),
+    false if content is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    _internal_noauth_isAvailableToBeWorkedOnForUser(userId: UUID!): Boolean!
+    """
+    If this content is part of a stage (of a section) and is required to be completed, this field is set to true.
+    If the content is optional or not part of a stage, this field is false.
+    """
+    required: Boolean!
 }
 
 """

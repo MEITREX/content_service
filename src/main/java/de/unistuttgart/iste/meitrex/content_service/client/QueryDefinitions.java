@@ -31,7 +31,7 @@ public class QueryDefinitions {
                         }
                         associatedBloomLevels
                      }
-                 }
+                }
                 progressDataForUser(userId: $userId) {
                     userId
                     contentId
@@ -48,9 +48,9 @@ public class QueryDefinitions {
                         timeToComplete
                     }
                 }
+                _internal_noauth_isAvailableToBeWorkedOnForUser(userId: $userId)
+                required
             }
-               
-                        
             """;
 
     public static final String CONTENTS_BY_COURSE_IDS_QUERY = CONTENTS_FRAGMENT + """
