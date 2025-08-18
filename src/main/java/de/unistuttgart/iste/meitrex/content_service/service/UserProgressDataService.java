@@ -134,10 +134,7 @@ public class UserProgressDataService {
             for (SkillEntity skillEntity : skillEntities) {
                 skillIds.add(skillEntity.getId());
             }
-            List<LevelOfBloomsTaxonomy> bloomLevelsForEvent = new ArrayList<LevelOfBloomsTaxonomy>();
-            for (BloomLevel level : item.getAssociatedBloomLevels()) {
-                bloomLevelsForEvent.add(mapBloomsTaxonomy(level));
-            }
+            List<BloomLevel> bloomLevelsForEvent = new ArrayList<>(item.getAssociatedBloomLevels());
             ItemResponse itemResponse = ItemResponse.builder()
                     .itemId(response.getItemId())
                     .response(response.getResponse())
@@ -163,17 +160,6 @@ public class UserProgressDataService {
                 .timeToComplete(event.getTimeToComplete())
                 .responses(itemResponses)
                 .build();
-    }
-
-    private LevelOfBloomsTaxonomy mapBloomsTaxonomy(BloomLevel bloomLevel) {
-        return switch (bloomLevel) {
-            case UNDERSTAND -> LevelOfBloomsTaxonomy.UNDERSTAND;
-            case REMEMBER -> LevelOfBloomsTaxonomy.REMEMBER;
-            case APPLY -> LevelOfBloomsTaxonomy.APPLY;
-            case ANALYZE -> LevelOfBloomsTaxonomy.ANALYZE;
-            case EVALUATE -> LevelOfBloomsTaxonomy.EVALUATE;
-            case CREATE -> LevelOfBloomsTaxonomy.CREATE;
-        };
     }
 
     /**
