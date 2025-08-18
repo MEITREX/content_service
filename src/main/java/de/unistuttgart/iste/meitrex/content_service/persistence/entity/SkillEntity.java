@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.meitrex.content_service.persistence.entity;
 
 
+import de.unistuttgart.iste.meitrex.common.persistence.IWithId;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SkillEntity {
+public class SkillEntity implements IWithId<UUID> {
     @Column(name = "skill_id", nullable = false)
     @Id
     @GeneratedValue

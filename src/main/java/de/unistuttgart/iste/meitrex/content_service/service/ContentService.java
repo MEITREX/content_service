@@ -4,6 +4,7 @@ package de.unistuttgart.iste.meitrex.content_service.service;
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
+import de.unistuttgart.iste.meitrex.common.event.skilllevels.SkillEntityChangedEvent;
 import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
@@ -253,6 +254,12 @@ public class ContentService {
                     skills.add(skillRepository.findById(skill.getId()).get());
                 } else {
                     skills.add(skillRepository.save(skill));
+                    topicPublisher.notifySkillEntityChanged(SkillEntityChangedEvent.builder()
+                            .skillId(skill.getId())
+                            .skillName(skill.getSkillName())
+                            .skillCategory(skill.getSkillCategory())
+                            .operation(CrudOperation.CREATE)
+                            .build());
                 }
             }
             item.setAssociatedSkills(skills);
@@ -441,7 +448,15 @@ public class ContentService {
                 return;
             }
         }
-        skillRepository.deleteById(skillId);
+        skillRepository.findById(skillId).ifPresent(skill -> {
+            skillRepository.delete(skill);
+            topicPublisher.notifySkillEntityChanged(SkillEntityChangedEvent.builder()
+                    .skillId(skillId)
+                    .skillName(skill.getSkillName())
+                    .skillCategory(skill.getSkillCategory())
+                    .operation(CrudOperation.DELETE)
+                    .build());
+        });
     }
 
     /**
@@ -506,7 +521,15 @@ public class ContentService {
     private void deleteSkillWhenNoOtherItemUsesTheSkill(UUID itemId, UUID skillId) {
         List<ItemEntity> itemsForSkill = itemRepository.findByAssociatedSkills_Id(skillId);
         if (itemsForSkill.size() == 1 && itemsForSkill.get(0).getId() == itemId) {
-            skillRepository.deleteById(skillId);
+            skillRepository.findById(skillId).ifPresent(skill -> {
+                skillRepository.delete(skill);
+                topicPublisher.notifySkillEntityChanged(SkillEntityChangedEvent.builder()
+                        .skillId(skillId)
+                        .skillName(skill.getSkillName())
+                        .skillCategory(skill.getSkillCategory())
+                        .operation(CrudOperation.DELETE)
+                        .build());
+            });
         }
     }
 
