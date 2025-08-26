@@ -242,24 +242,18 @@ public class ContentServiceClient {
         final List<Content> retrievedContents = new ArrayList<>(contentFields.size());
 
         for (final Map<String, Object> contentField : contentFields) {
-            final ContentMetadata metadata = getMetadata(contentField);
-            final UUID id = getId(contentField);
-            final UserProgressData progressDataForUser = getProgressDataForUser(contentField);
-            final boolean isAvailableToBeWorkedOn = getIsAvailableToBeWorkedOn(contentField);
-            final boolean isRequired = getIsRequired(contentField);
-
-            AssessmentMetadata assessmentMetadata = null;
-            if (contentField.containsKey("assessmentMetadata")) {
-                assessmentMetadata = getAssessmentMetadata(contentField);
-            }
-            retrievedContents.add(convertToCorrespondingContent(
-                    metadata,
-                    assessmentMetadata,
-                    id,
-                    progressDataForUser,
-                    isAvailableToBeWorkedOn,
-                    isRequired));
+            final String typename = (String)contentField.get("__typename");
+            final Content content = switch(typename) {
+                case "MediaContent" -> modelMapper.map(contentField, MediaContent.class);
+                case "FlashcardSetAssessment" -> modelMapper.map(contentField, FlashcardSetAssessment.class);
+                case "QuizAssessment" -> modelMapper.map(contentField, QuizAssessment.class);
+                case "AssignmentAssessment" -> modelMapper.map(contentField, AssignmentAssessment.class);
+                default -> throw new RuntimeException(
+                        "ContentServiceClient is missing an implementation for content type " + typename);
+            };
+            retrievedContents.add(content);
         }
+
         return retrievedContents;
     }
 
@@ -277,85 +271,6 @@ public class ContentServiceClient {
         return contentIdMaps.stream()
                 .map(map -> UUID.fromString(map.get("id")))
                 .toList();
-    }
-
-    private AssessmentMetadata getAssessmentMetadata(final Map<String, Object> contentField) {
-        return modelMapper.map(contentField.get("assessmentMetadata"), AssessmentMetadata.class);
-    }
-
-    private UserProgressData getProgressDataForUser(final Map<String, Object> contentField) {
-        return modelMapper.map(contentField.get("progressDataForUser"), UserProgressData.class);
-    }
-
-    private boolean getIsAvailableToBeWorkedOn(final Map<String, Object> contentField) {
-        return Boolean.TRUE.equals(contentField.get("_internal_noauth_isAvailableToBeWorkedOnForUser"));
-    }
-
-    private boolean getIsRequired(final Map<String, Object> contentField) {
-        return Boolean.TRUE.equals(contentField.get("required"));
-    }
-
-    private UUID getId(final Map<String, Object> contentField) {
-        return UUID.fromString((String) contentField.get("id"));
-    }
-
-    private ContentMetadata getMetadata(final Map<String, Object> contentField) {
-        return modelMapper.map(contentField.get("metadata"), ContentMetadata.class);
-    }
-
-    private Content convertToCorrespondingContent(final ContentMetadata metadata,
-                                                  final AssessmentMetadata assessmentMetadata,
-                                                  final UUID id,
-                                                  final UserProgressData progressDataForUser,
-                                                  final boolean isAvailableToBeWorkedOn,
-                                                  final boolean isRequired) {
-        List<Item> items = new ArrayList<>();
-        switch (metadata.getType()) {
-            case FLASHCARDS -> {
-                return new FlashcardSetAssessment(
-                        assessmentMetadata,
-                        id,
-                        metadata,
-                        progressDataForUser,
-                        items,
-                        isAvailableToBeWorkedOn,
-                        isRequired
-                );
-            }
-            case QUIZ -> {
-                return new QuizAssessment(
-                        assessmentMetadata,
-                        id,
-                        metadata,
-                        progressDataForUser,
-                        items,
-                        isAvailableToBeWorkedOn,
-                        isRequired
-                );
-            }
-            case ASSIGNMENT ->
-            {
-                return new  AssignmentAssessment(
-                        assessmentMetadata,
-                        id,
-                        metadata,
-                        progressDataForUser,
-                        items,
-                        isAvailableToBeWorkedOn,
-                        isRequired
-                );
-            }
-            case MEDIA -> {
-                return new MediaContent(
-                        id,
-                        metadata,
-                        progressDataForUser,
-                        isAvailableToBeWorkedOn,
-                        isRequired
-                );
-            }
-            default -> throw new IllegalArgumentException("Unknown assessment type: " + metadata.getType());
-        }
     }
 
     private Converter<String, OffsetDateTime> stringToOffsetDateTimeConverter() {

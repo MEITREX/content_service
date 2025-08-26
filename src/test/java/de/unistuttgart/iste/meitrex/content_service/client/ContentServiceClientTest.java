@@ -3,9 +3,7 @@ package de.unistuttgart.iste.meitrex.content_service.client;
 import de.unistuttgart.iste.meitrex.common.testutil.GraphQlApiTest;
 import de.unistuttgart.iste.meitrex.content_service.TestData;
 import de.unistuttgart.iste.meitrex.content_service.exception.ContentServiceConnectionException;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.AssessmentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.ContentEntity;
-import de.unistuttgart.iste.meitrex.content_service.persistence.entity.MediaContentEntity;
+import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
@@ -230,6 +228,10 @@ class ContentServiceClientTest {
                         .type(type)
                         .chapterId(chapterId)
                         .build())
+                .items(List.of(new ItemEntity(
+                        null,
+                        List.of(new SkillEntity(null, "Skill", "Category", true)),
+                        List.of(BloomLevel.REMEMBER))))
                 .build();
     }
 }

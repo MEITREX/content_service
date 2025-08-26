@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 public class QueryDefinitions {
     public static final String CONTENTS_FRAGMENT = """
             fragment ContentFragment on Content {
+                __typename
                 id
                 metadata {
                     name
