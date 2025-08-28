@@ -26,6 +26,7 @@ public class QueryDefinitions {
                      items{
                         id
                         associatedSkills{
+                            id
                             skillName
                             skillCategory
                             isCustomSkill
