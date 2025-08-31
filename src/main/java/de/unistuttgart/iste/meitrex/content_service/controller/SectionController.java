@@ -62,4 +62,9 @@ public class SectionController {
         return sectionService.getSectionsByChapterIds(chapterIds);
     }
 
+    @QueryMapping(name = "_internal_noauth_sectionsByCourse")
+    public List<Section> internalNoAuthSectionsByCourse(@Argument final UUID courseId) {
+        return sectionService.getSectionsByCourseId(courseId);
+    }
+
 }

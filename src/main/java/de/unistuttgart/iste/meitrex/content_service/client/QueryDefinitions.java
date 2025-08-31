@@ -34,7 +34,7 @@ public class QueryDefinitions {
                         associatedBloomLevels
                      }
                 }
-                progressDataForUser(userId: $userId) {
+                userProgressData: progressDataForUser(userId: $userId) {
                     userId
                     contentId
                     learningInterval
@@ -52,6 +52,30 @@ public class QueryDefinitions {
                 }
                 isAvailableToBeWorkedOn: _internal_noauth_isAvailableToBeWorkedOnForUser(userId: $userId)
                 required
+            }
+            """;
+
+    public static final String SECTIONS_BY_COURSE_ID_QUERY = CONTENTS_FRAGMENT + """
+            query($courseId: UUID!, $userId: UUID!) {
+                query: _internal_noauth_sectionsByCourse(courseId: $courseId) {
+                    id
+                    courseId
+                    name
+                    chapterId
+                    stages {
+                        id
+                        position
+                        requiredContents {
+                            ...ContentFragment
+                        }
+                        requiredContentsProgress: _internal_noauth_requiredContentsProgressForUser(userId: $userId)
+                        optionalContents {
+                            ...ContentFragment
+                        }
+                        optionalContentsProgress: _internal_noauth_optionalContentsProgressForUser(userId: $userId)
+                        isAvailableToBeWorkedOn: _internal_noauth_isAvailableToBeWorkedOnForUser(userId: $userId)
+                    }
+                }
             }
             """;
 

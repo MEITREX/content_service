@@ -61,6 +61,7 @@ class MutationUpdateMediaContentTest {
                                 rewardPoints: 3
                             }
                         }) {
+                            __typename
                             id
                             metadata {
                                 name
@@ -72,7 +73,6 @@ class MutationUpdateMediaContentTest {
                             }
                         }
                     }
-                                
                 }
                 """;
 
@@ -135,6 +135,7 @@ class MutationUpdateMediaContentTest {
                                 rewardPoints: 3
                             }
                         }) {
+                            __typename
                             id
                             metadata {
                                 name
@@ -146,7 +147,6 @@ class MutationUpdateMediaContentTest {
                             }
                         }
                     }
-                                
                 }
                 """;
 

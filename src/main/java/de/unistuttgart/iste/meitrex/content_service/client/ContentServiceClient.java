@@ -156,7 +156,25 @@ public class ContentServiceClient {
         } catch (final RuntimeException e) {
             unwrapContentServiceConnectionException(e);
         }
-        return List.of();
+        return List.of(); // unreachable
+    }
+
+    public List<Section> querySectionsOfCourse(final UUID courseId, final UUID userId) throws ContentServiceConnectionException {
+        log.info("Querying sections of course with id {}", courseId);
+
+        try {
+            return graphQlClient.document(QueryDefinitions.SECTIONS_BY_COURSE_ID_QUERY)
+                    .variable("courseId", courseId)
+                    .variable("userId", userId)
+                    .execute()
+                    .handle((ClientGraphQlResponse result, SynchronousSink<List<Section>> sink) ->
+                            handleContentServiceResponseSections(result, sink, "query"))
+                    .retry(RETRY_COUNT)
+                    .block();
+        } catch (final RuntimeException e) {
+            unwrapContentServiceConnectionException(e);
+        }
+        return List.of(); // unreachable
     }
 
     private static void unwrapContentServiceConnectionException(final RuntimeException e) throws ContentServiceConnectionException {
@@ -166,6 +184,23 @@ public class ContentServiceClient {
         }
         // if the exception is not a ContentServiceConnectionException, we don't know how to handle it
         throw e;
+    }
+
+    private void handleContentServiceResponseSections(final ClientGraphQlResponse result,
+                                                      final SynchronousSink<List<Section>> sink,
+                                                      final String queryName) {
+        if(!result.isValid()) {
+            sink.error(new ContentServiceConnectionException(
+                    "Error while fetching contents from content service: Invalid response.",
+                    result.getErrors()));
+            return;
+        }
+
+        List<Section> fields = result.field(queryName).toEntityList(Section.class);
+
+        final List<Section> retrievedSections = new ArrayList<>(fields);
+
+        sink.next(retrievedSections);
     }
 
     private void handleContentServiceResponseContent(final ClientGraphQlResponse result,
@@ -192,14 +227,14 @@ public class ContentServiceClient {
     private List<Content> convertResponseContentToListOfContent(final ClientGraphQlResponse result,
                                                          final String queryName)
             throws ContentServiceConnectionException {
-        final List<Map<String, Object>> contentFields = result.field(queryName).getValue();
+        final var contentFields = result.field(queryName).toEntityList(Content.class);
 
         if (contentFields == null) {
             throw new ContentServiceConnectionException(
                     "Error while fetching contents from content service: Missing field in response.");
         }
 
-        return createContentObjects(contentFields);
+        return contentFields;
     }
 
     private void handleContentServiceResponse(final ClientGraphQlResponse result,
@@ -228,33 +263,14 @@ public class ContentServiceClient {
                                                          final String queryName)
             throws ContentServiceConnectionException {
 
-        final List<Map<String, Object>> contentFields = result.field(queryName + "[0]").getValue();
+        final var contentFields = result.field(queryName + "[0]").toEntityList(Content.class);
 
         if (contentFields == null) {
             throw new ContentServiceConnectionException(
                     "Error while fetching contents from content service: Missing field in response.");
         }
 
-        return createContentObjects(contentFields);
-    }
-
-    private List<Content> createContentObjects(final List<Map<String, Object>> contentFields) {
-        final List<Content> retrievedContents = new ArrayList<>(contentFields.size());
-
-        for (final Map<String, Object> contentField : contentFields) {
-            final String typename = (String)contentField.get("__typename");
-            final Content content = switch(typename) {
-                case "MediaContent" -> modelMapper.map(contentField, MediaContent.class);
-                case "FlashcardSetAssessment" -> modelMapper.map(contentField, FlashcardSetAssessment.class);
-                case "QuizAssessment" -> modelMapper.map(contentField, QuizAssessment.class);
-                case "AssignmentAssessment" -> modelMapper.map(contentField, AssignmentAssessment.class);
-                default -> throw new RuntimeException(
-                        "ContentServiceClient is missing an implementation for content type " + typename);
-            };
-            retrievedContents.add(content);
-        }
-
-        return retrievedContents;
+        return contentFields;
     }
 
     private List<UUID> convertResponseToListOfUUIDs(final ClientGraphQlResponse result, final String queryName)
@@ -282,5 +298,4 @@ public class ContentServiceClient {
             return OffsetDateTime.parse(source);
         };
     }
-
 }

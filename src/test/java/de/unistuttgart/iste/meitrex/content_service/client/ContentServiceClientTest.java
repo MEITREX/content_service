@@ -6,9 +6,14 @@ import de.unistuttgart.iste.meitrex.content_service.exception.ContentServiceConn
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ContentRepository;
 import de.unistuttgart.iste.meitrex.common.testutil.TablesToDelete;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.meitrex.content_service.service.SectionService;
+import de.unistuttgart.iste.meitrex.content_service.service.StageService;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import io.dapr.actors.runtime.ActorStateManager;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -21,7 +26,9 @@ import org.springframework.test.web.servlet.client.MockMvcWebTestClient;
 import org.springframework.web.context.WebApplicationContext;
 import reactor.core.publisher.Mono;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -46,6 +53,11 @@ class ContentServiceClientTest {
     private ContentRepository contentRepository;
 
     @Autowired
+    private SectionRepository sectionRepository;
+    @Autowired
+    private StageRepository stageRepository;
+
+    @Autowired
     private UserProgressDataRepository userProgressDataRepository;
 
     @BeforeEach
@@ -54,6 +66,29 @@ class ContentServiceClientTest {
                 .configureClient().baseUrl("/graphql").build();
 
         graphQlClient = GraphQlClient.builder(new WebTestClientTransport(webTestClient)).build();
+    }
+
+    @Transactional
+    @Test
+    void testQuerySectionsOfCourse() throws Exception {
+        final ContentServiceClient contentServiceClient = new ContentServiceClient(graphQlClient);
+        final UUID courseId = UUID.randomUUID();
+        final UUID chapterId = UUID.randomUUID();
+        final UUID chapterId2 = UUID.randomUUID();
+        final UUID userId = UUID.randomUUID();
+
+        ContentEntity content1 = createMediaContentForChapter(courseId, chapterId);
+        content1 = contentRepository.save(content1);
+        ContentEntity content2 = createAssessmentForChapter(courseId, chapterId, ContentType.FLASHCARDS);
+        content2 = contentRepository.save(content2);
+
+        List<SectionEntity> sections = TestData.fillDatabaseWithSections(sectionRepository, stageRepository, courseId, chapterId, chapterId2);
+        StageEntity stageEntity = sections.getFirst().getStages().stream().findFirst().get();
+        stageEntity.setRequiredContents(new HashSet<>(Set.of(content1)));
+        stageEntity.setOptionalContents(new HashSet<>(Set.of(content2)));
+        stageRepository.save(stageEntity);
+        final List<Section> queriedSections = contentServiceClient.querySectionsOfCourse(courseId, userId);
+        assertThat(queriedSections, hasSize(3));
     }
 
     @Test

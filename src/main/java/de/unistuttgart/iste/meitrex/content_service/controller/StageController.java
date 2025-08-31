@@ -44,13 +44,28 @@ public class StageController {
         return userProgressDataService.getStageProgressForUser(stage, currentUser.getId(), true);
     }
 
+    @SchemaMapping(field = "_internal_noauth_requiredContentsProgressForUser")
+    public double requiredContentsProgressForUser(final Stage stage, @Argument final UUID userId) {
+        return userProgressDataService.getStageProgressForUser(stage, userId, true);
+    }
+
     @SchemaMapping(field = "optionalContentsProgress")
     public double optionalContentsProgress(final Stage stage, @ContextValue final LoggedInUser currentUser) {
         return userProgressDataService.getStageProgressForUser(stage, currentUser.getId(), false);
     }
 
+    @SchemaMapping(field = "_internal_noauth_optionalContentsProgressForUser")
+    public double optionalContentsProgressForUser(final Stage stage, @Argument final UUID userId) {
+        return userProgressDataService.getStageProgressForUser(stage, userId, false);
+    }
+
     @SchemaMapping(field = "isAvailableToBeWorkedOn")
     public boolean isAvailableToBeWorkedOn(final Stage stage, @ContextValue final LoggedInUser currentUser) {
         return userProgressDataService.isStageAvailableToBeWorkedOn(stage.getId(), currentUser.getId());
+    }
+
+    @SchemaMapping(field = "_internal_noauth_isAvailableToBeWorkedOnForUser")
+    public boolean isAvailableToBeWorkedOnForUser(final Stage stage, @Argument final UUID userId) {
+        return userProgressDataService.isStageAvailableToBeWorkedOn(stage.getId(), userId);
     }
 }
