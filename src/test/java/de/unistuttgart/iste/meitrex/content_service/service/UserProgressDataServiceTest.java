@@ -47,6 +47,8 @@ class UserProgressDataServiceTest {
     private ContentMapper contentMapper = new ContentMapper(new ModelMapper());
     @Mock
     private TopicPublisher topicPublisher;
+    @Mock
+    private StageService stageService;
 
     @InjectMocks
     private UserProgressDataService userProgressDataService;
