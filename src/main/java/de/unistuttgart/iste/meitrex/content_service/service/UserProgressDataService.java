@@ -44,7 +44,7 @@ public class UserProgressDataService {
     private final ContentMapper contentMapper;
 
 
-    @Value("${app.frontend.base-url}")
+    @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
 
     @Value("${app.frontend.stage-page-template:/courses/{courseId}/stages/{stageId}}")
