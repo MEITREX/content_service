@@ -60,6 +60,7 @@ class QueryGetContentWithNoSectionTest {
         final String query = """
                 query($chapterIds: [UUID!]!) {
                     _internal_noauth_contentWithNoSectionByChapterIds(chapterIds: $chapterIds){
+                        __typename
                         id
                         metadata {
                             courseId

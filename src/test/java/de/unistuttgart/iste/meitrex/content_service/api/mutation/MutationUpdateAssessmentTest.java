@@ -75,33 +75,33 @@ class MutationUpdateAssessmentTest {
                                       associatedBloomLevels:[REMEMBER]
                             }
                             ]
-                    }) {
-                        id
-                        metadata {
-                            name
-                            suggestedDate
-                            tagNames
-                            type
-                            chapterId
-                            rewardPoints
-                        }
-                        items{
-                                id                       
+                        }) {
+                            __typename
+                            id
+                            metadata {
+                                name
+                                suggestedDate
+                                tagNames
+                                type
+                                chapterId
+                                rewardPoints
+                            }
+                            items {
+                                id
                                 associatedSkills{
                                     skillName
                                     skillCategory
                                     isCustomSkill
                                 }
                                 associatedBloomLevels
-                        }
-                        assessmentMetadata {
-                            skillPoints
-                            skillTypes
-                            initialLearningInterval
+                            }
+                            assessmentMetadata {
+                                skillPoints
+                                skillTypes
+                                initialLearningInterval
+                            }
                         }
                     }
-                }
-                    
                 }
                 """;
         AssessmentEntity assessment = (AssessmentEntity) contentEntity;

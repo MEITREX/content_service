@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 public class QueryDefinitions {
     public static final String CONTENTS_FRAGMENT = """
             fragment ContentFragment on Content {
+                __typename
                 id
                 metadata {
                     name
@@ -25,14 +26,15 @@ public class QueryDefinitions {
                      items{
                         id
                         associatedSkills{
+                            id
                             skillName
                             skillCategory
                             isCustomSkill
                         }
                         associatedBloomLevels
                      }
-                 }
-                progressDataForUser(userId: $userId) {
+                }
+                userProgressData: progressDataForUser(userId: $userId) {
                     userId
                     contentId
                     learningInterval
@@ -48,9 +50,33 @@ public class QueryDefinitions {
                         timeToComplete
                     }
                 }
+                isAvailableToBeWorkedOn: _internal_noauth_isAvailableToBeWorkedOnForUser(userId: $userId)
+                required
             }
-               
-                        
+            """;
+
+    public static final String SECTIONS_BY_COURSE_ID_QUERY = CONTENTS_FRAGMENT + """
+            query($courseId: UUID!, $userId: UUID!) {
+                query: _internal_noauth_sectionsByCourse(courseId: $courseId) {
+                    id
+                    courseId
+                    name
+                    chapterId
+                    stages {
+                        id
+                        position
+                        requiredContents {
+                            ...ContentFragment
+                        }
+                        requiredContentsProgress: _internal_noauth_requiredContentsProgressForUser(userId: $userId)
+                        optionalContents {
+                            ...ContentFragment
+                        }
+                        optionalContentsProgress: _internal_noauth_optionalContentsProgressForUser(userId: $userId)
+                        isAvailableToBeWorkedOn: _internal_noauth_isAvailableToBeWorkedOnForUser(userId: $userId)
+                    }
+                }
+            }
             """;
 
     public static final String CONTENTS_BY_COURSE_IDS_QUERY = CONTENTS_FRAGMENT + """
@@ -69,6 +95,24 @@ public class QueryDefinitions {
             }
             """;
 
+    public static final String CONTENTS_BY_CONTENT_IDS_QUERY = CONTENTS_FRAGMENT + """
+            query($ids: [UUID!]!, $userId: UUID!) {
+                _internal_noauth_contentsByIds(ids: $ids) {
+                    ...ContentFragment
+                }
+            }
+            """;
+
+    public static final String PROGRESS_BY_CHAPTER_ID = """
+            query($chapterId: UUID!, $userId: UUID!) {
+                _internal_noauth_progressByChapterId(chapterId: $chapterId, userId: $userId) {
+                    completedContents
+                    totalContents
+                    progress
+                }
+            }
+            """;
+
     public static final String CONTENT_IDS_BY_COURSE_IDS_QUERY = """
             query($courseIds: [UUID!]!) {
                 _internal_noauth_contentsByCourseIds(courseIds: $courseIds) {
@@ -80,4 +124,8 @@ public class QueryDefinitions {
     public static final String CONTENTS_BY_COURSE_ID_QUERY_NAME = "_internal_noauth_contentsByCourseIds";
 
     public static final String CONTENTS_BY_CHAPTER_ID_QUERY_NAME = "_internal_noauth_contentsByChapterIds";
+
+    public static final String CONTENTS_BY_CONTENT_IDS_QUERY_NAME = "_internal_noauth_contentsByIds";
+
+    public static final String PROGRESS_BY_CHAPTER_ID_QUERY_NAME = "_internal_noauth_progressByChapterId";
 }

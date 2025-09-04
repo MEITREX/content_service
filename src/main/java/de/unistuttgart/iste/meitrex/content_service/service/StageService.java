@@ -31,9 +31,11 @@ public class StageService {
                 .sectionId(sectionId)
                 .position(sectionEntity.getStages().size())
                 .requiredContents(getAndValidateContentsOfStage(
+                        new UUID(0, 0), // stage ID is not known yet, so we use a dummy UUID
                         sectionEntity.getChapterId(),
                         input.getRequiredContents()))
                 .optionalContents(getAndValidateContentsOfStage(
+                        new UUID(0, 0), // stage ID is not known yet, so we use a dummy UUID
                         sectionEntity.getChapterId(),
                         input.getOptionalContents()))
                 .build();
@@ -54,12 +56,14 @@ public class StageService {
         // set updated Content
         stageEntity.setRequiredContents(
                 getAndValidateContentsOfStage(
+                        input.getId(),
                         sectionEntity.getChapterId(),
                         input.getRequiredContents()
                 ));
 
         stageEntity.setOptionalContents(
                 getAndValidateContentsOfStage(
+                        input.getId(),
                         sectionEntity.getChapterId(),
                         input.getOptionalContents()
                 ));
@@ -68,14 +72,19 @@ public class StageService {
     }
 
     /**
-     * validates that received content is located in the same chapter as the Section / Stage.
-     * If Content is not part of the same chapter, the content is removed
+     * validates that received content is located in the same chapter as the Section / Stage and that it is not already
+     * part of a different stage.
+     * Otherwise, the content is removed from the result set.
      *
+     * @param stageId ID of the stage which the content belongs to. If the stage ID is not known yet, a dummy UUID
+     *                can be passed instead.
      * @param chapterId  chapter ID of the Section / Stage
      * @param contentIds List of Content IDs to be validated
      * @return Set of validated Content Entities
      */
-    private Set<ContentEntity> getAndValidateContentsOfStage(final UUID chapterId, final List<UUID> contentIds) {
+    private Set<ContentEntity> getAndValidateContentsOfStage(final UUID stageId,
+                                                             final UUID chapterId,
+                                                             final List<UUID> contentIds) {
         final Set<ContentEntity> resultSet = new HashSet<>();
 
         final List<ContentEntity> contentEntities = contentRepository.findAllById(contentIds);
@@ -84,6 +93,18 @@ public class StageService {
             // only add content that is located in the same chapter as the Work-Path / Stage
             if (contentEntity.getMetadata().getChapterId().equals(chapterId)) {
                 resultSet.add(contentEntity);
+            }
+        }
+
+        for(SectionEntity section : sectionRepository.findByChapterIdInOrderByPosition(List.of(chapterId))) {
+            for(StageEntity stage : section.getStages()) {
+                // the content is already part of a different stage if we find a stage with an ID that is not the same
+                // as the stage ID we are currently working on and the content is part of the required or
+                // optional contents
+                resultSet.removeIf(c ->
+                        !stage.getId().equals(stageId) &&
+                                (stage.getRequiredContents().contains(c)
+                                || stage.getOptionalContents().contains(c)));
             }
         }
 
@@ -157,6 +178,23 @@ public class StageService {
             throw new RuntimeException("Content is part of more than one stage. This should not be possible!");
 
         return Optional.of(stageMapper.entityToDto(stages.getFirst()));
+    }
+
+    /**
+     * For the given list of content IDs, this method checks if the contents are required contents in any stage. If the
+     * content is required, its ID is added to the result list. Otherwise, i.e. if it is an optional content or not
+     * part of any stage, it is not added to the result list.
+     * @param contentIds the list of content IDs to check
+     * @return a list of content IDs that are required contents in any stage
+     */
+    public List<UUID> getRequiredContentsIds(List<UUID> contentIds) {
+        List<StageEntity> stages = stageRepository.findByRequiredContentIds(contentIds);
+
+        return contentIds.stream()
+                .filter(c -> stages.stream()
+                        .anyMatch(stage -> stage.getRequiredContents().stream()
+                                .anyMatch(content -> content.getId().equals(c))))
+                .toList();
     }
 
     /**

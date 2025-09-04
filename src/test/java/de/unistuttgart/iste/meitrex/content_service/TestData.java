@@ -1,6 +1,8 @@
 package de.unistuttgart.iste.meitrex.content_service;
 
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 
 import java.time.OffsetDateTime;
@@ -154,5 +156,60 @@ public class TestData {
                         .build())
                 .items(items)
                 .build();
+    }
+
+    public static List<SectionEntity> fillDatabaseWithSections(final SectionRepository sectionRepository,
+                                                               final StageRepository stageRepository,
+                                                               final UUID courseId,
+                                                               final UUID chapterId,
+                                                               final UUID chapterId2) {
+        SectionEntity sectionEntity = SectionEntity.builder()
+                .name("Test Section")
+                .position(0)
+                .chapterId(chapterId)
+                .courseId(courseId)
+                .stages(new HashSet<>())
+                .build();
+        SectionEntity sectionEntity2 = SectionEntity.builder()
+                .name("Test Section2")
+                .position(1)
+                .chapterId(chapterId)
+                .courseId(courseId)
+                .stages(new HashSet<>())
+                .build();
+        SectionEntity sectionEntity3 = SectionEntity.builder()
+                .name("Test Section3")
+                .position(0)
+                .chapterId(chapterId2)
+                .courseId(courseId)
+                .stages(new HashSet<>())
+                .build();
+
+        sectionEntity = sectionRepository.save(sectionEntity);
+        sectionEntity2 = sectionRepository.save(sectionEntity2);
+        sectionEntity3 = sectionRepository.save(sectionEntity3);
+
+        StageEntity stageEntity = StageEntity.builder()
+                .sectionId(sectionEntity.getId())
+                .position(0)
+                .optionalContents(new HashSet<>())
+                .requiredContents(new HashSet<>())
+                .build();
+        StageEntity stageEntity2 = StageEntity.builder()
+                .sectionId(sectionEntity2.getId())
+                .position(0)
+                .optionalContents(new HashSet<>())
+                .requiredContents(new HashSet<>())
+                .build();
+        stageEntity = stageRepository.save(stageEntity);
+        stageEntity2 = stageRepository.save(stageEntity2);
+
+        sectionEntity.getStages().add(stageEntity);
+        sectionEntity2.getStages().add(stageEntity2);
+
+        sectionEntity = sectionRepository.save(sectionEntity);
+        sectionEntity2 = sectionRepository.save(sectionEntity2);
+
+        return List.of(sectionEntity, sectionEntity2, sectionEntity3);
     }
 }

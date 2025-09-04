@@ -15,6 +15,14 @@ type Query {
 
     """
     Get contents by ids. Throws an error if any of the ids are not found.
+    ⚠️ This query is only accessible internally in the system and allows the caller to fetch contents without
+    any permissions check and should not be called without any validation of the caller's permissions. ⚠️
+    """
+    _internal_noauth_contentsByIds(ids: [UUID!]!): [Content!]!
+
+
+    """
+    Get contents by ids. Throws an error if any of the ids are not found.
     🔒 The user must have access to the courses containing the contents with the given ids to access their contents,
     otherwise an error is thrown.
     """
@@ -37,7 +45,7 @@ type Query {
     """
     Get contents by chapter ids. Returns a list containing sublists, where each sublist contains all contents
     associated with that chapter
-    ⚠️ This query is only accessible internally in the system and allows the caller to fetch sections without
+    ⚠️ This query is only accessible internally in the system and allows the caller to fetch contents without
     any permissions check and should not be called without any validation of the caller's permissions. ⚠️
     """
     _internal_noauth_contentsByChapterIds(chapterIds: [UUID!]!): [[Content!]!]!
@@ -50,11 +58,25 @@ type Query {
     _internal_noauth_sectionsByChapterIds(chapterIds: [UUID!]!): [[Section!]!]!
 
     """
+    Retrieves the existing sections of the specified course.
+    ⚠️ This query is only accessible internally in the system and allows the caller to fetch sections without
+    any permissions check and should not be called without any validation of the caller's permissions. ⚠️
+    """
+    _internal_noauth_sectionsByCourse(courseId: UUID!): [Section!]!
+
+    """
     Retrieve progress for multiple chapters
     ⚠️ This query is only accessible internally in the system and allows the caller to fetch chapter progress without
     any permissions check and should not be called without any validation of the caller's permissions. ⚠️
     """
     _internal_noauth_progressByChapterIds(chapterIds: [UUID!]!): [CompositeProgressInformation!]!
+
+    """
+    Retrieve progress for a given chapter of the given user
+    ⚠️ This query is only accessible internally in the system and allows the caller to fetch chapter progress without
+    any permissions check and should not be called without any validation of the caller's permissions. ⚠️
+    """
+    _internal_noauth_progressByChapterId(chapterId: UUID!, userId: UUID!): CompositeProgressInformation!
 
     """
     Generates user specific suggestions for multiple chapters.

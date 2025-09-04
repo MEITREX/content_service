@@ -12,7 +12,9 @@ import org.springframework.graphql.data.method.annotation.*;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static de.unistuttgart.iste.meitrex.common.user_handling.UserCourseAccessValidator.validateUserHasAccessToCourse;
@@ -30,6 +32,7 @@ public class ContentController {
     private final ContentService contentService;
     private final UserProgressDataService userProgressDataService;
     private final SuggestionService suggestionService;
+    private final StageService stageService;
 
     @QueryMapping
     public List<Content> contentsByIds(@Argument final List<UUID> ids,
@@ -39,6 +42,11 @@ public class ContentController {
         validateUserHasAccessToCourses(currentUser, UserRoleInCourse.STUDENT, courseIds);
 
         return contents;
+    }
+
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentsByIds")
+    public List<Content> contentById(@Argument final List<UUID> ids) {
+        return contentService.getContentsById(ids);
     }
 
     @QueryMapping
@@ -53,6 +61,7 @@ public class ContentController {
     public List<List<Content>> internalNoAuthContentsByCourseIds(@Argument final List<UUID> courseIds) {
         return contentService.getContentsByCourseIds(courseIds);
     }
+
 
     @QueryMapping
     public List<Content> findContentsByIds(@Argument final List<UUID> ids,
@@ -179,6 +188,11 @@ public class ContentController {
         return userProgressDataService.getProgressByChapterIdsForUser(chapterIds, currentUser.getId());
     }
 
+    @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "progressByChapterId")
+    public CompositeProgressInformation internalProgressByChapterId(@Argument final UUID chapterId, @Argument final UUID userId) {
+        return userProgressDataService.getProgressByChapterIdForUser(chapterId, userId);
+    }
+
 
     @QueryMapping(name = INTERNAL_NOAUTH_PREFIX + "contentWithNoSectionByChapterIds")
     public List<List<Content>> contentWithNoSectionByChapterIds(@Argument final List<UUID> chapterIds) {
@@ -207,19 +221,32 @@ public class ContentController {
      * Abstract Resolver for all Content Types to avoid code duplication
      */
     public abstract class ContentResolver<T extends Content> {
-        @SchemaMapping(field = "userProgressData")
+        @SchemaMapping
         public UserProgressData userProgressData(final T content, @ContextValue final LoggedInUser currentUser) {
             return userProgressDataService.getUserProgressData(currentUser.getId(), content.getId());
         }
 
-        @SchemaMapping(field = "progressDataForUser")
+        @SchemaMapping
         public UserProgressData progressDataForUser(final T content, @Argument final UUID userId) {
             return userProgressDataService.getUserProgressData(userId, content.getId());
         }
 
-        @SchemaMapping(field = "isAvailableToBeWorkedOn")
+        @SchemaMapping
         public boolean isAvailableToBeWorkedOn(final T content, @ContextValue final LoggedInUser currentUser) {
             return userProgressDataService.isContentAvailableToBeWorkedOn(content.getId(), currentUser.getId());
+        }
+
+        @SchemaMapping(field = INTERNAL_NOAUTH_PREFIX + "isAvailableToBeWorkedOnForUser")
+        public boolean isAvailableToBeWorkedOnForUser(final T content, @Argument final UUID userId) {
+            return userProgressDataService.isContentAvailableToBeWorkedOn(content.getId(), userId);
+        }
+
+        @BatchMapping
+        public Map<T, Boolean> required(final List<T> content) {
+            List<UUID> requiredContents = stageService.getRequiredContentsIds(content.stream()
+                    .map(Content::getId)
+                    .toList());
+            return content.stream().collect(Collectors.toMap(x -> x, x -> requiredContents.contains(x.getId())));
         }
     }
 

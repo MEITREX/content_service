@@ -154,6 +154,11 @@ public class SectionService {
         return groupIntoSubLists(sections, chapterIds, Section::getChapterId);
     }
 
+    public List<Section> getSectionsByCourseId(UUID courseId) {
+        List<SectionEntity> sectionEntities = sectionRepository.findByCourseIdIn(List.of(courseId));
+        return sectionEntities.stream().map(sectionMapper::entityToDto).toList();
+    }
+
     /**
      * Gets a Section by its id.
      *
