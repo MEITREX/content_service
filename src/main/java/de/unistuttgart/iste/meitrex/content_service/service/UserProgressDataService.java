@@ -183,7 +183,7 @@ public class UserProgressDataService {
         topicPublisher.notificationEvent(
                 courseId,
                 List.of(userId),
-                ServerSource.CONTENT_SERVICE,
+                ServerSource.CONTENT,
                 link,
                 "Next stage is unlocked!",
                 "Suggested date of next stage has arrived!"
