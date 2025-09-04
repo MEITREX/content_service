@@ -57,7 +57,6 @@ class UserProgressDataServiceTest {
     private StageService stageService;
 
     @Mock private SectionService sectionService;
-    @Mock private StageService stageService;
     @Mock private SectionRepository sectionRepository;
     @Mock private StageRepository stageRepository;   // ok if unused
     @Mock private StageMapper stageMapper;
