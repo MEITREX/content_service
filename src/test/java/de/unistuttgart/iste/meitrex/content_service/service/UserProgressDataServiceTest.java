@@ -9,6 +9,7 @@ import de.unistuttgart.iste.meitrex.content_service.TestData;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.MessageSequenceNoEntityRepository;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
 
 import de.unistuttgart.iste.meitrex.generated.dto.*;
@@ -49,6 +50,8 @@ class UserProgressDataServiceTest {
     private TopicPublisher topicPublisher;
     @Mock
     private StageService stageService;
+    @Mock
+    private MessageSequenceNoEntityRepository messageSequenceNoEntityRepository;
 
     @InjectMocks
     private UserProgressDataService userProgressDataService;
@@ -186,6 +189,11 @@ class UserProgressDataServiceTest {
         doReturn(List.of(content)).when(contentService).getContentsById(List.of(contentId));
         doReturn(Optional.of(initialProgress)).when(userProgressDataRepository).findByUserIdAndContentId(any(), any());
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
+        doAnswer(invocation -> {
+            MessageSequenceNoEntity arg = invocation.getArgument(0);
+            arg.setSequenceNo(1L);
+            return arg; // return the modified arg
+        }).when(messageSequenceNoEntityRepository).save(any(MessageSequenceNoEntity.class));
 
         userProgressDataService.logUserProgress(event);
 
@@ -206,10 +214,12 @@ class UserProgressDataServiceTest {
         );
 
         final UserProgressUpdatedEvent expectedUserProgressEvent = UserProgressUpdatedEvent.builder()
+                .sequenceNo(1L)
                 .contentId(contentId)
                 .chapterId(content.getMetadata().getChapterId())
                 .courseId(content.getMetadata().getCourseId())
                 .userId(userId)
+                .attempt(1)
                 .timeToComplete(100)
                 .correctness(1.0)
                 .hintsUsed(0)
