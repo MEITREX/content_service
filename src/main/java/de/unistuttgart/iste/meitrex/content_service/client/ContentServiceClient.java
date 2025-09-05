@@ -156,7 +156,25 @@ public class ContentServiceClient {
         } catch (final RuntimeException e) {
             unwrapContentServiceConnectionException(e);
         }
-        return List.of();
+        return List.of(); // unreachable
+    }
+
+    public List<Section> querySectionsOfCourse(final UUID courseId, final UUID userId) throws ContentServiceConnectionException {
+        log.info("Querying sections of course with id {}", courseId);
+
+        try {
+            return graphQlClient.document(QueryDefinitions.SECTIONS_BY_COURSE_ID_QUERY)
+                    .variable("courseId", courseId)
+                    .variable("userId", userId)
+                    .execute()
+                    .handle((ClientGraphQlResponse result, SynchronousSink<List<Section>> sink) ->
+                            handleContentServiceResponseSections(result, sink, "query"))
+                    .retry(RETRY_COUNT)
+                    .block();
+        } catch (final RuntimeException e) {
+            unwrapContentServiceConnectionException(e);
+        }
+        return List.of(); // unreachable
     }
 
     private static void unwrapContentServiceConnectionException(final RuntimeException e) throws ContentServiceConnectionException {
@@ -166,6 +184,23 @@ public class ContentServiceClient {
         }
         // if the exception is not a ContentServiceConnectionException, we don't know how to handle it
         throw e;
+    }
+
+    private void handleContentServiceResponseSections(final ClientGraphQlResponse result,
+                                                      final SynchronousSink<List<Section>> sink,
+                                                      final String queryName) {
+        if(!result.isValid()) {
+            sink.error(new ContentServiceConnectionException(
+                    "Error while fetching contents from content service: Invalid response.",
+                    result.getErrors()));
+            return;
+        }
+
+        List<Section> fields = result.field(queryName).toEntityList(Section.class);
+
+        final List<Section> retrievedSections = new ArrayList<>(fields);
+
+        sink.next(retrievedSections);
     }
 
     private void handleContentServiceResponseContent(final ClientGraphQlResponse result,
@@ -192,14 +227,7 @@ public class ContentServiceClient {
     private List<Content> convertResponseContentToListOfContent(final ClientGraphQlResponse result,
                                                          final String queryName)
             throws ContentServiceConnectionException {
-        final List<Map<String, Object>> contentFields = result.field(queryName).getValue();
-
-        if (contentFields == null) {
-            throw new ContentServiceConnectionException(
-                    "Error while fetching contents from content service: Missing field in response.");
-        }
-
-        return createContentObjects(contentFields);
+        return result.field(queryName).toEntityList(Content.class);
     }
 
     private void handleContentServiceResponse(final ClientGraphQlResponse result,
@@ -228,39 +256,7 @@ public class ContentServiceClient {
                                                          final String queryName)
             throws ContentServiceConnectionException {
 
-        final List<Map<String, Object>> contentFields = result.field(queryName + "[0]").getValue();
-
-        if (contentFields == null) {
-            throw new ContentServiceConnectionException(
-                    "Error while fetching contents from content service: Missing field in response.");
-        }
-
-        return createContentObjects(contentFields);
-    }
-
-    private List<Content> createContentObjects(final List<Map<String, Object>> contentFields) {
-        final List<Content> retrievedContents = new ArrayList<>(contentFields.size());
-
-        for (final Map<String, Object> contentField : contentFields) {
-            final ContentMetadata metadata = getMetadata(contentField);
-            final UUID id = getId(contentField);
-            final UserProgressData progressDataForUser = getProgressDataForUser(contentField);
-            final boolean isAvailableToBeWorkedOn = getIsAvailableToBeWorkedOn(contentField);
-            final boolean isRequired = getIsRequired(contentField);
-
-            AssessmentMetadata assessmentMetadata = null;
-            if (contentField.containsKey("assessmentMetadata")) {
-                assessmentMetadata = getAssessmentMetadata(contentField);
-            }
-            retrievedContents.add(convertToCorrespondingContent(
-                    metadata,
-                    assessmentMetadata,
-                    id,
-                    progressDataForUser,
-                    isAvailableToBeWorkedOn,
-                    isRequired));
-        }
-        return retrievedContents;
+        return result.field(queryName + "[0]").toEntityList(Content.class);
     }
 
     private List<UUID> convertResponseToListOfUUIDs(final ClientGraphQlResponse result, final String queryName)
@@ -279,85 +275,6 @@ public class ContentServiceClient {
                 .toList();
     }
 
-    private AssessmentMetadata getAssessmentMetadata(final Map<String, Object> contentField) {
-        return modelMapper.map(contentField.get("assessmentMetadata"), AssessmentMetadata.class);
-    }
-
-    private UserProgressData getProgressDataForUser(final Map<String, Object> contentField) {
-        return modelMapper.map(contentField.get("progressDataForUser"), UserProgressData.class);
-    }
-
-    private boolean getIsAvailableToBeWorkedOn(final Map<String, Object> contentField) {
-        return Boolean.TRUE.equals(contentField.get("_internal_noauth_isAvailableToBeWorkedOnForUser"));
-    }
-
-    private boolean getIsRequired(final Map<String, Object> contentField) {
-        return Boolean.TRUE.equals(contentField.get("required"));
-    }
-
-    private UUID getId(final Map<String, Object> contentField) {
-        return UUID.fromString((String) contentField.get("id"));
-    }
-
-    private ContentMetadata getMetadata(final Map<String, Object> contentField) {
-        return modelMapper.map(contentField.get("metadata"), ContentMetadata.class);
-    }
-
-    private Content convertToCorrespondingContent(final ContentMetadata metadata,
-                                                  final AssessmentMetadata assessmentMetadata,
-                                                  final UUID id,
-                                                  final UserProgressData progressDataForUser,
-                                                  final boolean isAvailableToBeWorkedOn,
-                                                  final boolean isRequired) {
-        List<Item> items = new ArrayList<>();
-        switch (metadata.getType()) {
-            case FLASHCARDS -> {
-                return new FlashcardSetAssessment(
-                        assessmentMetadata,
-                        id,
-                        metadata,
-                        progressDataForUser,
-                        items,
-                        isAvailableToBeWorkedOn,
-                        isRequired
-                );
-            }
-            case QUIZ -> {
-                return new QuizAssessment(
-                        assessmentMetadata,
-                        id,
-                        metadata,
-                        progressDataForUser,
-                        items,
-                        isAvailableToBeWorkedOn,
-                        isRequired
-                );
-            }
-            case ASSIGNMENT ->
-            {
-                return new  AssignmentAssessment(
-                        assessmentMetadata,
-                        id,
-                        metadata,
-                        progressDataForUser,
-                        items,
-                        isAvailableToBeWorkedOn,
-                        isRequired
-                );
-            }
-            case MEDIA -> {
-                return new MediaContent(
-                        id,
-                        metadata,
-                        progressDataForUser,
-                        isAvailableToBeWorkedOn,
-                        isRequired
-                );
-            }
-            default -> throw new IllegalArgumentException("Unknown assessment type: " + metadata.getType());
-        }
-    }
-
     private Converter<String, OffsetDateTime> stringToOffsetDateTimeConverter() {
         return context -> {
             final String source = context.getSource();
@@ -367,5 +284,4 @@ public class ContentServiceClient {
             return OffsetDateTime.parse(source);
         };
     }
-
 }

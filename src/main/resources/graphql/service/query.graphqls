@@ -58,6 +58,13 @@ type Query {
     _internal_noauth_sectionsByChapterIds(chapterIds: [UUID!]!): [[Section!]!]!
 
     """
+    Retrieves the existing sections of the specified course.
+    ⚠️ This query is only accessible internally in the system and allows the caller to fetch sections without
+    any permissions check and should not be called without any validation of the caller's permissions. ⚠️
+    """
+    _internal_noauth_sectionsByCourse(courseId: UUID!): [Section!]!
+
+    """
     Retrieve progress for multiple chapters
     ⚠️ This query is only accessible internally in the system and allows the caller to fetch chapter progress without
     any permissions check and should not be called without any validation of the caller's permissions. ⚠️

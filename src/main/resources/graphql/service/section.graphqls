@@ -50,9 +50,13 @@ type Stage {
     requiredContents: [Content!]!
 
     """
-    Percentage of User Progress made to required Content
+    Percentage of User Progress made to required Content for the current user
     """
     requiredContentsProgress: Float!
+    """
+    Percentage of User Progress made to required Content for the specified user
+    """
+    _internal_noauth_requiredContentsProgressForUser(userId: UUID!): Float!
 
     """
     List of Content that is labeled as optional content
@@ -60,13 +64,23 @@ type Stage {
     optionalContents: [Content!]!
 
     """
-    Percentage of Progress made to optional Content
+    Percentage of Progress made to optional Content for the current user
     """
     optionalContentsProgress: Float!
+    """
+    Percentage of Progress made to optional Content for the specified user
+    """
+    _internal_noauth_optionalContentsProgressForUser(userId: UUID!): Float!
 
     """
     For the current user, returns true if this stage could be worked on by the user (i.e. it is not locked), false
     if stage is not available to be worked on (e.g. because previous stage has not been completed)
     """
     isAvailableToBeWorkedOn: Boolean!
+
+    """
+    For the user with the given id, returns true if this stage could be worked on by the user (i.e. it is not locked),
+    false if stage is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    _internal_noauth_isAvailableToBeWorkedOnForUser(userId: UUID!): Boolean!
 }

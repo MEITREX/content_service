@@ -54,6 +54,7 @@ class MutationCreateMediaContentTest {
                             rewardPoints: 1
                         }
                     }) {
+                        __typename
                         id
                         metadata {
                             name

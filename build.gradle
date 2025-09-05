@@ -28,22 +28,6 @@ sonarqube {
   }
 }
 
-// workaround to fetch schema files from external repositories
-// as gradle only supports java dependencies
-def fetchFilesFromRepo(String repository, List<String> files) {
-	def baseurl = "https://raw.githubusercontent.com/MEITREX/"
-	def fileUrl = "${baseurl}${repository}/main/src/main/resources/graphql/"
-	def outputDir = "src/main/resources/graphql"
-
-	files.each { file ->
-		tasks.register("fetchExternalSchema-${file.capitalize()}", Exec) {
-			commandLine 'curl', "${fileUrl}${file}", '-o', "${outputDir}/${repository}/${file}"
-		}
-	}
-}
-
-fetchFilesFromRepo("common", ["directives.graphqls", "scalars.graphqls", "sortFilterPagination.graphqls"])
-
 // run this task to fetch the latest schema files from the external github repositories
 tasks.register("fetchAllExternalSchemas", Task) {
 	dependsOn tasks.matching { it.name.startsWith("fetchExternalSchema-") }
@@ -57,6 +41,7 @@ graphqlCodegen {
 	packageName = "de.unistuttgart.iste.meitrex.generated.dto"
 	generatedAnnotation = "jakarta.annotation.Generated"
 	modelValidationAnnotation = "jakarta.validation.constraints.NotNull"
+    generateJacksonTypeIdResolver = true // allows graphql .toEntity() conversion with Jackson for interfaces and unions
 	generateApis = false // set to false as the generator does not support spring boot graphQL
 	customTypesMapping = [
 			"DateTime" : "java.time.OffsetDateTime",
@@ -75,7 +60,13 @@ graphqlCodegen {
 compileJava.dependsOn 'graphqlCodegen'
 
 // Add generated sources to your project source sets:
-sourceSets.main.java.srcDir "$buildDir/generated"
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated"
+        }
+    }
+}
 
 // Automatically generate API documentation on project build:
 // Remark: Only works on Windows
@@ -110,7 +101,7 @@ repositories {
 
 dependencies {
 
-	implementation 'de.unistuttgart.iste.meitrex:meitrex-common:1.2.6'
+    implementation 'de.unistuttgart.iste.meitrex:meitrex-common:1.4.4'
 	implementation 'com.google.code.findbugs:jsr305:3.0.2' // removes a gradle warning about an unknown annotation
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-graphql'
@@ -129,7 +120,7 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'de.unistuttgart.iste.meitrex:meitrex-common-test:1.2.6'
+	testImplementation 'de.unistuttgart.iste.meitrex:meitrex-common-test:1.4.4'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework:spring-webflux'
 	testImplementation 'org.springframework.graphql:spring-graphql-test'

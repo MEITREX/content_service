@@ -4,6 +4,7 @@ package de.unistuttgart.iste.meitrex.content_service.service;
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
+import de.unistuttgart.iste.meitrex.common.event.skilllevels.SkillEntityChangedEvent;
 import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
@@ -13,6 +14,7 @@ import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,7 @@ import static de.unistuttgart.iste.meitrex.common.util.MeitrexCollectionUtils.gr
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ContentService {
 
     private final ContentRepository contentRepository;
@@ -250,9 +253,19 @@ public class ContentService {
             List<SkillEntity> skills = new ArrayList<>();
             for (SkillEntity skill : item.getAssociatedSkills()) {
                 if (skill.getId() != null) {
-                    skills.add(skillRepository.findById(skill.getId()).get());
+                    Optional<SkillEntity> skillEntity = skillRepository.findById(skill.getId());
+                    skillEntity.ifPresentOrElse(
+                            skills::add,
+                            () -> log.error("Could not find skill with ID {} even though it should exist in the database.", skill.getId())
+                    );
                 } else {
                     skills.add(skillRepository.save(skill));
+                    topicPublisher.notifySkillEntityChanged(SkillEntityChangedEvent.builder()
+                            .skillId(skill.getId())
+                            .skillName(skill.getSkillName())
+                            .skillCategory(skill.getSkillCategory())
+                            .operation(CrudOperation.CREATE)
+                            .build());
                 }
             }
             item.setAssociatedSkills(skills);
@@ -441,7 +454,15 @@ public class ContentService {
                 return;
             }
         }
-        skillRepository.deleteById(skillId);
+        skillRepository.findById(skillId).ifPresent(skill -> {
+            skillRepository.delete(skill);
+            topicPublisher.notifySkillEntityChanged(SkillEntityChangedEvent.builder()
+                    .skillId(skillId)
+                    .skillName(skill.getSkillName())
+                    .skillCategory(skill.getSkillCategory())
+                    .operation(CrudOperation.DELETE)
+                    .build());
+        });
     }
 
     /**
@@ -506,7 +527,15 @@ public class ContentService {
     private void deleteSkillWhenNoOtherItemUsesTheSkill(UUID itemId, UUID skillId) {
         List<ItemEntity> itemsForSkill = itemRepository.findByAssociatedSkills_Id(skillId);
         if (itemsForSkill.size() == 1 && itemsForSkill.get(0).getId() == itemId) {
-            skillRepository.deleteById(skillId);
+            skillRepository.findById(skillId).ifPresent(skill -> {
+                skillRepository.delete(skill);
+                topicPublisher.notifySkillEntityChanged(SkillEntityChangedEvent.builder()
+                        .skillId(skillId)
+                        .skillName(skill.getSkillName())
+                        .skillCategory(skill.getSkillCategory())
+                        .operation(CrudOperation.DELETE)
+                        .build());
+            });
         }
     }
 

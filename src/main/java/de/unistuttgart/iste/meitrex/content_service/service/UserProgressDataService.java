@@ -6,10 +6,8 @@ import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.StageMapper;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ItemRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
-import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.*;
+import de.unistuttgart.iste.meitrex.content_service.utility.value_changed_detector.ObjectValueChangedDetector;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +33,9 @@ public class UserProgressDataService {
     private final TopicPublisher topicPublisher;
     private final SectionRepository sectionRepository;
     private final StageRepository stageRepository;
+    private final MessageSequenceNoEntityRepository messageSequenceNoEntityRepository;
+
+
     private final StageMapper stageMapper;
     private final ContentMapper contentMapper;
 
@@ -97,25 +98,76 @@ public class UserProgressDataService {
      * @param contentProgressedEvent the event to log
      */
     public void logUserProgress(final ContentProgressedEvent contentProgressedEvent) {
+        final Content content = contentService
+                .getContentsById(List.of(contentProgressedEvent.getContentId())).getFirst();
+
         final UserProgressDataEntity userProgressDataEntity = getUserProgressDataEntity(
                 contentProgressedEvent.getUserId(), contentProgressedEvent.getContentId());
+
+        final Optional<Stage> stage = stageService.findStageOfContent(userProgressDataEntity.getContentId());
+
+        final StageCompletedValueChangedDetector stageCompletedDetector = new StageCompletedValueChangedDetector();
+        final ChapterCompletedValueChangedDetector chapterCompletedDetector = new ChapterCompletedValueChangedDetector();
+        final CourseCompletedValueChangedDetector courseCompletedDetector = new CourseCompletedValueChangedDetector();
+
+        stageCompletedDetector.measureValue(new StageCompletedValueChangedDetector.InputParameters(
+                stage, userProgressDataEntity));
+        chapterCompletedDetector.measureValue(new ChapterCompletedValueChangedDetector.InputParameters(
+                content.getMetadata().getChapterId(), userProgressDataEntity));
+        courseCompletedDetector.measureValue(new CourseCompletedValueChangedDetector.InputParameters(
+                content.getMetadata().getCourseId(), userProgressDataEntity));
 
         userProgressDataEntity.setLearningInterval(
                 calculateNewLearningInterval(contentProgressedEvent, userProgressDataEntity));
 
         final var logItem = userProgressDataMapper.eventToEmbeddable(contentProgressedEvent);
         logItem.setTimestamp(OffsetDateTime.now());
-        userProgressDataEntity.getProgressLog().add(logItem);
+
+        final List<ProgressLogItemEmbeddable> progressLogList = userProgressDataEntity.getProgressLog();
+        progressLogList.add(logItem);
 
         userProgressDataRepository.save(userProgressDataEntity);
 
-        final Content content = contentService.getContentsById(List.of(contentProgressedEvent.getContentId())).get(0);
+
         List<ItemResponse> itemResponses = new ArrayList<>();
         if (contentProgressedEvent.getResponses() != null) {
             itemResponses = createItemResponsesList(contentProgressedEvent);
         }
 
-        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content, itemResponses));
+        // check if stages, chapters, or courses have been completed by making progress on this content, and publish
+        // events for that accordingly
+        stageCompletedDetector.measureValue(new StageCompletedValueChangedDetector.InputParameters(
+                stage, userProgressDataEntity));
+        chapterCompletedDetector.measureValue(new ChapterCompletedValueChangedDetector.InputParameters(
+                content.getMetadata().getChapterId(), userProgressDataEntity));
+        courseCompletedDetector.measureValue(new CourseCompletedValueChangedDetector.InputParameters(
+                content.getMetadata().getCourseId(), userProgressDataEntity));
+
+        // note that stageCompletedDetector ensures that this content has a stage, so stage.isPresent() is always true
+        // the check is just to make the linter happy
+        if(stageCompletedDetector.hasValueChanged() && stage.isPresent())
+            topicPublisher.notifyStageCompleted(StageCompletedEvent.builder()
+                    .userId(userProgressDataEntity.getUserId())
+                    .stageId(stage.get().getId())
+                    .chapterId(content.getMetadata().getChapterId())
+                    .courseId(content.getMetadata().getCourseId())
+                    .build());
+
+        if(chapterCompletedDetector.hasValueChanged())
+            topicPublisher.notifyChapterCompleted(ChapterCompletedEvent.builder()
+                    .userId(userProgressDataEntity.getUserId())
+                    .chapterId(content.getMetadata().getChapterId())
+                    .courseId(content.getMetadata().getCourseId())
+                    .build());
+
+        if(courseCompletedDetector.hasValueChanged())
+            topicPublisher.notifyCourseCompleted(CourseCompletedEvent.builder()
+                    .userId(userProgressDataEntity.getUserId())
+                    .courseId(content.getMetadata().getCourseId())
+                    .build());
+
+        final int attemptCount = progressLogList.size();
+        topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content, itemResponses, attemptCount));
     }
 
     /**
@@ -134,10 +186,7 @@ public class UserProgressDataService {
             for (SkillEntity skillEntity : skillEntities) {
                 skillIds.add(skillEntity.getId());
             }
-            List<LevelOfBloomsTaxonomy> bloomLevelsForEvent = new ArrayList<LevelOfBloomsTaxonomy>();
-            for (BloomLevel level : item.getAssociatedBloomLevels()) {
-                bloomLevelsForEvent.add(mapBloomsTaxonomy(level));
-            }
+            List<BloomLevel> bloomLevelsForEvent = new ArrayList<>(item.getAssociatedBloomLevels());
             ItemResponse itemResponse = ItemResponse.builder()
                     .itemId(response.getItemId())
                     .response(response.getResponse())
@@ -149,9 +198,15 @@ public class UserProgressDataService {
         return itemResponses;
     }
 
-    private UserProgressUpdatedEvent createUserProgressUpdatedEvent(final ContentProgressedEvent event,
-                                                                    final Content content,
-                                                                    final List<ItemResponse> itemResponses) {
+    private UserProgressUpdatedEvent createUserProgressUpdatedEvent(
+            final ContentProgressedEvent event,
+            final Content content,
+            final List<ItemResponse> itemResponses,
+            final int attemptCount
+    ) {
+        final Long sequenceNo = this.fetchNextMessageSequenceNo();
+
+
         return UserProgressUpdatedEvent.builder()
                 .userId(event.getUserId())
                 .contentId(event.getContentId())
@@ -162,18 +217,9 @@ public class UserProgressDataService {
                 .hintsUsed(event.getHintsUsed())
                 .timeToComplete(event.getTimeToComplete())
                 .responses(itemResponses)
+                .sequenceNo(sequenceNo)
+                .attempt(attemptCount)
                 .build();
-    }
-
-    private LevelOfBloomsTaxonomy mapBloomsTaxonomy(BloomLevel bloomLevel) {
-        return switch (bloomLevel) {
-            case UNDERSTAND -> LevelOfBloomsTaxonomy.UNDERSTAND;
-            case REMEMBER -> LevelOfBloomsTaxonomy.REMEMBER;
-            case APPLY -> LevelOfBloomsTaxonomy.APPLY;
-            case ANALYZE -> LevelOfBloomsTaxonomy.ANALYZE;
-            case EVALUATE -> LevelOfBloomsTaxonomy.EVALUATE;
-            case CREATE -> LevelOfBloomsTaxonomy.CREATE;
-        };
     }
 
     /**
@@ -371,5 +417,72 @@ public class UserProgressDataService {
                 .toList();
 
         return countAsInt(userProgressDataOfContents, UserProgressData::getIsLearned);
+    }
+
+    private Long fetchNextMessageSequenceNo() {
+        final MessageSequenceNoEntity sequenceNoEntity = this.messageSequenceNoEntityRepository.save(new MessageSequenceNoEntity());
+        return sequenceNoEntity.getSequenceNo();
+    }
+
+    private class StageCompletedValueChangedDetector
+            extends ObjectValueChangedDetector<StageCompletedValueChangedDetector.InputParameters, Boolean> {
+
+        public StageCompletedValueChangedDetector() {
+            super(params -> {
+                // always return false if content isn't part of a stage, because in that case the stage can't be
+                // completed and the false value will never change
+                if(params.stage().isEmpty())
+                    return false;
+
+                return getStageProgressForUser(
+                        params.stage().get(), params.progressData().getUserId(), true) < 100;
+            });
+        }
+
+        public record InputParameters(Optional<Stage> stage, UserProgressDataEntity progressData) {
+        }
+    }
+
+    private class ChapterCompletedValueChangedDetector
+            extends ObjectValueChangedDetector<ChapterCompletedValueChangedDetector.InputParameters, Boolean> {
+
+        public ChapterCompletedValueChangedDetector() {
+            super(params -> {
+
+                List<Content> contentsOfChapter = contentService.getContentsByChapterId(params.chapterId());
+
+                // if there is no content in the chapter, it is considered completed
+                if(contentsOfChapter.isEmpty())
+                    return true;
+
+                CompositeProgressInformation chapterProgress =
+                        getProgressByChapterIdForUser(params.chapterId(), params.progressData().getUserId());
+
+                return chapterProgress.getProgress() < 100.0;
+            });
+        }
+
+        public record InputParameters(UUID chapterId, UserProgressDataEntity progressData) {
+        }
+    }
+
+    private class CourseCompletedValueChangedDetector
+            extends ObjectValueChangedDetector<CourseCompletedValueChangedDetector.InputParameters, Boolean> {
+
+        public CourseCompletedValueChangedDetector() {
+            super(params -> {
+                List<Content> contentsOfCourse =
+                        contentService.getContentsByCourseIds(List.of(params.courseId())).stream()
+                                .flatMap(Collection::stream)
+                                .toList();
+
+                int numCompleted = countNumCompletedContent(params.progressData().getUserId(), contentsOfCourse);
+
+                return numCompleted < contentsOfCourse.size();
+            });
+        }
+
+        public record InputParameters(UUID courseId, UserProgressDataEntity progressData) {
+        }
     }
 }

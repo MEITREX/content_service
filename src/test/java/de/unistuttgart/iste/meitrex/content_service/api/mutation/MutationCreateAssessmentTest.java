@@ -62,9 +62,9 @@ class MutationCreateAssessmentTest {
                                 {
                                   associatedSkills:[{skillName:"Test",skillCategory:"Test Category",isCustomSkill: true}]
                                   associatedBloomLevels:[REMEMBER]
-                                
                             }],
                     }) {
+                        __typename
                         id
                         metadata {
                             name

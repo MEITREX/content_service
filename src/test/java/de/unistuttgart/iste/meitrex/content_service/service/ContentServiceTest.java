@@ -3,6 +3,7 @@ package de.unistuttgart.iste.meitrex.content_service.service;
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
 import de.unistuttgart.iste.meitrex.common.event.ChapterChangeEvent;
 import de.unistuttgart.iste.meitrex.common.event.CrudOperation;
+import de.unistuttgart.iste.meitrex.common.event.skilllevels.SkillEntityChangedEvent;
 import de.unistuttgart.iste.meitrex.common.exception.IncompleteEventMessageException;
 import de.unistuttgart.iste.meitrex.common.testutil.MockTestPublisherConfiguration;
 import de.unistuttgart.iste.meitrex.content_service.TestData;
@@ -13,7 +14,9 @@ import de.unistuttgart.iste.meitrex.content_service.validation.ContentValidator;
 import de.unistuttgart.iste.meitrex.generated.dto.*;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -28,6 +31,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = MockTestPublisherConfiguration.class)
+@ExtendWith(MockitoExtension.class)
 class ContentServiceTest {
 
     private final ContentRepository contentRepository = Mockito.mock(ContentRepository.class);
@@ -35,15 +39,14 @@ class ContentServiceTest {
     private final StageService stageService = Mockito.mock(StageService.class);
     private final ContentMapper contentMapper = new ContentMapper(new ModelMapper());
     private final ContentValidator contentValidator = Mockito.spy(ContentValidator.class);
-    private final TopicPublisher mockPublisher = Mockito.mock(TopicPublisher.class);
+    private final TopicPublisher topicPublisher = Mockito.mock(TopicPublisher.class);
     private final UserProgressDataRepository userProgressDataRepository = Mockito.mock(UserProgressDataRepository.class);
     private final ItemRepository itemRepository = Mockito.mock(ItemRepository.class);
     private final SkillRepository skillRepository = Mockito.mock(SkillRepository.class);
     private final AssessmentRepository assessmentRepository = Mockito.mock(AssessmentRepository.class);
 
     private final ContentService contentService = new ContentService(contentRepository, sectionRepository, userProgressDataRepository,
-            stageService, contentMapper, contentValidator, itemRepository, skillRepository, assessmentRepository, mockPublisher);
-
+            stageService, contentMapper, contentValidator, itemRepository, skillRepository, assessmentRepository, topicPublisher);
 
     @Test
     void cascadeContentDeletion() {
@@ -87,7 +90,7 @@ class ContentServiceTest {
 
         verify(contentRepository, times(1)).delete(argThat(content -> content.getId().equals(testEntity.getId())));
         verify(contentRepository, times(1)).delete(argThat(content -> content.getId().equals(testEntity2.getId())));
-        verify(mockPublisher, times(1)).notifyContentChanges(List.of(testEntity.getId(), testEntity2.getId()), CrudOperation.DELETE);
+        verify(topicPublisher, times(1)).notifyContentChanges(List.of(testEntity.getId(), testEntity2.getId()), CrudOperation.DELETE);
         verify(userProgressDataRepository, times(1)).deleteByContentId(argThat(content -> content.equals(testEntity.getId())));
         verify(userProgressDataRepository, times(1)).deleteByContentId(argThat(content -> content.equals(testEntity2.getId())));
     }
@@ -215,7 +218,77 @@ class ContentServiceTest {
         assertEquals(unlinkedContentForChapter1, result.get(0));
         assertEquals(unlinkedContentForChapter2, result.get(1));
         assertTrue(result.get(2).isEmpty());
+    }
 
+    @Test
+    void deleteSkillWhenNoOtherAssessmentUsesTheSkill() {
+        SkillEntity skillEntity = new SkillEntity();
+        skillEntity.setId(UUID.randomUUID());
+        skillEntity.setSkillName("Test Skill");
+        skillEntity.setSkillCategory("Test Category");
+
+        ItemEntity itemEntity = new ItemEntity();
+        itemEntity.setId(UUID.randomUUID());
+        itemEntity.setAssociatedSkills(List.of(skillEntity));
+
+        AssessmentEntity assessmentEntity = AssessmentEntity.builder()
+                .id(UUID.randomUUID())
+                .items(List.of(itemEntity))
+                .build();
+
+        doReturn(Optional.of(assessmentEntity)).when(contentRepository).findById(assessmentEntity.getId());
+        doReturn(Optional.of(skillEntity)).when(skillRepository).findById(skillEntity.getId());
+        doReturn(List.of(itemEntity)).when(itemRepository).findByAssociatedSkills_Id(skillEntity.getId());
+        doReturn(assessmentEntity).when(assessmentRepository).findByItems_Id(itemEntity.getId());
+
+        contentService.deleteContent(assessmentEntity.getId());
+
+        verify(skillRepository, times(1)).delete(skillEntity);
+        verify(topicPublisher, times(1)).notifySkillEntityChanged(
+                SkillEntityChangedEvent.builder()
+                        .skillId(skillEntity.getId())
+                        .skillName(skillEntity.getSkillName())
+                        .skillCategory(skillEntity.getSkillCategory())
+                        .operation(CrudOperation.DELETE)
+                        .build());
+    }
+
+    @Test
+    void dontDeleteSkillWhenOtherAssessmentUsesTheSkill() {
+        SkillEntity skillEntity = new SkillEntity();
+        skillEntity.setId(UUID.randomUUID());
+        skillEntity.setSkillName("Test Skill");
+        skillEntity.setSkillCategory("Test Category");
+
+        ItemEntity itemEntity = new ItemEntity();
+        itemEntity.setId(UUID.randomUUID());
+        itemEntity.setAssociatedSkills(List.of(skillEntity));
+
+        AssessmentEntity assessmentEntity = AssessmentEntity.builder()
+                .id(UUID.randomUUID())
+                .items(List.of(itemEntity))
+                .build();
+
+        ItemEntity itemEntity2 = new ItemEntity();
+        itemEntity2.setId(UUID.randomUUID());
+        itemEntity2.setAssociatedSkills(List.of(skillEntity));
+
+        AssessmentEntity assessmentEntity2 = AssessmentEntity.builder()
+                .id(UUID.randomUUID())
+                .items(List.of(itemEntity2))
+                .build();
+
+        doReturn(Optional.of(assessmentEntity)).when(contentRepository).findById(assessmentEntity.getId());
+        doReturn(Optional.of(assessmentEntity2)).when(contentRepository).findById(assessmentEntity2.getId());
+        doReturn(Optional.of(skillEntity)).when(skillRepository).findById(skillEntity.getId());
+        doReturn(List.of(itemEntity, itemEntity2)).when(itemRepository).findByAssociatedSkills_Id(skillEntity.getId());
+        doReturn(assessmentEntity).when(assessmentRepository).findByItems_Id(itemEntity.getId());
+        doReturn(assessmentEntity2).when(assessmentRepository).findByItems_Id(itemEntity2.getId());
+
+        contentService.deleteContent(assessmentEntity.getId());
+
+        verify(skillRepository, never()).delete(any(SkillEntity.class));
+        verify(topicPublisher, never()).notifySkillEntityChanged(any(SkillEntityChangedEvent.class));
     }
 
     private StageEntity.StageEntityBuilder buildDummyStage() {
