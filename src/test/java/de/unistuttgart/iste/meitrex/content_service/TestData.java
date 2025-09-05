@@ -81,6 +81,10 @@ public class TestData {
     }
 
     public static MediaContentEntity buildContentEntity(final UUID chapterId) {
+        return buildContentEntity(UUID.randomUUID(), chapterId);
+    }
+
+    public static MediaContentEntity buildContentEntity(final UUID courseId, final UUID chapterId) {
         return MediaContentEntity.builder()
                 .id(UUID.randomUUID())
                 .metadata(
@@ -91,7 +95,7 @@ public class TestData {
                                 .suggestedDate(OffsetDateTime.parse("2020-01-01T00:00:00.000Z"))
                                 .rewardPoints(20)
                                 .chapterId(chapterId)
-                                .courseId(UUID.randomUUID())
+                                .courseId(courseId)
                                 .build()
                 ).build();
     }

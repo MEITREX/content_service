@@ -476,8 +476,9 @@ public class UserProgressDataService {
                                 .flatMap(Collection::stream)
                                 .toList();
 
-                return countNumCompletedContent(params.progressData().getUserId(), contentsOfCourse)
-                        < contentsOfCourse.size();
+                int numCompleted = countNumCompletedContent(params.progressData().getUserId(), contentsOfCourse);
+
+                return numCompleted < contentsOfCourse.size();
             });
         }
 

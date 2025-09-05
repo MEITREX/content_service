@@ -1,10 +1,7 @@
 package de.unistuttgart.iste.meitrex.content_service.service;
 
 import de.unistuttgart.iste.meitrex.common.dapr.TopicPublisher;
-import de.unistuttgart.iste.meitrex.common.event.ContentProgressedEvent;
-import de.unistuttgart.iste.meitrex.common.event.ItemResponse;
-import de.unistuttgart.iste.meitrex.common.event.Response;
-import de.unistuttgart.iste.meitrex.common.event.UserProgressUpdatedEvent;
+import de.unistuttgart.iste.meitrex.common.event.*;
 import de.unistuttgart.iste.meitrex.content_service.TestData;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
@@ -162,11 +159,14 @@ class UserProgressDataServiceTest {
     void logProgress() {
         final var contentId = UUID.randomUUID();
         final var userId = UUID.randomUUID();
+        final var chapterId = UUID.randomUUID();
+        final var courseId = UUID.randomUUID();
+        final var stageId = UUID.randomUUID();
         final Content content = MediaContent.builder()
                 .setId(contentId)
                 .setMetadata(ContentMetadata.builder()
-                        .setChapterId(UUID.randomUUID())
-                        .setCourseId(UUID.randomUUID())
+                        .setChapterId(chapterId)
+                        .setCourseId(courseId)
                         .build())
                 .build();
         final ContentProgressedEvent event = ContentProgressedEvent.builder()
@@ -186,7 +186,16 @@ class UserProgressDataServiceTest {
                 .contentId(contentId)
                 .build();
 
+        final Stage stage = Stage.builder()
+                .setId(stageId)
+                .setRequiredContents(List.of(content))
+                .setPosition(1)
+                .build();
+
+        doReturn(Optional.of(stage)).when(stageService).findStageOfContent(contentId);
         doReturn(List.of(content)).when(contentService).getContentsById(List.of(contentId));
+        doReturn(List.of(List.of(content))).when(contentService).getContentsByCourseIds(List.of(courseId));
+        doReturn(List.of(content)).when(contentService).getContentsByChapterId(chapterId);
         doReturn(Optional.of(initialProgress)).when(userProgressDataRepository).findByUserIdAndContentId(any(), any());
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
         doAnswer(invocation -> {
@@ -227,6 +236,21 @@ class UserProgressDataServiceTest {
                 .responses(new ArrayList<ItemResponse>())
                 .build();
         verify(topicPublisher).notifyUserProgressUpdated(expectedUserProgressEvent);
+        verify(topicPublisher).notifyCourseCompleted(CourseCompletedEvent.builder()
+                .userId(userId)
+                .courseId(courseId)
+                .build());
+        verify(topicPublisher).notifyChapterCompleted(ChapterCompletedEvent.builder()
+                .userId(userId)
+                .chapterId(chapterId)
+                .courseId(courseId)
+                .build());
+        verify(topicPublisher).notifyStageCompleted(StageCompletedEvent.builder()
+                .userId(userId)
+                .stageId(stageId)
+                .chapterId(chapterId)
+                .courseId(courseId)
+                .build());
     }
 
     /**
