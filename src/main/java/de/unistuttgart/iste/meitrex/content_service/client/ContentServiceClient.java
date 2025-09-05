@@ -227,14 +227,7 @@ public class ContentServiceClient {
     private List<Content> convertResponseContentToListOfContent(final ClientGraphQlResponse result,
                                                          final String queryName)
             throws ContentServiceConnectionException {
-        final var contentFields = result.field(queryName).toEntityList(Content.class);
-
-        if (contentFields == null) {
-            throw new ContentServiceConnectionException(
-                    "Error while fetching contents from content service: Missing field in response.");
-        }
-
-        return contentFields;
+        return result.field(queryName).toEntityList(Content.class);
     }
 
     private void handleContentServiceResponse(final ClientGraphQlResponse result,
@@ -263,14 +256,7 @@ public class ContentServiceClient {
                                                          final String queryName)
             throws ContentServiceConnectionException {
 
-        final var contentFields = result.field(queryName + "[0]").toEntityList(Content.class);
-
-        if (contentFields == null) {
-            throw new ContentServiceConnectionException(
-                    "Error while fetching contents from content service: Missing field in response.");
-        }
-
-        return contentFields;
+        return result.field(queryName + "[0]").toEntityList(Content.class);
     }
 
     private List<UUID> convertResponseToListOfUUIDs(final ClientGraphQlResponse result, final String queryName)
