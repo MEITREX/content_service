@@ -69,7 +69,6 @@ class UserProgressDataServiceTest {
     @Mock private StageRepository stageRepository; // 未使用也没关系
     @Mock private StageMapper stageMapper;
     @Mock private ItemRepository itemRepository; // 用例里不给 responses，不会触发
-    @Mock private MessageSequenceNoEntityRepository messageSequenceNoEntityRepository;
 
     // === added: 统一修复 logProgress() 的 NPE（不改原有测试正文）===
     @BeforeEach
