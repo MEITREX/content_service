@@ -615,11 +615,13 @@ class UserProgressDataServiceTest {
         when(stageService.findStageOfContent(B)).thenReturn(Optional.of(currentStage));
         when(sectionService.findSectionOfStage(currentStage.getId())).thenReturn(Optional.of(currentSection));
 
-        doReturn(List.of(
+        doReturn(new ArrayList<>(List.of(
                 mkSectionEntity(currentSection.getId(), 100,
                         mkStageEntity(UUID.randomUUID(), 1), mkStageEntity(currentStage.getId(), 2)),
                 mkSectionEntity(UUID.randomUUID(), 200, nextFirstStageEntity)
-        )).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+        ))).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+        when(stageMapper.entityToDto(nextFirstStageEntity)).thenReturn(nextStageDto);
+
         when(stageMapper.entityToDto(nextFirstStageEntity)).thenReturn(nextStageDto);
 
         doReturn(Optional.of(buildDummyUserProgressData(true,  userId, A)))
@@ -627,12 +629,13 @@ class UserProgressDataServiceTest {
         doReturn(Optional.of(buildDummyUserProgressData(false, userId, B)))
                 .when(userProgressDataRepository).findByUserIdAndContentId(userId, B);
 
-        when(contentService.getContentsById(List.of(B))).thenReturn(List.of(
+        when(contentService.getContentsById(List.of(B))).thenReturn(new ArrayList<>(List.of(
                 MediaContent.builder().setId(B)
                         .setMetadata(ContentMetadata.builder()
                                 .setCourseId(courseId).setChapterId(UUID.randomUUID()).build())
                         .build()
-        ));
+        )));
+
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
         userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
@@ -661,22 +664,24 @@ class UserProgressDataServiceTest {
 
         when(stageService.findStageOfContent(B_optional)).thenReturn(Optional.of(currentStage));
         when(sectionService.findSectionOfStage(currentStage.getId())).thenReturn(Optional.of(section));
-        doReturn(List.of(
+        doReturn(new ArrayList<>(List.of(
                 mkSectionEntity(section.getId(), 1,
                         mkStageEntity(currentStage.getId(), 1), mkStageEntity(nextStage.getId(), 2))
-        )).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+        ))).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+
 
         when(stageMapper.entityToDto(any(StageEntity.class))).thenReturn(nextStage);
 
         doReturn(Optional.of(buildDummyUserProgressData(false, userId, A_required)))
                 .when(userProgressDataRepository).findByUserIdAndContentId(userId, A_required);
 
-        when(contentService.getContentsById(List.of(B_optional))).thenReturn(List.of(
+        when(contentService.getContentsById(List.of(B_optional))).thenReturn(new ArrayList<>(List.of(
                 MediaContent.builder().setId(B_optional)
                         .setMetadata(ContentMetadata.builder()
                                 .setCourseId(courseId).setChapterId(UUID.randomUUID()).build())
                         .build()
-        ));
+        )));
+
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
         userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
@@ -700,9 +705,10 @@ class UserProgressDataServiceTest {
 
         when(stageService.findStageOfContent(B)).thenReturn(Optional.of(currentStage));
         when(sectionService.findSectionOfStage(currentStage.getId())).thenReturn(Optional.of(section));
-        doReturn(List.of(
+        doReturn(new ArrayList<>(List.of(
                 mkSectionEntity(section.getId(), 1, mkStageEntity(currentStage.getId(), 3))
-        )).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+        ))).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+
 
 
         doReturn(Optional.of(buildDummyUserProgressData(true,  userId, A)))
@@ -710,12 +716,13 @@ class UserProgressDataServiceTest {
         doReturn(Optional.of(buildDummyUserProgressData(false, userId, B)))
                 .when(userProgressDataRepository).findByUserIdAndContentId(userId, B);
 
-        when(contentService.getContentsById(List.of(B))).thenReturn(List.of(
+        when(contentService.getContentsById(List.of(B))).thenReturn(new ArrayList<>(List.of(
                 MediaContent.builder().setId(B)
                         .setMetadata(ContentMetadata.builder()
                                 .setCourseId(courseId).setChapterId(UUID.randomUUID()).build())
                         .build()
-        ));
+        )));
+
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
         userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
