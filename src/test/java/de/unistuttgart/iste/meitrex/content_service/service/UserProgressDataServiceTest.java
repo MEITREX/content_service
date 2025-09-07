@@ -640,6 +640,18 @@ class UserProgressDataServiceTest {
 
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
+        try {
+            java.lang.reflect.Field f1 = UserProgressDataService.class.getDeclaredField("frontendBaseUrl");
+            f1.setAccessible(true);
+            f1.set(userProgressDataService, "http://localhost:3000");
+
+            java.lang.reflect.Field f2 = UserProgressDataService.class.getDeclaredField("stagePageTemplate");
+            f2.setAccessible(true);
+            f2.set(userProgressDataService, "/courses/{courseId}/stages/{stageId}");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
                 .userId(userId).contentId(B).success(true).correctness(1.0).hintsUsed(0).timeToComplete(0)
                 .responses(new ArrayList<>()).build());
