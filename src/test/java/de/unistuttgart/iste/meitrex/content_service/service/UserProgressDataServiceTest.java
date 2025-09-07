@@ -535,11 +535,6 @@ class UserProgressDataServiceTest {
         verify(contentService, times(1)).getContentsByChapterIds(chapterIds);
     }
 
-    /**
-     * helper method to generate some generic media content DTO
-     *
-     * @return media content Object
-     */
     private MediaContent buildDummyMediaContent() {
         final UUID contentId = UUID.randomUUID();
         final ContentMetadata metadata = ContentMetadata.builder()
@@ -556,8 +551,6 @@ class UserProgressDataServiceTest {
                 .setMetadata(metadata)
                 .build();
     }
-
-    // ====================== added helpers for new tests ======================
 
     private Stage mkStage(UUID id, int pos, List<UUID> requiredIds, List<UUID> optionalIds) {
         Stage s = mock(Stage.class);
@@ -584,7 +577,7 @@ class UserProgressDataServiceTest {
         SectionEntity e = new SectionEntity();
         e.setId(id);
         e.setPosition(pos);
-        e.setStages(new LinkedHashSet<>(Arrays.asList(stages))); // 保序
+        e.setStages(new LinkedHashSet<>(Arrays.asList(stages)));
         return e;
     }
 
@@ -595,14 +588,12 @@ class UserProgressDataServiceTest {
         return e;
     }
 
-    // ====================== added tests ======================
-
     @Test
     void lastRequired_completed_nextStageInNextSection_shouldNotify() {
         UUID userId = UUID.randomUUID();
         UUID courseId = UUID.randomUUID();
-        UUID A = UUID.randomUUID(); // 已完成
-        UUID B = UUID.randomUUID(); // 正在完成的最后一个 required
+        UUID A = UUID.randomUUID();
+        UUID B = UUID.randomUUID();
 
         Stage currentStage = mkStage(UUID.randomUUID(), 2, List.of(A, B), List.of());
         Section currentSection = mock(Section.class);
@@ -622,11 +613,14 @@ class UserProgressDataServiceTest {
         ))).when(sectionRepository).findByCourseIdIn(List.of(courseId));
         when(stageMapper.entityToDto(nextFirstStageEntity)).thenReturn(nextStageDto);
 
-        when(stageMapper.entityToDto(nextFirstStageEntity)).thenReturn(nextStageDto);
-
-        doReturn(Optional.of(buildDummyUserProgressData(true,  userId, A)))
+        UserProgressDataEntity e_A = buildDummyUserProgressData(true, userId, A);
+        e_A.setProgressLog(new ArrayList<>(e_A.getProgressLog()));
+        doReturn(Optional.of(e_A))
                 .when(userProgressDataRepository).findByUserIdAndContentId(userId, A);
-        doReturn(Optional.of(buildDummyUserProgressData(false, userId, B)))
+
+        UserProgressDataEntity e_B = buildDummyUserProgressData(false, userId, B);
+        e_B.setProgressLog(new ArrayList<>(e_B.getProgressLog()));
+        doReturn(Optional.of(e_B))
                 .when(userProgressDataRepository).findByUserIdAndContentId(userId, B);
 
         when(contentService.getContentsById(List.of(B))).thenReturn(new ArrayList<>(List.of(
@@ -635,7 +629,6 @@ class UserProgressDataServiceTest {
                                 .setCourseId(courseId).setChapterId(UUID.randomUUID()).build())
                         .build()
         )));
-
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
         userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
@@ -654,7 +647,7 @@ class UserProgressDataServiceTest {
         UUID userId = UUID.randomUUID();
         UUID courseId = UUID.randomUUID();
         UUID A_required = UUID.randomUUID();
-        UUID B_optional = UUID.randomUUID();  // 可选，完成不应通知
+        UUID B_optional = UUID.randomUUID();
 
         Stage currentStage = mkStage(UUID.randomUUID(), 1, List.of(A_required), List.of(B_optional));
         Stage nextStage    = mkStage(UUID.randomUUID(), 2, List.of(UUID.randomUUID()), List.of());
@@ -668,8 +661,6 @@ class UserProgressDataServiceTest {
                 mkSectionEntity(section.getId(), 1,
                         mkStageEntity(currentStage.getId(), 1), mkStageEntity(nextStage.getId(), 2))
         ))).when(sectionRepository).findByCourseIdIn(List.of(courseId));
-
-
         when(stageMapper.entityToDto(any(StageEntity.class))).thenReturn(nextStage);
 
         doReturn(Optional.of(buildDummyUserProgressData(false, userId, A_required)))
@@ -681,7 +672,6 @@ class UserProgressDataServiceTest {
                                 .setCourseId(courseId).setChapterId(UUID.randomUUID()).build())
                         .build()
         )));
-
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
         userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
@@ -696,7 +686,7 @@ class UserProgressDataServiceTest {
         UUID userId = UUID.randomUUID();
         UUID courseId = UUID.randomUUID();
         UUID A = UUID.randomUUID();
-        UUID B = UUID.randomUUID(); // 完成本阶段最后一个 required，但课程已无后续阶段
+        UUID B = UUID.randomUUID();
 
         Stage currentStage = mkStage(UUID.randomUUID(), 3, List.of(A, B), List.of());
         Section section    = mock(Section.class);
@@ -709,11 +699,14 @@ class UserProgressDataServiceTest {
                 mkSectionEntity(section.getId(), 1, mkStageEntity(currentStage.getId(), 3))
         ))).when(sectionRepository).findByCourseIdIn(List.of(courseId));
 
-
-
-        doReturn(Optional.of(buildDummyUserProgressData(true,  userId, A)))
+        UserProgressDataEntity e_A = buildDummyUserProgressData(true, userId, A);
+        e_A.setProgressLog(new ArrayList<>(e_A.getProgressLog()));
+        doReturn(Optional.of(e_A))
                 .when(userProgressDataRepository).findByUserIdAndContentId(userId, A);
-        doReturn(Optional.of(buildDummyUserProgressData(false, userId, B)))
+
+        UserProgressDataEntity e_B = buildDummyUserProgressData(false, userId, B);
+        e_B.setProgressLog(new ArrayList<>(e_B.getProgressLog()));
+        doReturn(Optional.of(e_B))
                 .when(userProgressDataRepository).findByUserIdAndContentId(userId, B);
 
         when(contentService.getContentsById(List.of(B))).thenReturn(new ArrayList<>(List.of(
@@ -722,7 +715,6 @@ class UserProgressDataServiceTest {
                                 .setCourseId(courseId).setChapterId(UUID.randomUUID()).build())
                         .build()
         )));
-
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
         userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
