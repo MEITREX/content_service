@@ -26,6 +26,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -42,6 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UserProgressDataServiceTest {
 
     @Mock
@@ -73,7 +76,7 @@ class UserProgressDataServiceTest {
     // === added: 统一修复 logProgress() 的 NPE（不改原有测试正文）===
     @BeforeEach
     void stubSequenceRepo() {
-        when(messageSequenceNoEntityRepository.save(any(MessageSequenceNoEntity.class)))
+        lenient().when(messageSequenceNoEntityRepository.save(any(MessageSequenceNoEntity.class)))
                 .thenReturn(new MessageSequenceNoEntity());
     }
 
