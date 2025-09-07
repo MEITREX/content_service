@@ -615,11 +615,11 @@ class UserProgressDataServiceTest {
         when(stageService.findStageOfContent(B)).thenReturn(Optional.of(currentStage));
         when(sectionService.findSectionOfStage(currentStage.getId())).thenReturn(Optional.of(currentSection));
 
-        when(sectionRepository.findByCourseIdIn(List.of(courseId))).thenReturn(List.of(
+        doReturn(List.of(
                 mkSectionEntity(currentSection.getId(), 100,
                         mkStageEntity(UUID.randomUUID(), 1), mkStageEntity(currentStage.getId(), 2)),
                 mkSectionEntity(UUID.randomUUID(), 200, nextFirstStageEntity)
-        ));
+        )).when(sectionRepository).findByCourseIdIn(List.of(courseId));
         when(stageMapper.entityToDto(nextFirstStageEntity)).thenReturn(nextStageDto);
 
         doReturn(Optional.of(buildDummyUserProgressData(true,  userId, A)))
@@ -661,10 +661,11 @@ class UserProgressDataServiceTest {
 
         when(stageService.findStageOfContent(B_optional)).thenReturn(Optional.of(currentStage));
         when(sectionService.findSectionOfStage(currentStage.getId())).thenReturn(Optional.of(section));
-        when(sectionRepository.findByCourseIdIn(List.of(courseId))).thenReturn(List.of(
+        doReturn(List.of(
                 mkSectionEntity(section.getId(), 1,
                         mkStageEntity(currentStage.getId(), 1), mkStageEntity(nextStage.getId(), 2))
-        ));
+        )).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+
         when(stageMapper.entityToDto(any(StageEntity.class))).thenReturn(nextStage);
 
         doReturn(Optional.of(buildDummyUserProgressData(false, userId, A_required)))
@@ -699,9 +700,10 @@ class UserProgressDataServiceTest {
 
         when(stageService.findStageOfContent(B)).thenReturn(Optional.of(currentStage));
         when(sectionService.findSectionOfStage(currentStage.getId())).thenReturn(Optional.of(section));
-        when(sectionRepository.findByCourseIdIn(List.of(courseId))).thenReturn(List.of(
+        doReturn(List.of(
                 mkSectionEntity(section.getId(), 1, mkStageEntity(currentStage.getId(), 3))
-        ));
+        )).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+
 
         doReturn(Optional.of(buildDummyUserProgressData(true,  userId, A)))
                 .when(userProgressDataRepository).findByUserIdAndContentId(userId, A);
