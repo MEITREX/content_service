@@ -623,12 +623,21 @@ class UserProgressDataServiceTest {
         doReturn(Optional.of(e_B))
                 .when(userProgressDataRepository).findByUserIdAndContentId(userId, B);
 
-        when(contentService.getContentsById(List.of(B))).thenReturn(new ArrayList<>(List.of(
-                MediaContent.builder().setId(B)
-                        .setMetadata(ContentMetadata.builder()
-                                .setCourseId(courseId).setChapterId(UUID.randomUUID()).build())
-                        .build()
-        )));
+        UUID bChapterId = UUID.randomUUID();
+        Content bContent = MediaContent.builder().setId(B)
+                .setMetadata(ContentMetadata.builder()
+                        .setCourseId(courseId)
+                        .setChapterId(bChapterId)
+                        .build())
+                .build();
+
+        when(contentService.getContentsById(List.of(B)))
+                .thenReturn(new ArrayList<>(List.of(bContent)));
+        when(contentService.getContentsByChapterId(bChapterId))
+                .thenReturn(new ArrayList<>(List.of(bContent)));
+        when(contentService.getContentsByCourseIds(List.of(courseId)))
+                .thenReturn(new ArrayList<>(List.of(new ArrayList<>(List.of(bContent)))));
+
         doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
 
         userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
@@ -641,6 +650,7 @@ class UserProgressDataServiceTest {
 
         assertThat(linkCap.getValue(), containsString("/courses/" + courseId + "/stages/" + nextStageDto.getId()));
     }
+
 
     @Test
     void optionalContent_completed_shouldNotNotify() {
