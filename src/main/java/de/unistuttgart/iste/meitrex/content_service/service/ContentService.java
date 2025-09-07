@@ -14,6 +14,7 @@ import de.unistuttgart.iste.meitrex.generated.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ import static de.unistuttgart.iste.meitrex.common.util.MeitrexCollectionUtils.gr
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ContentService {
 
     private final ContentRepository contentRepository;
@@ -251,7 +253,11 @@ public class ContentService {
             List<SkillEntity> skills = new ArrayList<>();
             for (SkillEntity skill : item.getAssociatedSkills()) {
                 if (skill.getId() != null) {
-                    skills.add(skillRepository.findById(skill.getId()).get());
+                    Optional<SkillEntity> skillEntity = skillRepository.findById(skill.getId());
+                    skillEntity.ifPresentOrElse(
+                            skills::add,
+                            () -> log.error("Could not find skill with ID {} even though it should exist in the database.", skill.getId())
+                    );
                 } else {
                     skills.add(skillRepository.save(skill));
                     topicPublisher.notifySkillEntityChanged(SkillEntityChangedEvent.builder()
