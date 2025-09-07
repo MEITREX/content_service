@@ -61,6 +61,39 @@ public class QueryDefinitions {
             }
             """;
 
+    public static final String UPDATE_ASSESSMENT = """
+            mutation($contentId: UUID!, $userId: UUID!, $assessmentMetadata: AssessmentMetadataInput!) {
+                _internal_noauth_updateAssessment(contentId: $contentId, userId: $userId, assessmentMetadata: $assessmentMetadata) {
+                    id
+                    metadata {
+                        name
+                        tagNames
+                        suggestedDate
+                        type
+                        chapterId
+                        rewardPoints
+                        courseId
+                    }
+                    ...on Assessment {
+                         assessmentMetadata {
+                             skillTypes
+                             skillPoints
+                             initialLearningInterval
+                         }
+                         items{
+                            id
+                            associatedSkills{
+                                skillName
+                                skillCategory
+                                isCustomSkill
+                            }
+                            associatedBloomLevels
+                         }
+                     }
+                }
+            }
+            """;
+
     public static final String CONTENTS_BY_CHAPTER_IDS_QUERY = CONTENTS_FRAGMENT + """
             query($chapterIds: [UUID!]!, $userId: UUID!) {
                 _internal_noauth_contentsByChapterIds(chapterIds: $chapterIds) {

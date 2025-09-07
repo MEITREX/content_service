@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.meitrex.content_service.persistence.entity;
 
 import de.unistuttgart.iste.meitrex.common.persistence.IWithId;
+import de.unistuttgart.iste.meitrex.content_service.persistence.generators.ItemIdGenerator;
 import de.unistuttgart.iste.meitrex.generated.dto.BloomLevel;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +19,7 @@ import java.util.UUID;
 public class ItemEntity implements IWithId<UUID> {
     @Column(name = "item_id", nullable = false)
     @Id
-    @GeneratedValue
+    @ItemIdGenerator.ItemGeneratedId
     private UUID id;
     @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default

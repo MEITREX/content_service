@@ -19,13 +19,18 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AssessmentMetadataEmbeddable {
+    /*
+    Note the schema should be changed in the future to be consistent with the GraphQL API.
+    Due to avoid DB migrations, we keep the old schema for now.
+    TODO: change schema in future to make the skillPoints and skillTypes non-nullable
+     */
 
     @Column(nullable = true)
-    private int skillPoints;
+    private int skillPoints = 0;
 
     @Column(nullable = true)
-    private List<SkillType> skillTypes;
+    private List<SkillType> skillTypes = List.of();
 
     @Column(nullable = true)
-    private Integer initialLearningInterval;
+    private Integer initialLearningInterval = 0;
 }

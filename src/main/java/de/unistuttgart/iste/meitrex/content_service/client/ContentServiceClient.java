@@ -8,6 +8,7 @@ import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.springframework.graphql.client.ClientGraphQlResponse;
 import org.springframework.graphql.client.GraphQlClient;
+import org.springframework.graphql.data.method.annotation.Argument;
 import reactor.core.publisher.SynchronousSink;
 
 import java.time.OffsetDateTime;
@@ -109,6 +110,7 @@ public class ContentServiceClient {
                 .retry(RETRY_COUNT)
                 .block();
     }
+
 
     /**
      * Queries the content service for the progress of the given chapter.

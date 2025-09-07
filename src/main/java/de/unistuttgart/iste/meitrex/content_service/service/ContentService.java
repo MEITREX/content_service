@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -41,6 +42,8 @@ public class ContentService {
 
     private final AssessmentRepository assessmentRepository;
     private final TopicPublisher topicPublisher;
+
+    private final Logger log = org.slf4j.LoggerFactory.getLogger(ContentService.class);
 
     /**
      * Deletes Content by ID
@@ -248,14 +251,17 @@ public class ContentService {
         }
         for (ItemEntity item : updatedAssessment.getItems()) {
             List<SkillEntity> skills = new ArrayList<>();
-            for (SkillEntity skill : item.getAssociatedSkills()) {
+            for (SkillEntity skill : Optional.ofNullable(item.getAssociatedSkills()).orElse(List.of())) {
                 if (skill.getId() != null) {
-                    skills.add(skillRepository.findById(skill.getId()).get());
+                    skillRepository.findById(skill.getId()).ifPresent(skills::add);
                 } else {
                     skills.add(skillRepository.save(skill));
                 }
             }
             item.setAssociatedSkills(skills);
+            // to avoid null pointer exceptions when inserting into DB
+            item.setAssociatedBloomLevels(Optional.ofNullable(item.getAssociatedBloomLevels()).orElse(List.of()));
+            log.debug("Saving item with id {} and {} skills", item.getId(), skills.size());
             itemRepository.save(item);
             items.add(item);
         }
