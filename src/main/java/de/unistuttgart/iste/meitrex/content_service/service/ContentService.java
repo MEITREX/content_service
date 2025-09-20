@@ -250,7 +250,9 @@ public class ContentService {
             updatedAssessment.setItems(oldAssessment.getItems());
         }
         for (ItemEntity item : updatedAssessment.getItems()) {
-            List<SkillEntity> skills = new ArrayList<>();
+            List<SkillEntity> skills = item.getAssociatedSkills();
+            // clear the list instead of creating a new one to keep the managed state of the entity
+            skills.clear();
             for (SkillEntity skill : item.getAssociatedSkills()) {
                 if (skill.getId() != null) {
                     Optional<SkillEntity> skillEntity = skillRepository.findById(skill.getId());
