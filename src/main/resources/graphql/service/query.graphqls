@@ -8,6 +8,12 @@ type Query {
 
     """
     Retrieves all existing contents for a given course.
+    🔒 The user must have access to the course with the given id to access its contents, otherwise an error is thrown.
+    """
+    contentsByCourseId(courseId: UUID!): ContentSearchResult!
+
+    """
+    Retrieves all existing contents for a given course.
     ⚠️ This query is only accessible internally in the system and allows the caller to fetch contents without
     any permissions check and should not be called without any validation of the caller's permissions. ⚠️
     """

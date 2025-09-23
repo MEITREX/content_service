@@ -62,6 +62,12 @@ public class ContentController {
         return contentService.getContentsByCourseIds(courseIds);
     }
 
+    @QueryMapping("contentsByCourseId")
+    public ContentSearchResult contentsByCourseId(@Argument final UUID courseId, @ContextValue final LoggedInUser currentUser) {
+        validateUserHasAccessToCourses(currentUser, UserRoleInCourse.STUDENT, List.of(courseId));
+        return contentService.getContentsByCourseId(courseId);
+    }
+
 
     @QueryMapping
     public List<Content> findContentsByIds(@Argument final List<UUID> ids,

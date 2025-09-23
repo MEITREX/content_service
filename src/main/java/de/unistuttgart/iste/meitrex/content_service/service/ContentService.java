@@ -120,6 +120,20 @@ public class ContentService {
     }
 
     /**
+     * Returns all contents for the given course ID.
+     * @param courseId the id of the course to get the contents for
+     * @return ContentSearchResult containing all contents of the given course ID
+     */
+    public ContentSearchResult getContentsByCourseId(final UUID courseId) {
+        final List<ContentEntity> matchingContents = contentRepository.findByCourseIdIn(List.of(courseId));
+        final List<Content> contents = matchingContents
+                .stream()
+                .map(contentMapper::entityToDto)
+                .toList();
+        return ContentSearchResult.builder().setContents(contents).setTotalCount(matchingContents.size()).build();
+    }
+
+    /**
      * Returns a list of lists of contents for each given chapter id. The order of the lists will match the order of the
      * given chapter ids.
      *

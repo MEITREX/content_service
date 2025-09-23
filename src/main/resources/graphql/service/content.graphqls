@@ -64,6 +64,17 @@ type ContentMetadata {
     tagNames: [String!]!
 }
 
+type ContentSearchResult {
+    """
+    The contents that match the search criteria
+    """
+    contents: [Content!]!
+    """
+    The total number of contents that match the search criteria
+    """
+    totalCount: Int!
+}
+
 type MediaContent implements Content {
     # Inherited fields
     """
