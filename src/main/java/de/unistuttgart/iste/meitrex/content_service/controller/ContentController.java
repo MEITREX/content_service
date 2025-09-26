@@ -263,6 +263,10 @@ public class ContentController {
     }
 
     @Controller
+    public class SubmissionAssessmentResolver extends ContentResolver<SubmissionAssessment> {
+    }
+
+    @Controller
     public class AssignmentAssessmentResolver extends ContentResolver<AssignmentAssessment> {
     }
 
