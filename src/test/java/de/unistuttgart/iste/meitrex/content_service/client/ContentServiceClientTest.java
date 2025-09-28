@@ -124,15 +124,16 @@ class ContentServiceClientTest {
         contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.FLASHCARDS));
         contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.QUIZ));
         contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.ASSIGNMENT));
+        contentRepository.save(createAssessmentForChapter(courseId, chapterId, ContentType.SUBMISSION));
 
         final List<Content> actualContents = contentServiceClient.queryContentsOfCourse(userId, courseId);
 
-        assertThat(actualContents, hasSize(4));
+        assertThat(actualContents, hasSize(5));
 
         // we just check the types here exemplary, other fields are tested in the API tests
         final var types = actualContents.stream().map(Content::getMetadata).map(ContentMetadata::getType).toList();
 
-        assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ, ContentType.ASSIGNMENT));
+        assertThat(types, containsInAnyOrder(ContentType.MEDIA, ContentType.FLASHCARDS, ContentType.QUIZ, ContentType.ASSIGNMENT, ContentType.SUBMISSION));
     }
 
     @Test
