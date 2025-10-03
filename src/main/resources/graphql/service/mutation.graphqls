@@ -236,6 +236,7 @@ input ItemInput{
     """
     associatedBloomLevels:[BloomLevel!]!
 }
+
 input CreateItemInput {
     associatedSkills: [CreateSkillInput!]!
     associatedBloomLevels: [BloomLevel!]!
@@ -260,6 +261,7 @@ input SkillInput{
     """
     isCustomSkill:Boolean!
 }
+
 input CreateSkillInput {
     skillName: String!
     skillCategory: String!

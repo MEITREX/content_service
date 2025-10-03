@@ -266,6 +266,53 @@ type QuizAssessment implements Assessment & Content {
 }
 
 """
+A submission, submission related fields are stored in the media service.
+"""
+type SubmissionAssessment implements Assessment & Content {
+    # inherited fields
+    """
+    Assessment metadata
+    """
+    assessmentMetadata: AssessmentMetadata!
+    """
+    ID of the content
+    """
+    id: UUID!
+    """
+    Metadata of the content
+    """
+    metadata: ContentMetadata!
+
+    """
+    Progress data of the content for the current user.
+    """
+    userProgressData: UserProgressData!
+    """
+    Progress data of the specified user.
+    """
+    progressDataForUser(userId: UUID!): UserProgressData!
+    """
+    the items that belong to the Submission
+    """
+    items:[Item!]!
+    """
+    For the current user, returns true if this content could be worked on by the user (i.e. it is not locked), false
+    if content is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    isAvailableToBeWorkedOn: Boolean!
+    """
+    For the user with the given id, returns true if this content could be worked on by the user (i.e. it is not locked),
+    false if content is not available to be worked on (e.g. because previous stage has not been completed)
+    """
+    _internal_noauth_isAvailableToBeWorkedOnForUser(userId: UUID!): Boolean!
+    """
+    If this content is part of a stage (of a section) and is required to be completed, this field is set to true.
+    If the content is optional or not part of a stage, this field is false.
+    """
+    required: Boolean!
+}
+
+"""
 An assignment, assignment related fields are stored in the assignment service.
 """
 type AssignmentAssessment implements Assessment & Content {
@@ -376,5 +423,6 @@ enum ContentType {
     FLASHCARDS
     QUIZ
     ASSIGNMENT
+    SUBMISSION
     # add more types here
 }
