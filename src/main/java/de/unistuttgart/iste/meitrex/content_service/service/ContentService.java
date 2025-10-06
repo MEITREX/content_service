@@ -244,15 +244,12 @@ public class ContentService {
         ContentEntity updatedContentEntity = contentMapper.assessmentDtoToEntity(contentId, input,
                 oldContentEntity.getMetadata().getType());
         AssessmentEntity updatedAssessment = (AssessmentEntity) updatedContentEntity;
-        List<ItemEntity> items = new ArrayList<>();
-        if(updatedAssessment.getItems() == null){
-            AssessmentEntity oldAssessment = (AssessmentEntity) oldContentEntity;
-            updatedAssessment.setItems(oldAssessment.getItems());
-        }
+        AssessmentEntity oldAssessment = (AssessmentEntity) oldContentEntity;
+        List<ItemEntity> items = oldAssessment.getItems();
+        items.clear();
         for (ItemEntity item : updatedAssessment.getItems()) {
-            List<SkillEntity> skills = item.getAssociatedSkills();
-            // clear the list instead of creating a new one to keep the managed state of the entity
-            skills.clear();
+            List<SkillEntity> skills = new LinkedList<>();
+
             for (SkillEntity skill : item.getAssociatedSkills()) {
                 if (skill.getId() != null) {
                     Optional<SkillEntity> skillEntity = skillRepository.findById(skill.getId());
