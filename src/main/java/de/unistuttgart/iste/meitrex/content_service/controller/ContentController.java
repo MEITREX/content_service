@@ -267,6 +267,10 @@ public class ContentController {
     }
 
     @Controller
+    public class UmlAssessmentResolver extends ContentResolver<UmlAssessment> {
+    }
+
+    @Controller
     public class AssignmentAssessmentResolver extends ContentResolver<AssignmentAssessment> {
     }
 
