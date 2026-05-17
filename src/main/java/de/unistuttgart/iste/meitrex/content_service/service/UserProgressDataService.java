@@ -13,6 +13,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.stream.Collectors;
 import java.time.OffsetDateTime;
 import java.util.*;
 
@@ -38,6 +42,23 @@ public class UserProgressDataService {
 
     private final StageMapper stageMapper;
     private final ContentMapper contentMapper;
+
+
+    @Value("${app.frontend.base-url:http://localhost:3000}")
+    private String frontendBaseUrl;
+
+    @Value("${app.frontend.stage-page-template:/courses/{courseId}/stages/{stageId}}")
+    private String stagePageTemplate;
+
+    private String buildStagePageLink(final UUID courseId, final UUID stageId) {
+        final String path = stagePageTemplate
+                .replace("{courseId}", courseId.toString())
+                .replace("{stageId}", stageId.toString());
+        return UriComponentsBuilder.fromHttpUrl(frontendBaseUrl)
+                .path(path.startsWith("/") ? path : "/" + path)
+                .build()
+                .toUriString();
+    }
 
     /**
      * Returns the user progress data for the given user and content.
@@ -98,6 +119,28 @@ public class UserProgressDataService {
      * @param contentProgressedEvent the event to log
      */
     public void logUserProgress(final ContentProgressedEvent contentProgressedEvent) {
+        final UUID userId = contentProgressedEvent.getUserId();
+        final UUID contentId = contentProgressedEvent.getContentId();
+
+        final Optional<Stage> currentStageOptPre = stageService.findStageOfContent(contentId);
+        final boolean hasStage = currentStageOptPre.isPresent();
+        Stage currentStagePre = null;
+        Set<UUID> requiredContentIdsPre;
+        int requiredCountPre = 0;
+        int preCompletedRequiredCount = 0;
+        boolean currentContentIsRequired = false;
+
+        if (hasStage) {
+            currentStagePre = currentStageOptPre.get();
+            requiredContentIdsPre = currentStagePre.getRequiredContents()
+                    .stream().map(Content::getId).collect(Collectors.toSet());
+            requiredCountPre = requiredContentIdsPre.size();
+            currentContentIsRequired = requiredContentIdsPre.contains(contentId);
+
+            if (requiredCountPre > 0) {
+                preCompletedRequiredCount = countNumCompletedContent(userId, currentStagePre.getRequiredContents());
+            }
+        }
         final Content content = contentService
                 .getContentsById(List.of(contentProgressedEvent.getContentId())).getFirst();
 
@@ -168,7 +211,70 @@ public class UserProgressDataService {
 
         final int attemptCount = progressLogList.size();
         topicPublisher.notifyUserProgressUpdated(createUserProgressUpdatedEvent(contentProgressedEvent, content, itemResponses, attemptCount));
+        if (!contentProgressedEvent.isSuccess())
+            return;
+        if (!hasStage || !currentContentIsRequired || requiredCountPre == 0)
+            return;
+
+        if (preCompletedRequiredCount != requiredCountPre - 1)
+            return;
+
+        final Optional<Section> sectionOpt = sectionService.findSectionOfStage(currentStagePre.getId());
+        if (sectionOpt.isEmpty())
+            return;
+        final Section currentSection = sectionOpt.get();
+
+        final Optional<Stage> nextStageOpt = findGlobalNextStage(currentSection, currentStagePre);
+        if (nextStageOpt.isEmpty())
+            return;
+        final Stage nextStage = nextStageOpt.get();
+
+        final UUID courseId = currentSection.getCourseId();
+        final String link = buildStagePageLink(courseId, nextStage.getId());
+
+        topicPublisher.notificationEvent(
+                courseId,
+                List.of(userId),
+                ServerSource.CONTENT,
+                link,
+                "Next stage is unlocked!",
+                "Suggested date of next stage has arrived!"
+        );
     }
+
+    /**
+     * find next stage of current stage
+     * @param currentSection current section
+     * @param currentStage current stage
+     * @return NextStage
+     */
+    private Optional<Stage> findGlobalNextStage(final Section currentSection, final Stage currentStage) {
+        final List<SectionEntity> sectionsSorted = sectionRepository
+                .findByCourseIdIn(List.of(currentSection.getCourseId()))
+                .stream()
+                .sorted(Comparator.comparingInt(SectionEntity::getPosition))
+                .toList();
+
+        boolean passedCurrent = false;
+        for (SectionEntity se : sectionsSorted) {
+            final List<StageEntity> stagesSorted = se.getStages().stream()
+                    .sorted(Comparator.comparingInt(StageEntity::getPosition))
+                    .toList();
+
+            for (StageEntity st : stagesSorted) {
+                if (!passedCurrent) {
+                    if (st.getId().equals(currentStage.getId())) {
+                        passedCurrent = true;
+                    }
+                } else {
+                    return Optional.of(stageMapper.entityToDto(st));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+
 
     /**
      * adds the item specific information to the responses

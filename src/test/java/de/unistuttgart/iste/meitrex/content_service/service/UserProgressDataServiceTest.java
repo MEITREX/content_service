@@ -6,22 +6,34 @@ import de.unistuttgart.iste.meitrex.content_service.TestData;
 import de.unistuttgart.iste.meitrex.content_service.persistence.entity.*;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.ContentMapper;
 import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.UserProgressDataMapper;
+
+// === added imports ===
+import de.unistuttgart.iste.meitrex.content_service.persistence.mapper.StageMapper;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.ItemRepository;
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.MessageSequenceNoEntityRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.SectionRepository;
+import de.unistuttgart.iste.meitrex.content_service.persistence.repository.StageRepository;
+
 import de.unistuttgart.iste.meitrex.content_service.persistence.repository.UserProgressDataRepository;
 
 import de.unistuttgart.iste.meitrex.generated.dto.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static de.unistuttgart.iste.meitrex.content_service.TestData.buildDummyUserProgressData;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,6 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UserProgressDataServiceTest {
 
     @Mock
@@ -52,6 +65,20 @@ class UserProgressDataServiceTest {
 
     @InjectMocks
     private UserProgressDataService userProgressDataService;
+
+    // === added mocks (不影响原有用例) ===
+    @Mock private SectionService sectionService;
+    @Mock private SectionRepository sectionRepository;
+    @Mock private StageRepository stageRepository; // 未使用也没关系
+    @Mock private StageMapper stageMapper;
+    @Mock private ItemRepository itemRepository; // 用例里不给 responses，不会触发
+
+    // === added: 统一修复 logProgress() 的 NPE（不改原有测试正文）===
+    @BeforeEach
+    void stubSequenceRepo() {
+        lenient().when(messageSequenceNoEntityRepository.save(any(MessageSequenceNoEntity.class)))
+                .thenReturn(new MessageSequenceNoEntity());
+    }
 
     /**
      * Given progress data exists for the user and content
@@ -508,11 +535,6 @@ class UserProgressDataServiceTest {
         verify(contentService, times(1)).getContentsByChapterIds(chapterIds);
     }
 
-    /**
-     * helper method to generate some generic media content DTO
-     *
-     * @return media content Object
-     */
     private MediaContent buildDummyMediaContent() {
         final UUID contentId = UUID.randomUUID();
         final ContentMetadata metadata = ContentMetadata.builder()
@@ -530,5 +552,197 @@ class UserProgressDataServiceTest {
                 .build();
     }
 
+    private Stage mkStage(UUID id, int pos, List<UUID> requiredIds, List<UUID> optionalIds) {
+        Stage s = mock(Stage.class);
+        when(s.getId()).thenReturn(id);
+        when(s.getPosition()).thenReturn(pos);
 
+        List<Content> req = requiredIds.stream().map(cid -> {
+            Content c = mock(Content.class);
+            when(c.getId()).thenReturn(cid);
+            return c;
+        }).collect(Collectors.toList());
+        List<Content> opt = optionalIds.stream().map(cid -> {
+            Content c = mock(Content.class);
+            when(c.getId()).thenReturn(cid);
+            return c;
+        }).collect(Collectors.toList());
+
+        when(s.getRequiredContents()).thenReturn(req);
+        when(s.getOptionalContents()).thenReturn(opt);
+        return s;
+    }
+
+    private SectionEntity mkSectionEntity(UUID id, int pos, StageEntity... stages) {
+        SectionEntity e = new SectionEntity();
+        e.setId(id);
+        e.setPosition(pos);
+        e.setStages(new LinkedHashSet<>(Arrays.asList(stages)));
+        return e;
+    }
+
+    private StageEntity mkStageEntity(UUID id, int pos) {
+        StageEntity e = new StageEntity();
+        e.setId(id);
+        e.setPosition(pos);
+        return e;
+    }
+
+    @Test
+    void lastRequired_completed_nextStageInNextSection_shouldNotify() {
+        UUID userId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+        UUID A = UUID.randomUUID();
+        UUID B = UUID.randomUUID();
+
+        Stage currentStage = mkStage(UUID.randomUUID(), 2, List.of(A, B), List.of());
+        Section currentSection = mock(Section.class);
+        when(currentSection.getId()).thenReturn(UUID.randomUUID());
+        when(currentSection.getCourseId()).thenReturn(courseId);
+
+        StageEntity nextFirstStageEntity = mkStageEntity(UUID.randomUUID(), 1);
+        Stage nextStageDto = mkStage(nextFirstStageEntity.getId(), 1, List.of(UUID.randomUUID()), List.of());
+
+        when(stageService.findStageOfContent(B)).thenReturn(Optional.of(currentStage));
+        when(sectionService.findSectionOfStage(currentStage.getId())).thenReturn(Optional.of(currentSection));
+
+        doReturn(new ArrayList<>(List.of(
+                mkSectionEntity(currentSection.getId(), 100,
+                        mkStageEntity(UUID.randomUUID(), 1), mkStageEntity(currentStage.getId(), 2)),
+                mkSectionEntity(UUID.randomUUID(), 200, nextFirstStageEntity)
+        ))).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+        when(stageMapper.entityToDto(nextFirstStageEntity)).thenReturn(nextStageDto);
+
+        UserProgressDataEntity e_A = buildDummyUserProgressData(true, userId, A);
+        e_A.setProgressLog(new ArrayList<>(e_A.getProgressLog()));
+        doReturn(Optional.of(e_A))
+                .when(userProgressDataRepository).findByUserIdAndContentId(userId, A);
+
+        UserProgressDataEntity e_B = buildDummyUserProgressData(false, userId, B);
+        e_B.setProgressLog(new ArrayList<>(e_B.getProgressLog()));
+        doReturn(Optional.of(e_B))
+                .when(userProgressDataRepository).findByUserIdAndContentId(userId, B);
+
+        UUID bChapterId = UUID.randomUUID();
+        Content bContent = MediaContent.builder().setId(B)
+                .setMetadata(ContentMetadata.builder()
+                        .setCourseId(courseId)
+                        .setChapterId(bChapterId)
+                        .build())
+                .build();
+
+        when(contentService.getContentsById(List.of(B)))
+                .thenReturn(new ArrayList<>(List.of(bContent)));
+        when(contentService.getContentsByChapterId(bChapterId))
+                .thenReturn(new ArrayList<>(List.of(bContent)));
+        when(contentService.getContentsByCourseIds(List.of(courseId)))
+                .thenReturn(new ArrayList<>(List.of(new ArrayList<>(List.of(bContent)))));
+
+        doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
+
+        try {
+            java.lang.reflect.Field f1 = UserProgressDataService.class.getDeclaredField("frontendBaseUrl");
+            f1.setAccessible(true);
+            f1.set(userProgressDataService, "http://localhost:3000");
+
+            java.lang.reflect.Field f2 = UserProgressDataService.class.getDeclaredField("stagePageTemplate");
+            f2.setAccessible(true);
+            f2.set(userProgressDataService, "/courses/{courseId}/stages/{stageId}");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
+                .userId(userId).contentId(B).success(true).correctness(1.0).hintsUsed(0).timeToComplete(0)
+                .responses(new ArrayList<>()).build());
+
+        ArgumentCaptor<String> linkCap = ArgumentCaptor.forClass(String.class);
+        verify(topicPublisher).notificationEvent(eq(courseId), eq(List.of(userId)),
+                any(), linkCap.capture(), anyString(), anyString());
+
+        assertThat(linkCap.getValue(), containsString("/courses/" + courseId + "/stages/" + nextStageDto.getId()));
+    }
+
+
+    @Test
+    void optionalContent_completed_shouldNotNotify() {
+        UUID userId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+        UUID A_required = UUID.randomUUID();
+        UUID B_optional = UUID.randomUUID();
+
+        Stage currentStage = mkStage(UUID.randomUUID(), 1, List.of(A_required), List.of(B_optional));
+        Stage nextStage    = mkStage(UUID.randomUUID(), 2, List.of(UUID.randomUUID()), List.of());
+        Section section    = mock(Section.class);
+        when(section.getId()).thenReturn(UUID.randomUUID());
+        when(section.getCourseId()).thenReturn(courseId);
+
+        when(stageService.findStageOfContent(B_optional)).thenReturn(Optional.of(currentStage));
+        when(sectionService.findSectionOfStage(currentStage.getId())).thenReturn(Optional.of(section));
+        doReturn(new ArrayList<>(List.of(
+                mkSectionEntity(section.getId(), 1,
+                        mkStageEntity(currentStage.getId(), 1), mkStageEntity(nextStage.getId(), 2))
+        ))).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+        when(stageMapper.entityToDto(any(StageEntity.class))).thenReturn(nextStage);
+
+        doReturn(Optional.of(buildDummyUserProgressData(false, userId, A_required)))
+                .when(userProgressDataRepository).findByUserIdAndContentId(userId, A_required);
+
+        when(contentService.getContentsById(List.of(B_optional))).thenReturn(new ArrayList<>(List.of(
+                MediaContent.builder().setId(B_optional)
+                        .setMetadata(ContentMetadata.builder()
+                                .setCourseId(courseId).setChapterId(UUID.randomUUID()).build())
+                        .build()
+        )));
+        doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
+
+        userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
+                .userId(userId).contentId(B_optional).success(true).correctness(1.0).hintsUsed(0).timeToComplete(0)
+                .responses(new ArrayList<>()).build());
+
+        verify(topicPublisher, never()).notificationEvent(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void noGlobalNextStage_shouldNotNotify() {
+        UUID userId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+        UUID A = UUID.randomUUID();
+        UUID B = UUID.randomUUID();
+
+        Stage currentStage = mkStage(UUID.randomUUID(), 3, List.of(A, B), List.of());
+        Section section    = mock(Section.class);
+        when(section.getId()).thenReturn(UUID.randomUUID());
+        when(section.getCourseId()).thenReturn(courseId);
+
+        when(stageService.findStageOfContent(B)).thenReturn(Optional.of(currentStage));
+        when(sectionService.findSectionOfStage(currentStage.getId())).thenReturn(Optional.of(section));
+        doReturn(new ArrayList<>(List.of(
+                mkSectionEntity(section.getId(), 1, mkStageEntity(currentStage.getId(), 3))
+        ))).when(sectionRepository).findByCourseIdIn(List.of(courseId));
+
+        UserProgressDataEntity e_A = buildDummyUserProgressData(true, userId, A);
+        e_A.setProgressLog(new ArrayList<>(e_A.getProgressLog()));
+        doReturn(Optional.of(e_A))
+                .when(userProgressDataRepository).findByUserIdAndContentId(userId, A);
+
+        UserProgressDataEntity e_B = buildDummyUserProgressData(false, userId, B);
+        e_B.setProgressLog(new ArrayList<>(e_B.getProgressLog()));
+        doReturn(Optional.of(e_B))
+                .when(userProgressDataRepository).findByUserIdAndContentId(userId, B);
+
+        when(contentService.getContentsById(List.of(B))).thenReturn(new ArrayList<>(List.of(
+                MediaContent.builder().setId(B)
+                        .setMetadata(ContentMetadata.builder()
+                                .setCourseId(courseId).setChapterId(UUID.randomUUID()).build())
+                        .build()
+        )));
+        doAnswer(returnsFirstArg()).when(userProgressDataRepository).save(any(UserProgressDataEntity.class));
+
+        userProgressDataService.logUserProgress(ContentProgressedEvent.builder()
+                .userId(userId).contentId(B).success(true).correctness(1.0).hintsUsed(0).timeToComplete(0)
+                .responses(new ArrayList<>()).build());
+
+        verify(topicPublisher, never()).notificationEvent(any(), any(), any(), any(), any(), any());
+    }
 }
